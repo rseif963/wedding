@@ -5,16 +5,22 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Menu, X } from "lucide-react";
-import { useAppContext } from "@/context/AppContext"; // 👈 import context
+import { useAppContext } from "@/context/AppContext";
+
+interface LocalUser {
+  email?: string;
+  id?: string;
+  role?: string;
+  phone?: string;
+}
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, role, authLoading } = useAppContext(); // 👈 get user + role + loading
+  const { user, role, authLoading } = useAppContext();
 
   // local fallback state (used only if context user/role are not available)
-  const [localUser, setLocalUser] = useState<any | null>(null);
+  const [localUser, setLocalUser] = useState<LocalUser | null>(null);
   const [localRole, setLocalRole] = useState<string | null>(null);
-  const [checking, setChecking] = useState(false);
 
   // Decide profile link based on effective role (context first, then local detection)
   const effectiveRole = role || localRole || null;
@@ -26,13 +32,12 @@ export default function Navbar() {
       ? "/dashboard/client"
       : "/profile"; // fallback
 
-  // If context has user already, we don't need to detect. Otherwise try to detect from token.
+  // Detect user if not available in context
   useEffect(() => {
     if (user) {
       // clear any local detection if context provides the user
       setLocalUser(null);
       setLocalRole(null);
-      setChecking(false);
       return;
     }
 
@@ -42,7 +47,6 @@ export default function Navbar() {
     if (!token) return;
 
     let mounted = true;
-    setChecking(true);
 
     const detect = async () => {
       try {
@@ -59,7 +63,7 @@ export default function Navbar() {
         });
         setLocalRole("client");
         return;
-      } catch (err) {
+      } catch {
         // not a client or failed; try vendor
       }
 
@@ -75,11 +79,8 @@ export default function Navbar() {
           phone: vendorRes.data?.phone,
         });
         setLocalRole("vendor");
-        return;
-      } catch (err) {
+      } catch {
         // no user detected
-      } finally {
-        if (mounted) setChecking(false);
       }
     };
 
@@ -88,10 +89,11 @@ export default function Navbar() {
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, role]);
 
-  // While checking token, avoid flicker (preserve your original loading behavior)
+  // decide final "isLoggedIn" using context first, then local detection
+  const isLoggedIn = Boolean(user || localUser);
+
   if (authLoading) {
     return (
       <nav className="sticky top-0 z-50 w-full bg-white shadow-md px-6 md:px-10 py-4 flex items-center">
@@ -109,9 +111,6 @@ export default function Navbar() {
       </nav>
     );
   }
-
-  // decide final "isLoggedIn" using context first, then local detection
-  const isLoggedIn = Boolean(user || localUser);
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white shadow-md px-6 md:px-10 py-4 flex items-center">
@@ -161,7 +160,6 @@ export default function Navbar() {
 
       {/* Right: Login/Profile (desktop only) + Hamburger (mobile only) */}
       <div className="ml-auto flex items-center">
-        {/* Desktop Button */}
         {isLoggedIn ? (
           <Link
             href={profileLink}
@@ -182,6 +180,7 @@ export default function Navbar() {
         <button
           className="ml-4 md:hidden text-gray-700"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
         >
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
@@ -226,7 +225,6 @@ export default function Navbar() {
             Contact
           </Link>
 
-          {/* Mobile Login/Profile */}
           {isLoggedIn ? (
             <Link
               href={profileLink}

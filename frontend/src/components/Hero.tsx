@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link"; // ✅ Added this import
 import { Search } from "lucide-react";
 
 const images = ["/assets/hero.jpg", "/assets/hero2.jpg", "/assets/hero3.jpg"];
@@ -29,7 +30,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative h-[60vh] md:h-[70vh] w-full  overflow-hidden">
+    <section className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
       {/* Background Images */}
       {images.map((img, index) => (
         <Image
@@ -71,7 +72,7 @@ export default function Hero() {
             <Search
               size={20}
               onClick={handleSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#311970]  cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#311970] cursor-pointer"
             />
           </div>
 
@@ -96,18 +97,19 @@ export default function Hero() {
 
         {/* Action Buttons - hidden on small screens */}
         <div className="hidden sm:flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center">
-          <a
+          {/* ✅ Use Next.js <Link /> for internal navigation */}
+          <Link
             href="/vendors"
             className="bg-[#311970] px-6 py-3 rounded-lg font-semibold shadow hover:bg-[#26125a] transition text-center"
           >
             Explore Vendors
-          </a>
-          <a
+          </Link>
+          <Link
             href="/auth"
             className="bg-white text-[#311970] px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-100 transition text-center"
           >
             Sign Up
-          </a>
+          </Link>
         </div>
       </div>
     </section>
