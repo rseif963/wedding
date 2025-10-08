@@ -18,7 +18,7 @@ type Post = {
 };
 
 export default function PostsManager({ preview = false }: { preview?: boolean }) {
-  const { posts: ctxPosts, createPost, updatePost, fetchVendorPosts, deletePost } = useAppContext();
+  const { posts: ctxPosts, createPost, updatePost, fetchVendorPosts, } = useAppContext();
 
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -324,22 +324,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
   };
 
   // --- Delete Post ---
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
-    try {
-      setLoading(true);
-      const success = await deletePost(id);
-      if (success) {
-        await fetchVendorPosts();
-        alert("Post deleted successfully!");
-      } else alert("Failed to delete post");
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting post");
-    } finally {
-      setLoading(false);
-    }
-  };
+ 
 
   // --- Utility ---
   const getFullUrl = (path?: string) => {
@@ -558,7 +543,6 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
                   <Pencil size={14} /> Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(post._id)}
                   className="flex items-center gap-2 text-red-600 font-medium hover:underline"
                 >
                   <Trash2 size={14} /> Delete
