@@ -324,7 +324,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
   };
 
   // --- Delete Post ---
- 
+
 
   // --- Utility ---
   const getFullUrl = (path?: string) => {
@@ -337,18 +337,19 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
       {/* === CROPPER MODAL (ADDED) === */}
       {croppingFile && croppingSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white rounded-lg w-[92%] max-w-2xl h-[80vh] p-4 flex flex-col">
-            <div className="relative flex-1 bg-gray-800">
+          <div className="bg-white rounded-lg w-[95%] max-w-4xl h-[90vh] p-4 flex flex-col">
+            <div className="relative flex-[1.2] bg-gray-800">
               <Cropper
                 image={croppingSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={1}
+                aspect={16 / 9}   // widescreen ratio
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
             </div>
+
 
             <div className="mt-4 flex items-center gap-3 justify-end">
               <div className="flex items-center gap-2">
