@@ -1,22 +1,8 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import imagekit from "../config/imagekit.js";
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploads";
-const uploadPath = path.resolve(process.cwd(), UPLOAD_DIR);
-
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadPath),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const name = `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    cb(null, name);
-  },
-});
+// Use in-memory storage instead of writing to disk
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   if (/image|video/.test(file.mimetype)) cb(null, true);
@@ -25,4 +11,19 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } });
 
-export default upload;
+// Function to upload a file buffer to ImageKit
+export const uploadToImageKit = async (file) => {
+  try {
+    const uploadResponse = await imagekit.upload({
+      file: file.buffer.toString("base64"), // Convert buffer to base64
+      fileName: file.originalname,
+      folder: "uploads", // optional folder name in ImageKit
+    });
+    return uploadResponse.url; // Return the hosted URL
+  } catch (err) {
+    console.error("ImageKit Upload Error:", err);
+    throw new Error("Failed to upload to ImageKit");
+  }
+};
+
+export default upload;

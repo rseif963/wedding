@@ -1,12 +1,23 @@
 import express from "express";
 import upload from "../utils/upload.js";
+import imagekit from "../config/imagekit.js";
 import VendorProfile from "../models/VendorProfile.js";
 import VendorPost from "../models/VendorPost.js";
 import { auth, permit } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// create post (vendor)
+// Helper function: upload file buffer to ImageKit
+async function uploadToImageKit(file) {
+  const result = await imagekit.upload({
+    file: file.buffer,
+    fileName: file.originalname,
+    folder: "/vendor_uploads",
+  });
+  return result.url;
+}
+
+// Create post (vendor)
 router.post(
   "/",
   auth,
@@ -17,25 +28,45 @@ router.post(
     { name: "galleryVideos", maxCount: 6 },
   ]),
   async (req, res) => {
-    const vendorProfile = await VendorProfile.findOne({ user: req.user.id });
-    if (!vendorProfile) return res.status(400).json({ message: "Vendor profile required" });
+    try {
+      const vendorProfile = await VendorProfile.findOne({ user: req.user.id });
+      if (!vendorProfile) return res.status(400).json({ message: "Vendor profile required" });
 
-    const { title, description, priceFrom } = req.body;
-    const post = new VendorPost({
-      vendor: vendorProfile._id,
-      title,
-      description,
-      priceFrom: Number(priceFrom) || 0,
-      mainPhoto: req.files?.mainPhoto?.[0] ? `/${process.env.UPLOAD_DIR || "uploads"}/${req.files.mainPhoto[0].filename}` : undefined,
-      galleryImages: (req.files?.galleryImages || []).map((f) => `/${process.env.UPLOAD_DIR || "uploads"}/${f.filename}`),
-      galleryVideos: (req.files?.galleryVideos || []).map((f) => `/${process.env.UPLOAD_DIR || "uploads"}/${f.filename}`),
-    });
-    await post.save();
-    res.json(post);
+      const { title, description, priceFrom } = req.body;
+
+      // Upload files to ImageKit
+      const mainPhotoUrl = req.files?.mainPhoto?.[0]
+        ? await uploadToImageKit(req.files.mainPhoto[0])
+        : undefined;
+
+      const galleryImageUrls = req.files?.galleryImages
+        ? await Promise.all(req.files.galleryImages.map((f) => uploadToImageKit(f)))
+        : [];
+
+      const galleryVideoUrls = req.files?.galleryVideos
+        ? await Promise.all(req.files.galleryVideos.map((f) => uploadToImageKit(f)))
+        : [];
+
+      const post = new VendorPost({
+        vendor: vendorProfile._id,
+        title,
+        description,
+        priceFrom: Number(priceFrom) || 0,
+        mainPhoto: mainPhotoUrl,
+        galleryImages: galleryImageUrls,
+        galleryVideos: galleryVideoUrls,
+      });
+
+      await post.save();
+      res.json(post);
+    } catch (err) {
+      console.error("Error creating vendor post:", err);
+      res.status(500).json({ message: "Server error" });
+    }
   }
 );
 
-// update post (vendor)
+// Update post (vendor)
 router.put(
   "/:id",
   auth,
@@ -53,44 +84,40 @@ router.put(
       const post = await VendorPost.findById(req.params.id);
       if (!post) return res.status(404).json({ message: "Post not found" });
 
-      // Ensure vendor owns this post
       if (post.vendor.toString() !== vendorProfile._id.toString()) {
-        return res.status(403).json({ message: "Not authorized to update this post" });
+        return res.status(403).json({ message: "Not authorized" });
       }
 
       const { title, description, priceFrom } = req.body;
 
-      // Update fields if provided
-      if (title !== undefined) post.title = title;
-      if (description !== undefined) post.description = description;
-      if (priceFrom !== undefined) post.priceFrom = Number(priceFrom) || 0;
+      if (title) post.title = title;
+      if (description) post.description = description;
+      if (priceFrom) post.priceFrom = Number(priceFrom);
 
-      // Update files if new ones are uploaded
       if (req.files?.mainPhoto?.[0]) {
-        post.mainPhoto = `/${process.env.UPLOAD_DIR || "uploads"}/${req.files.mainPhoto[0].filename}`;
+        post.mainPhoto = await uploadToImageKit(req.files.mainPhoto[0]);
       }
       if (req.files?.galleryImages?.length) {
-        post.galleryImages = req.files.galleryImages.map(
-          (f) => `/${process.env.UPLOAD_DIR || "uploads"}/${f.filename}`
+        post.galleryImages = await Promise.all(
+          req.files.galleryImages.map((f) => uploadToImageKit(f))
         );
       }
       if (req.files?.galleryVideos?.length) {
-        post.galleryVideos = req.files.galleryVideos.map(
-          (f) => `/${process.env.UPLOAD_DIR || "uploads"}/${f.filename}`
+        post.galleryVideos = await Promise.all(
+          req.files.galleryVideos.map((f) => uploadToImageKit(f))
         );
       }
 
       await post.save();
       res.json(post);
     } catch (err) {
-      console.error(err);
+      console.error("Error updating vendor post:", err);
       res.status(500).json({ message: "Server error" });
     }
   }
 );
 
-
-// list posts, optional vendor filter
+// List posts
 router.get("/", async (req, res) => {
   const q = {};
   if (req.query.vendor) q.vendor = req.query.vendor;
@@ -98,7 +125,7 @@ router.get("/", async (req, res) => {
   res.json(posts);
 });
 
-// get single post
+// Get single post
 router.get("/:id", async (req, res) => {
   const post = await VendorPost.findById(req.params.id).populate("vendor");
   if (!post) return res.status(404).json({ message: "Not found" });

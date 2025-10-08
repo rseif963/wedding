@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import errorHandler from "./middleware/errorHandler.js";
 
-// routes (ESM files below)
+// routes
 import authRoutes from "./routes/auth.js";
 import clientRoutes from "./routes/clients.js";
 import vendorRoutes from "./routes/vendors.js";
@@ -26,11 +26,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// static uploads
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploads";
-app.use("/uploads", express.static(path.join(__dirname, UPLOAD_DIR)));
-
-// mount routes
+// Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/vendors", vendorRoutes);
@@ -41,12 +37,13 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
 
-// error handler (must be after routes)
-app.use(errorHandler);
-
+// Health check route
 app.get("/", (req, res) => {
-  res.send("API is running ");
+  res.send("API is running ");
 });
+
+// Global error handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 connectDB()
@@ -54,5 +51,5 @@ connectDB()
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => {
-    console.error("Failed to connect to DB", err);
-  });
+    console.error("Failed to connect to DB", err);
+  });
