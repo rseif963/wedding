@@ -1,36 +1,41 @@
 import express from "express";
 import BlogPost from "../models/BlogPost.js";
 import multer from "multer";
-import path from "path";
+import imagekit from "../config/imagekit.js"; // ✅ Use your existing ImageKit config
 
 const router = express.Router();
 
-// ✅ Setup image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/blogs");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+// ✅ Configure multer for in-memory storage (no local uploads)
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ✅ Create new post
+// ✅ Create new blog post (upload image to ImageKit)
 router.post("/", upload.single("mainPhoto"), async (req, res) => {
   try {
     const { title, description } = req.body;
+    let uploadedImageUrl;
+
+    // ✅ If image is included, upload to ImageKit
+    if (req.file) {
+      const uploadResponse = await imagekit.upload({
+        file: req.file.buffer, // file buffer from multer memory storage
+        fileName: `blog_${Date.now()}`,
+        folder: "/blogs", // optional folder name in ImageKit dashboard
+      });
+      uploadedImageUrl = uploadResponse.url;
+    }
 
     const newPost = new BlogPost({
       title,
       description,
       author: "Admin",
-      mainPhoto: req.file ? `/uploads/blogs/${req.file.filename}` : undefined,
+      mainPhoto: uploadedImageUrl || undefined,
     });
 
     await newPost.save();
     res.status(201).json(newPost);
   } catch (err) {
+    console.error("Error creating post:", err);
     res.status(500).json({ error: "Failed to create post", details: err.message });
   }
 });
@@ -56,20 +61,25 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ Update post
+// ✅ Update post (upload new image to ImageKit if provided)
 router.put("/:id", upload.single("mainPhoto"), async (req, res) => {
   try {
     const { title, description } = req.body;
     const updateData = { title, description };
 
     if (req.file) {
-      updateData.mainPhoto = `/uploads/blogs/${req.file.filename}`;
+      const uploadResponse = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `blog_${Date.now()}`,
+        folder: "/blogs",
+      });
+      updateData.mainPhoto = uploadResponse.url;
     }
 
     const updated = await BlogPost.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: "Failed to update post" });
+    res.status(500).json({ error: "Failed to update post", details: err.message });
   }
 });
 

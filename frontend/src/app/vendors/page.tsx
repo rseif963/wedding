@@ -212,7 +212,7 @@ const VendorsPage = () => {
                     alt={v?.businessName || "Vendor"}
                     width={400}
                     height={250}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-50 object-cover"
                   />
 
                   <div className="p-5">
