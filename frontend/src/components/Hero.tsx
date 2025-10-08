@@ -49,8 +49,8 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/50"></div>
 
       {/* Overlay Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
-        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-3 leading-snug">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-2">
+        <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold mb-3 leading-snug">
           Plan Your Dream Wedding
         </h1>
         <p className="text-sm sm:text-base md:text-lg max-w-xl mb-6">
