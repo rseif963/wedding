@@ -1,7 +1,6 @@
 "use client";
 
 import StatsCards from "./components/StatsCards";
-import Checklist from "./components/Checklist";
 import Bookings from "./components/Bookings";
 import BudgetTracker from "./components/BudgetTracker";
 import Messages from "./components/Messages";
@@ -21,9 +20,7 @@ export default function ClientDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 mt-1">
             {/* Left Column */}
             <div className="space-y-6 lg:col-span-2">
-              <div className="w-full">
-                <Checklist />
-              </div>
+              
               <div className="w-full">
                 <Bookings />
               </div>
