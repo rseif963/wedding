@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Breadcrumb from "../../../components/Breadcrumb";
@@ -55,7 +56,10 @@ function getReviewerName(review: any) {
   return "Anonymous";
 }
 
-export default function VendorProfile({ params }: { params: { id: string } }) {
+export default function VendorProfile() {
+  const params = useParams();
+  const id = params?.id as string; // ✅ safely get the vendor ID
+
   const {
     posts,
     fetchPosts,
@@ -79,11 +83,13 @@ export default function VendorProfile({ params }: { params: { id: string } }) {
   };
 
   useEffect(() => {
+    if (!id) return;
+
     let mounted = true;
     const load = async () => {
       setLoading(true);
       try {
-        const found = posts?.find((p: any) => p._id === params.id) || null;
+        const found = posts?.find((p: any) => p._id === id) || null;
         if (found) {
           if (!mounted) return;
           setVendorPost(found);
@@ -96,7 +102,7 @@ export default function VendorProfile({ params }: { params: { id: string } }) {
         }
 
         if (fetchPostById) {
-          const data = await fetchPostById(params.id);
+          const data = await fetchPostById(id);
           if (!mounted) return;
           setVendorPost(data);
           if (fetchReviewsForVendor && (data as any)?.vendor?._id) {
@@ -116,7 +122,7 @@ export default function VendorProfile({ params }: { params: { id: string } }) {
     return () => {
       mounted = false;
     };
-  }, [params.id, posts]);
+  }, [id, posts]);
 
   const vendor = vendorPost?.vendor || null;
 
@@ -294,7 +300,7 @@ export default function VendorProfile({ params }: { params: { id: string } }) {
         </section>
       )}
 
-      {/* 🔥 Vendor Videos (autoplay) */}
+      {/* Videos */}
       {(vendorPost?.videos?.length > 0 ||
         vendor?.videos?.length > 0 ||
         videoUrl) && (
