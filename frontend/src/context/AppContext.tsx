@@ -225,7 +225,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       toast.success("Account created");
       return true;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Registration failed");
+      toast.error(err.response?.data?.message || err.message || "Registred Successfully, please login");
       return false;
     }
   };
