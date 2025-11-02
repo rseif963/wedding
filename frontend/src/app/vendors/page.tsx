@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useEffect, useState } from "react";
 import { Heart, Star } from "lucide-react";
@@ -137,7 +138,8 @@ const VendorsPage = () => {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
+    <Suspense fallback={<div>Loading...</div>}>
+      <main className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
       <Navbar />
       {/* Header */}
       <section
@@ -338,6 +340,8 @@ const VendorsPage = () => {
 
       <Footer />
     </main>
+    </Suspense>
+    
   );
 };
 
