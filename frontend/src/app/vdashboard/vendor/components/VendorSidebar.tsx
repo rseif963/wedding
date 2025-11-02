@@ -25,7 +25,7 @@ export default function VendorSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white shadow-lg p-6 flex flex-col h-screen">
+    <aside className="w-64 bg-white shadow-lg h-[100vh] p-6 flex flex-col h-screen">
       <h2 className="text-2xl font-bold text-[#311970] mb-8">Vendor</h2>
 
       {/* Navigation links */}

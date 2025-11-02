@@ -46,7 +46,6 @@ export default function ProfileManager({ preview = false }: Props) {
     "Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot"
   ];
 
-  // Load vendor profile on mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -58,7 +57,6 @@ export default function ProfileManager({ preview = false }: Props) {
     loadProfile();
   }, [fetchVendorMe]);
 
-  // Sync formData only when profile first loads OR when not editing
   useEffect(() => {
     if (vendorProfile && !isEditing) {
       setFormData({
@@ -69,7 +67,7 @@ export default function ProfileManager({ preview = false }: Props) {
         description: vendorProfile.description || "",
       });
     } else if (!vendorProfile) {
-      setIsEditing(true); // if no profile, show setup form
+      setIsEditing(true);
     }
   }, [vendorProfile, isEditing]);
 
@@ -93,22 +91,22 @@ export default function ProfileManager({ preview = false }: Props) {
     setLoading(false);
   };
 
-  // Initial loading indicator
+  // Loading
   if (initializing) {
     return (
-      <section className="bg-white p-6 rounded-xl shadow">
-        <p className="text-gray-500">Loading profile...</p>
+      <section className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-md border border-gray-100">
+        <p className="text-gray-500 text-center">Loading profile...</p>
       </section>
     );
   }
 
-  // PREVIEW mode: compact card
+  // Preview mode
   if (preview) {
     return (
-      <section className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">My Profile</h2>
+      <section className="bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md">
+        <h2 className="text-2xl text-center font-semibold text-[#311970] mb-4">My Profile</h2>
         <div>
-          <p className="text-gray-700 font-medium">
+          <p className="text-gray-800 font-medium text-lg">
             {vendorProfile?.businessName || "Business Name"}
           </p>
           <p className="text-sm text-gray-500">
@@ -119,15 +117,15 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Details view
+  // Display mode
   if (!isEditing && vendorProfile) {
     return (
-      <section className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">My Profile</h2>
-        <div>
-          <p className="text-gray-700 font-medium">
+      <section className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+        <h2 className="text-2xl font-bold text-[#311970] mb-5">My Profile</h2>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-gray-800">
             {vendorProfile.businessName}
-          </p>
+          </h3>
           <p className="text-sm text-gray-500">
             {vendorProfile.category} • {vendorProfile.location}
           </p>
@@ -136,17 +134,19 @@ export default function ProfileManager({ preview = false }: Props) {
               href={vendorProfile.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600"
+              className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline"
             >
               {vendorProfile.website}
             </a>
           )}
           {vendorProfile.description && (
-            <p className="mt-2 text-gray-600">{vendorProfile.description}</p>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              {vendorProfile.description}
+            </p>
           )}
           <button
             onClick={() => setIsEditing(true)}
-            className="mt-4 bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300"
+            className="mt-5 inline-block bg-[#311970] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#261457] transition-all shadow-sm"
           >
             Edit Profile
           </button>
@@ -155,70 +155,84 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Form view
+  // Form mode
   return (
-    <section className="bg-white p-6 rounded-xl shadow">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">My Profile</h2>
+    <section className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+      <h2 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h2>
+
       <form
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
         onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        <input
-          type="text"
-          name="businessName"
-          placeholder="Business Name"
-          value={formData.businessName}
-          onChange={handleChange}
-          className="border p-3 rounded-lg"
-        />
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Business Name</label>
+          <input
+            type="text"
+            name="businessName"
+            placeholder="Enter your business name"
+            value={formData.businessName}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+          />
+        </div>
 
-        {/* Category Dropdown */}
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          className="border p-3 rounded-lg"
-        >
-          <option value="">Select Category</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Category</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+          >
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
 
-        {/* Location Dropdown */}
-        <select
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          className="border p-3 rounded-lg"
-        >
-          <option value="">Select County</option>
-          {counties.map((county) => (
-            <option key={county} value={county}>{county}</option>
-          ))}
-        </select>
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Location</label>
+          <select
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+          >
+            <option value="">Select County</option>
+            {counties.map((county) => (
+              <option key={county} value={county}>{county}</option>
+            ))}
+          </select>
+        </div>
 
-        <input
-          type="url"
-          name="website"
-          placeholder="Website"
-          value={formData.website}
-          onChange={handleChange}
-          className="border p-3 rounded-lg"
-        />
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Website</label>
+          <input
+            type="url"
+            name="website"
+            placeholder="https://example.com"
+            value={formData.website}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+          />
+        </div>
 
-        <textarea
-          name="description"
-          placeholder="Business Description"
-          value={formData.description}
-          onChange={handleChange}
-          className="border p-3 rounded-lg md:col-span-2"
-        ></textarea>
+        <div className="flex flex-col md:col-span-2">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Business Description</label>
+          <textarea
+            name="description"
+            placeholder="Describe your business..."
+            value={formData.description}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+          ></textarea>
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-[#311970] text-white py-3 rounded-lg hover:bg-[#261457] md:col-span-2 disabled:opacity-70"
+          className="md:col-span-2 mt-4 bg-gradient-to-r from-[#311970] to-[#4a28b8] text-white py-3 rounded-xl font-semibold shadow-md hover:opacity-90 transition disabled:opacity-70"
         >
           {loading ? "Saving..." : "Save Profile"}
         </button>

@@ -14,15 +14,15 @@ export default function VendorStatsCards() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 px-2 py-2 md:grid-cols-3 gap-2">
       {stats.map((item) => (
         <Link
           key={item.label}
           href={item.href}
-          className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition"
+          className="bg-[#eee] p-2 rounded-lg shadow flex items-center justify-between hover:shadow-md transition"
         >
           {/* Icon */}
-          <item.icon className="w-6 h-6 text-[#311970]" />
+          <item.icon className="hidden w-6 h-6 text-[#311970]" />
 
           {/* Text & Number */}
           <div className="ml-3 flex-1">
