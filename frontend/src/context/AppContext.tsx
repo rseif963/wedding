@@ -104,7 +104,7 @@ interface AppContextType {
   vendorProfile: VendorProfile | null;
   posts: VendorPost[];
   vendors: VendorProfile[];
-  clients: ClientProfile[];   
+  clients: ClientProfile[];
   bookings: BookingRequest[];
   messages: MessageItem[];
   reviews: ReviewItem[];
@@ -208,27 +208,42 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const register = async (payload: RegisterPayload) => {
     try {
       const res = await axios.post("/api/auth/register", payload);
-      const { token: newToken, user: returnedUser } = res.data || {};
-      if (!newToken) throw new Error("No token returned");
-      applyToken(newToken);
-      setUser(returnedUser || null);
-      setRole(returnedUser?.role || null);
-      await fetchUser();
 
-      if (returnedUser?.role === "vendor") {
-        await fetchVendorMe();
-      }
-      if (returnedUser?.role === "client") {
-        await fetchClientProfile();
+      // ✅ Accept both 200 and 201 as success
+      if (res.status === 200 || res.status === 201) {
+        const { token: newToken, user: returnedUser } = res.data || {};
+
+        // Some APIs only return the user, not a token — handle that gracefully
+        if (newToken) {
+          applyToken(newToken);
+        }
+
+        setUser(returnedUser || null);
+        setRole(returnedUser?.role || null);
+        await fetchUser();
+
+        if (returnedUser?.role === "vendor") {
+          await fetchVendorMe();
+        } else if (returnedUser?.role === "client") {
+          await fetchClientProfile();
+        }
+
+        toast.success("Account created");
+        return true;
       }
 
-      toast.success("Account created");
-      return true;
+      toast.error("Registration failed");
+      return false;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Registred Successfully, please login");
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Something went wrong during registration";
+      toast.error(msg);
       return false;
     }
   };
+
 
   const logout = () => {
     applyToken(null);
@@ -516,7 +531,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setReviews(data || []);
       try {
         localStorage.setItem("all_reviews", JSON.stringify(data || []));
-      } catch {}
+      } catch { }
     } catch (err) {
       console.error("Failed to fetch all reviews:", err);
       setReviews([]);
@@ -536,7 +551,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setReviews(data || []);
       try {
         localStorage.setItem(`reviews_${vendorId}`, JSON.stringify(data || []));
-      } catch {}
+      } catch { }
     } catch {
       console.error("Failed to fetch reviews");
     }
@@ -626,7 +641,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (cachedAll) {
         setReviews(JSON.parse(cachedAll));
       }
-    } catch {}
+    } catch { }
   }, [user?.id]);
 
   // Store last logged-in user ID

@@ -8,16 +8,20 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import axios from "axios";
+import { useSearchParams } from "next/navigation"; // ✅ added to read URL query params
 
 const VendorsPage = () => {
   const { posts, fetchPosts } = useAppContext();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [county, setCounty] = useState("All"); // ✅ new county filter
   const [sort, setSort] = useState("rating");
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 16;
+
+  const searchParams = useSearchParams(); // ✅ for reading ?category & ?county
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -27,6 +31,14 @@ const VendorsPage = () => {
     if (path.startsWith("http")) return path;
     return `${API_URL}${path}`;
   };
+
+  // ✅ Read initial filters from URL (category & county)
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get("category");
+    const countyFromUrl = searchParams.get("county");
+    if (categoryFromUrl) setFilter(categoryFromUrl);
+    if (countyFromUrl) setCounty(countyFromUrl);
+  }, [searchParams]);
 
   // Fetch vendors
   useEffect(() => {
@@ -74,20 +86,41 @@ const VendorsPage = () => {
     );
   };
 
-  // Filter + Sort
+  // ✅ Filter + Sort (includes county filter)
   const filteredVendors = (posts || [])
-    .filter(
-      (post) =>
-        (filter === "All" || post.vendor?.category === filter) &&
-        post.vendor?.businessName?.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter((post) => {
+      const matchesCategory =
+        filter === "All" || post.vendor?.category === filter;
+      const matchesCounty =
+        county === "All" ||
+        post.vendor?.location?.toLowerCase() === county.toLowerCase();
+      const matchesSearch = post.vendor?.businessName
+        ?.toLowerCase()
+        .includes(search.toLowerCase());
+      return matchesCategory && matchesCounty && matchesSearch;
+    })
     .sort((a, b) => {
-      if (sort === "rating")
-        return (b.vendor?.rating || 0) - (a.vendor?.rating || 0);
+      if (sort === "rating") {
+        const aReviews = vendorReviewsMap[a.vendor?._id || ""] || [];
+        const bReviews = vendorReviewsMap[b.vendor?._id || ""] || [];
+
+        const aRating =
+          aReviews.length > 0
+            ? aReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / aReviews.length
+            : 0;
+        const bRating =
+          bReviews.length > 0
+            ? bReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / bReviews.length
+            : 0;
+
+        return bRating - aRating;
+      }
+
       if (sort === "price_low") return (a.priceFrom || 0) - (b.priceFrom || 0);
       if (sort === "price_high") return (b.priceFrom || 0) - (a.priceFrom || 0);
       return 0;
     });
+
 
   // ✅ Pagination
   const totalVendors = filteredVendors.length;
@@ -106,19 +139,31 @@ const VendorsPage = () => {
   return (
     <main className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
       <Navbar />
-
       {/* Header */}
-      <section className="bg-[#311970] text-white py-10 text-center px-4">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Find Your Perfect Vendor
-        </h1>
-        <p className="text-sm md:text-base max-w-2xl mx-auto">
-          Browse trusted wedding vendors to make your big day unforgettable
-        </p>
+      <section
+        className="relative text-white py-10 text-center px-2 bg-cover bg-center"
+        style={{
+          backgroundImage: "url('/assets/vendor-header.jpg')",
+        }}
+      >
+        {/* Overlay for color tint */}
+        <div className="absolute inset-0 bg-[#311970]/50"></div>
+
+        {/* Content */}
+        <div className="relative z-10">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Find Your Perfect Vendor
+          </h1>
+          <p className="text-sm md:text-base max-w-2xl mx-auto">
+            Browse trusted wedding vendors to make your big day unforgettable
+          </p>
+        </div>
       </section>
 
+
+
       {/* Filters */}
-      <section className="max-w-6xl mx-auto px-3 py-10 w-full">
+      <section className="max-w-6xl mx-auto px-3 py-4 w-full">
         <div className="bg-white shadow-lg rounded-lg p-4 mb-10">
           <div className="flex flex-col md:flex-row gap-4 items-center w-full">
             <input
@@ -146,6 +191,25 @@ const VendorsPage = () => {
                 <option value="Cars">Cars</option>
                 <option value="Dresses">Dresses</option>
                 <option value="Cake">Cake</option>
+              </select>
+
+              {/* ✅ New County Filter */}
+              <select
+                value={county}
+                onChange={(e) => setCounty(e.target.value)}
+                className="w-full text-sm md:w-60 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
+              >
+                <option value="All">All Counties</option>
+                <option value="Nairobi">Nairobi</option>
+                <option value="Mombasa">Mombasa</option>
+                <option value="Kisumu">Kisumu</option>
+                <option value="Nakuru">Nakuru</option>
+                <option value="Eldoret">Eldoret</option>
+                <option value="Kiambu">Kiambu</option>
+                <option value="Machakos">Machakos</option>
+                <option value="Meru">Meru</option>
+                <option value="Nyeri">Nyeri</option>
+                <option value="Thika">Thika</option>
               </select>
 
               <select
@@ -176,7 +240,7 @@ const VendorsPage = () => {
               const avgRating =
                 vendorReviews.length > 0
                   ? vendorReviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-                    vendorReviews.length
+                  vendorReviews.length
                   : 0;
 
               return (
@@ -199,11 +263,10 @@ const VendorsPage = () => {
                     }}
                   >
                     <Heart
-                      className={`w-5 h-5 transition ${
-                        liked.includes(post._id)
-                          ? "text-red-500 fill-red-500"
-                          : "text-red-500"
-                      }`}
+                      className={`w-5 h-5 transition ${liked.includes(post._id)
+                        ? "text-red-500 fill-red-500"
+                        : "text-red-500"
+                        }`}
                     />
                   </button>
 
@@ -228,11 +291,10 @@ const VendorsPage = () => {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.round(avgRating)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                          }`}
+                          className={`w-4 h-4 ${i < Math.round(avgRating)
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-300"
+                            }`}
                         />
                       ))}
                       <span className="text-sm text-gray-600 ml-2">
@@ -262,11 +324,10 @@ const VendorsPage = () => {
               <button
                 key={page}
                 onClick={() => handlePageClick(page)}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${
-                  currentPage === page
-                    ? "bg-[#311970] text-white border-[#311970]"
-                    : "bg-white text-[#311970] border-gray-300 hover:bg-[#f5f3fa]"
-                }`}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${currentPage === page
+                  ? "bg-[#311970] text-white border-[#311970]"
+                  : "bg-white text-[#311970] border-gray-300 hover:bg-[#f5f3fa]"
+                  }`}
               >
                 {page}
               </button>

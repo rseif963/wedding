@@ -7,6 +7,7 @@ import HowItWorks from "../components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import VendorCTA from "@/components/VendorCTA";
 import TipsIdeas from "@/components/TipsIdeas";
+import PopularCities from "@/components/PopularCities";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <FeaturedCategories />
       <FeaturedVendors />
       <TipsIdeas />
+      <PopularCities />
       <HowItWorks />
       <VendorCTA />
       <Testimonials />

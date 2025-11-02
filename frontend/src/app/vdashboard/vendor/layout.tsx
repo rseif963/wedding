@@ -13,7 +13,7 @@ export default function VendorDashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 relative">
+    <div className="flex min-h-screen bg-white relative">
       {/* Sidebar */}
       <div
         className={`fixed md:sticky inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform

@@ -22,14 +22,20 @@ export default function BookingRequests({ preview = false }: Props) {
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
   const loadBookings = useCallback(async () => {
+    // ⛔ Prevent fetching before role is known
+    if (!role) {
+      console.warn("Role not yet defined, skipping fetch");
+      return;
+    }
+
     setLoading(true);
     try {
       if (role === "vendor" && typeof fetchVendorBookings === "function") {
         await fetchVendorBookings();
       } else if (role === "client" && typeof fetchClientBookings === "function") {
         await fetchClientBookings();
-      } else if (typeof fetchClientBookings === "function") {
-        await fetchClientBookings();
+      } else {
+        console.warn("Unknown role, skipping booking fetch");
       }
       setHasFetched(true); // ✅ mark that at least one fetch finished
     } catch (err) {
@@ -41,8 +47,11 @@ export default function BookingRequests({ preview = false }: Props) {
   }, [role, fetchClientBookings, fetchVendorBookings]);
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+    // ✅ Wait until role is available before calling loadBookings
+    if (role) {
+      loadBookings();
+    }
+  }, [role]);
 
   const safeId = (req: any) => req?._id ?? req?.id ?? "";
 
@@ -95,7 +104,7 @@ export default function BookingRequests({ preview = false }: Props) {
   const visibleRequests = preview ? bookings.slice(0, 1) : bookings;
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow">
+    <section className="bg-white p-6 rounded-xl ">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Booking Requests</h2>
 
       {loading && !hasFetched ? ( // ✅ only show loading before first fetch

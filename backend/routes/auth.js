@@ -23,20 +23,32 @@ router.post("/register", async (req, res) => {
 
     // Hash password & create user
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, password: hashed, role: role || "client" });
+    const user = await User.create({
+      email,
+      password: hashed,
+      role: role || "client",
+    });
 
     // ✅ Save phone/email in profile
     if (user.role === "client") {
       await ClientProfile.create({ user: user._id, phone });
     }
     if (user.role === "vendor") {
-      await VendorProfile.create({ user: user._id, phone });
+      try {
+        await VendorProfile.create({ user: user._id, phone, businessName });
+      } catch (err) {
+        console.error("VendorProfile creation error:", err.message);
+      }
     }
 
     // Create token
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+      }
+    );
 
     res.json({
       success: true,
@@ -44,7 +56,9 @@ router.post("/register", async (req, res) => {
       user: { id: user._id, email: user.email, role: user.role, phone },
     });
   } catch (error) {
-    res.status(500).json({ message: "Registration failed", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Registration failed", error: error.message });
   }
 });
 
@@ -57,11 +71,18 @@ router.post("/login", async (req, res) => {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(400).json({ message: "Invalid credentials" });
 
-  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-  });
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    }
+  );
 
-  res.json({ token, user: { id: user._id, email: user.email, role: user.role } });
+  res.json({
+    token,
+    user: { id: user._id, email: user.email, role: user.role },
+  });
 });
 
-export default router;
+export default router;

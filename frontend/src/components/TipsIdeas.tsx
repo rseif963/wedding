@@ -38,8 +38,8 @@ export default function TipsIdeas() {
   const latestBlogs = (blogs || []).slice(0, 6);
 
   return (
-    <section className="py-16 bg-white relative">
-      <div className="max-w-6xl mx-auto px-6">
+    <section className="py-8 bg-white relative">
+      <div className="max-w-6xl mx-auto px-3">
         <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
           Tips & Ideas
         </h2>

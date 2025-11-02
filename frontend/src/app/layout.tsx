@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
-      <body className="font-sans bg-gray-50 text-gray-800">
+      <body className="font-sans bg-gray-50 text-gray-800 bg-white">
         <AppProvider>
           {children}
           {/* ✅ Global toast notifications */}

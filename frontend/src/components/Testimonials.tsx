@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { Star } from "lucide-react";
 
 export default function Testimonials() {
@@ -25,7 +25,7 @@ export default function Testimonials() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-10 bg-white">
       <div className="max-w-6xl mx-auto px-6 text-center">
         <h2 className="text-2xl font-bold text-gray-800 mb-12">
           What Couples Say ❤
@@ -35,7 +35,7 @@ export default function Testimonials() {
           {testimonials.map((t) => (
             <div
               key={t.id}
-              className="bg-gray-50 p-6 rounded-lg shadow hover:shadow-lg transition"
+              className="bg-[#eee] p-6 rounded-lg shadow hover:shadow-lg transition"
             >
               <p className="text-gray-600 italic mb-4">“{t.text}”</p>
               <div className="flex justify-center mb-2">
@@ -43,11 +43,10 @@ export default function Testimonials() {
                   <Star
                     key={i}
                     size={16}
-                    className={`${
-                      i < t.rating
-                        ? "text-yellow-500 fill-yellow-500"
-                        : "text-gray-300"
-                    }`}
+                    className={`${i < t.rating
+                      ? "text-yellow-500 fill-yellow-500"
+                      : "text-gray-300"
+                      }`}
                   />
                 ))}
               </div>
@@ -55,6 +54,15 @@ export default function Testimonials() {
             </div>
           ))}
         </div>
+        <div className="mt-6">
+          <Link
+          href="/auth"
+          className="relative z-10 inline-block bg-[#311970] text-white font-semibold px-5 py-2 rounded-lg border border-[#311970] hover:bg-white hover:text-[#311970] transition"
+        >
+          All Reviews
+        </Link>
+        </div>
+
       </div>
     </section>
   );

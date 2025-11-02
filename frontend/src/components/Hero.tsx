@@ -30,7 +30,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
+    <section className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden ">
       {/* Background Images */}
       {images.map((img, index) => (
         <Image
@@ -39,9 +39,8 @@ export default function Hero() {
           alt={`Hero ${index + 1}`}
           fill
           priority={index === 0}
-          className={`object-cover transition-opacity duration-1000 ease-in-out ${
-            index === current ? "opacity-100" : "opacity-0"
-          }`}
+          className={`object-cover transition-opacity duration-1000 ease-in-out ${index === current ? "opacity-100" : "opacity-0"
+            }`}
         />
       ))}
 
@@ -57,42 +56,14 @@ export default function Hero() {
           Discover the best venues, photographers, caterers, and more — all in one place.
         </p>
 
-        {/* 🔍 Search Box */}
-        <div className="w-full max-w-lg mb-6">
-          {/* Mobile: input with icon inside */}
-          <div className="relative sm:hidden">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search vendors, venues, or services..."
-              className="w-full bg-[#eee] px-4 py-3 pr-10 text-gray-900 rounded-lg focus:outline-none text-sm"
-            />
-            <Search
-              size={20}
-              onClick={handleSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#311970] cursor-pointer"
-            />
-          </div>
+        <div>
+          <Link
+            href="/auth"
+            className="inline-block bg-white text-[#311970] font-semibold px-5 py-2 rounded-lg border border-[#311970] hover:bg-[#311970] hover:text-white transition"
+          >
+            Get started
+          </Link>
 
-          {/* Desktop: input + button side by side */}
-          <div className="hidden sm:flex bg-white rounded-lg overflow-hidden shadow-lg">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search vendors, venues, or services..."
-              className="w-full px-4 py-3 text-gray-900 focus:outline-none text-base"
-            />
-            <button
-              onClick={handleSearch}
-              className="bg-[#311970] px-6 py-3 text-white font-semibold hover:bg-[#26125a] transition flex items-center justify-center"
-            >
-              Search
-            </button>
-          </div>
         </div>
 
         {/* Action Buttons - hidden on small screens */}
@@ -100,15 +71,9 @@ export default function Hero() {
           {/* ✅ Use Next.js <Link /> for internal navigation */}
           <Link
             href="/vendors"
-            className="bg-[#311970] px-6 py-3 rounded-lg font-semibold shadow hover:bg-[#26125a] transition text-center"
+            className="bg-[#311970] px-6 py-3 mt-4 rounded-lg font-semibold shadow hover:bg-[#26125a] transition text-center"
           >
             Explore Vendors
-          </Link>
-          <Link
-            href="/auth"
-            className="bg-white text-[#311970] px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-100 transition text-center"
-          >
-            Sign Up
           </Link>
         </div>
       </div>

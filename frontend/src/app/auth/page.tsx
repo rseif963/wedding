@@ -44,13 +44,13 @@ export default function AuthPage() {
         try {
           await axios.get("/api/clients/me");
           actualRole = "client";
-        } catch (err) {}
+        } catch (err) { }
 
         if (!actualRole) {
           try {
             await axios.get("/api/vendors/me");
             actualRole = "vendor";
-          } catch (err) {}
+          } catch (err) { }
         }
 
         if (!actualRole) {
@@ -86,11 +86,11 @@ export default function AuthPage() {
       const ok = await register(payload);
       if (ok) {
         localStorage.setItem("userRole", role);
-        router.push(
-          role === "client"
-            ? "/dashboard/client/onboarding"
-            : "/vdashboard/vendor"
-        );
+        if (role === "vendor") {
+          router.push("/vdashboard/vendor"); // 🚀 redirect vendors immediately
+        } else {
+          router.push("/dashboard/client/onboarding");
+        }
       }
     }
   };
@@ -132,21 +132,19 @@ export default function AuthPage() {
           <div className="flex flex-col sm:flex-row justify-center gap-3 mb-8">
             <button
               onClick={() => setRole("client")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${
-                role === "client"
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client"
                   ? "bg-[#311970] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
+                }`}
             >
               <User size={18} /> Client
             </button>
             <button
               onClick={() => setRole("vendor")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${
-                role === "vendor"
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor"
                   ? "bg-[#311970] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
+                }`}
             >
               <Briefcase size={18} /> Vendor
             </button>

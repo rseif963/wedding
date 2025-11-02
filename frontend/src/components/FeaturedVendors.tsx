@@ -83,7 +83,7 @@ export default function FeaturedVendors() {
     .slice(0, 12);
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-10 bg-gray-50 w-full">
       <div className="max-w-6xl mx-auto px-3">
         <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
           Featured Vendors
