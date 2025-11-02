@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import axios from "axios";
-import { useSearchParams } from "next/navigation"; // ✅ added to read URL query params
+
 
 const VendorsPage = () => {
   const { posts, fetchPosts } = useAppContext();
@@ -22,7 +22,6 @@ const VendorsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 16;
 
-  const searchParams = useSearchParams(); // ✅ for reading ?category & ?county
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -33,13 +32,16 @@ const VendorsPage = () => {
     return `${API_URL}${path}`;
   };
 
-  // ✅ Read initial filters from URL (category & county)
   useEffect(() => {
-    const categoryFromUrl = searchParams.get("category");
-    const countyFromUrl = searchParams.get("county");
-    if (categoryFromUrl) setFilter(categoryFromUrl);
-    if (countyFromUrl) setCounty(countyFromUrl);
-  }, [searchParams]);
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category");
+    const county = params.get("county");
+    if (category) setFilter(category);
+    if (county) setCounty(county);
+  }
+}, []);
+
 
   // Fetch vendors
   useEffect(() => {
