@@ -18,11 +18,11 @@ export default function BookingRequests({ preview = false }: Props) {
   } = useAppContext();
 
   const [loading, setLoading] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false); // ✅ track first successful fetch
+  const [hasFetched, setHasFetched] = useState(false);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
   const loadBookings = useCallback(async () => {
-    // ⛔ Prevent fetching before role is known
+   
     if (!role) {
       console.warn("Role not yet defined, skipping fetch");
       return;
@@ -37,7 +37,7 @@ export default function BookingRequests({ preview = false }: Props) {
       } else {
         console.warn("Unknown role, skipping booking fetch");
       }
-      setHasFetched(true); // ✅ mark that at least one fetch finished
+      setHasFetched(true);
     } catch (err) {
       console.error("Failed to load bookings:", err);
       toast.error("Failed to load bookings");
@@ -47,7 +47,6 @@ export default function BookingRequests({ preview = false }: Props) {
   }, [role, fetchClientBookings, fetchVendorBookings]);
 
   useEffect(() => {
-    // ✅ Wait until role is available before calling loadBookings
     if (role) {
       loadBookings();
     }
@@ -107,9 +106,9 @@ export default function BookingRequests({ preview = false }: Props) {
     <section className="bg-white p-6 rounded-xl ">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Booking Requests</h2>
 
-      {loading && !hasFetched ? ( // ✅ only show loading before first fetch
+      {loading && !hasFetched ? ( 
         <p className="text-gray-500">Loading bookings...</p>
-      ) : !loading && hasFetched && visibleRequests.length === 0 ? ( // ✅ only show "no bookings" after fetch
+      ) : !loading && hasFetched && visibleRequests.length === 0 ? ( 
         <p className="text-gray-500">No booking requests yet.</p>
       ) : (
         <ul className="space-y-4">
