@@ -35,7 +35,7 @@ router.post("/register", async (req, res) => {
     }
     if (user.role === "vendor") {
       try {
-        await VendorProfile.create({ user: user._id, phone });
+        await VendorProfile.create({ user: user._id, phone, businessName });
       } catch (err) {
         console.error("VendorProfile creation error:", err.message);
       }
