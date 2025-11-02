@@ -48,7 +48,7 @@ export default function PopularCities() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {cities.map((city) => (
             <Link
-              key={city.id}
+              key={`${city.id}-${city.county}`}
               href={`/vendors?county=${encodeURIComponent(city.county)}`}
               className="relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition group"
             >
