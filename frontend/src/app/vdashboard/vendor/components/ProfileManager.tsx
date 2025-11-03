@@ -120,7 +120,7 @@ export default function ProfileManager({ preview = false }: Props) {
   // Display mode
   if (!isEditing && vendorProfile) {
     return (
-      <section className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+      <section className="bg-gradient-to-br w-full from-white to-gray-50 p-8 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
         <h2 className="text-2xl font-bold text-[#311970] mb-5">My Profile</h2>
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-gray-800">
