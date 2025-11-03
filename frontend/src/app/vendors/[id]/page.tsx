@@ -58,7 +58,7 @@ function getReviewerName(review: any) {
 
 export default function VendorProfile() {
   const params = useParams();
-  const id = params?.id as string; // ✅ safely get the vendor ID
+  const id = params?.id as string;
 
   const {
     posts,
@@ -248,7 +248,6 @@ export default function VendorProfile() {
       <div className="w-full overflow-hidden text-ellipsis">
         <Breadcrumb />
       </div>
-
       {/* Hero */}
       <section className="relative h-[50vh] w-full">
         <Image
@@ -301,54 +300,52 @@ export default function VendorProfile() {
       )}
 
       {/* Videos */}
+      {/* Videos */}
       {(vendorPost?.videos?.length > 0 ||
         vendor?.videos?.length > 0 ||
         videoUrl) && (
-        <section className="max-w-6xl mx-auto px-6 py-12">
-          <h2 className="text-2xl font-bold text-[#311970] mb-6">Videos</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            {(vendorPost?.videos || vendor?.videos || [videoUrl]).map(
-              (vid: string, index: number) => {
-                const embedUrl = vid.includes("watch?v=")
-                  ? vid.replace("watch?v=", "embed/")
-                  : vid;
-                const isYouTube =
-                  embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be");
+          <section className="max-w-6xl mx-auto px-6 py-12">
+            <h2 className="text-2xl font-bold text-[#311970] mb-6">Videos</h2>
 
-                return (
-                  <div
-                    key={index}
-                    className="aspect-video w-full rounded-lg overflow-hidden shadow"
-                  >
-                    {isYouTube ? (
-                      <iframe
-                        src={`${embedUrl}?autoplay=1&mute=1&loop=1&playlist=${embedUrl
-                          .split("/")
-                          .pop()}`}
-                        title={`Vendor video ${index + 1}`}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <video
-                        src={getFullUrl(embedUrl)}
-                        autoPlay
-                        muted
-                        loop
-                        controls
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                );
-              }
-            )}
-          </div>
-        </section>
-      )}
+            <div className="flex flex-col md:flex-row flex-wrap gap-6">
+              {(vendorPost?.videos || vendor?.videos || [videoUrl]).map(
+                (vid: string, index: number) => {
+                  const embedUrl = vid.includes("watch?v=")
+                    ? vid.replace("watch?v=", "embed/")
+                    : vid;
+                  const isYouTube =
+                    embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be");
+
+                  return (
+                    <div
+                      key={index}
+                      className="w-full md:w-[48%] aspect-video rounded-lg overflow-hidden shadow"
+                    >
+                      {isYouTube ? (
+                        <iframe
+                          src={`${embedUrl}?autoplay=0&mute=0`}
+                          title={`Vendor video ${index + 1}`}
+                          width="100%"
+                          height="100%"
+                          frameBorder="0"
+                          allow="autoplay; encrypted-media"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <video
+                          src={getFullUrl(embedUrl)}
+                          controls
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      )}
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          </section>
+        )}
+
 
       {/* Contact */}
       <section className="max-w-4xl mx-auto px-6 py-12">
@@ -380,7 +377,7 @@ export default function VendorProfile() {
       </section>
 
       {/* Reviews */}
-      <section className="max-w-5xl mx-auto px-6 py-12">
+      <section className="max-w-5xl mx-auto px-2 py-2">
         <h2 className="text-2xl font-bold text-[#311970] mb-6">Reviews</h2>
 
         <div className="flex items-center gap-3 mb-8">
@@ -390,7 +387,7 @@ export default function VendorProfile() {
           </span>
         </div>
 
-        <div className="space-y-6 mb-10">
+        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:gap-6 mb-10">
           {(reviews || []).map((review: any, index: number) => (
             <div key={review._id || index} className="border border-gray-200 rounded-lg p-6 shadow-sm">
               <div className="flex items-center justify-between mb-2">

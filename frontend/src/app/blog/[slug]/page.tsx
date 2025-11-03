@@ -38,7 +38,7 @@ export default function BlogPost({ params }: BlogProps) {
     return (
       <main className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
-        <div className="max-w-6xl mx-auto w-full px-3 mt-6 overflow-x-auto scrollbar-hide">
+        <div className="max-w-6xl mx-auto w-full px-1 mt-3 overflow-x-auto scrollbar-hide">
           <Breadcrumb />
         </div>
         <div className="flex-grow flex items-center justify-center">
@@ -68,13 +68,11 @@ export default function BlogPost({ params }: BlogProps) {
       <Navbar />
 
       <div
-        className="max-w-6xl mx-auto w-full px-6 mt-6 truncate text-ellipsis overflow-hidden"
+        className="max-w-6xl mx-auto w-full px-1 mt-3 truncate text-ellipsis overflow-hidden"
       >
         <Breadcrumb />
       </div>
-
-
-      <article className="max-w-4xl mx-auto px-6 py-12">
+      <article className="max-w-4xl mx-auto px-2 py-3">
         <h1 className="text-4xl font-bold text-[#311970] mb-6 break-words">
           {post.title}
         </h1>

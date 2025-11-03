@@ -62,7 +62,7 @@ export default function PopularCities() {
 
               {/* Overlay text with background tint */}
               <div className="absolute inset-0 flex items-end justify-center">
-                <div className="w-full text-center bg-[#311970]/50 py-3">
+                <div className="w-full text-center bg-[#311970]/60 py-3">
                   <h3 className="text-white text-lg font-semibold tracking-wide">
                     {city.name}
                   </h3>
