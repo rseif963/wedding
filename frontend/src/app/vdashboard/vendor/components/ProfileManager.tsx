@@ -112,7 +112,7 @@ export default function ProfileManager({ preview = false }: Props) {
 
   if (!isEditing && vendorProfile) {
     return (
-      <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-6 sm:p-8 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+      <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-2 sm:p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
         <h2 className="text-2xl font-bold text-[#311970] mb-5">My Profile</h2>
         <div className="space-y-2 w-full break-words">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -163,7 +163,7 @@ export default function ProfileManager({ preview = false }: Props) {
   }
 
   return (
-    <section className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+    <section className="bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
       <h2 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h2>
 
       <form
