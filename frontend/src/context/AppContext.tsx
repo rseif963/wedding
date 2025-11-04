@@ -185,17 +185,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const res = await axios.post("/api/auth/login", { email, password });
       const { token: newToken, user: returnedUser } = res.data || {};
       if (!newToken) throw new Error("No token returned");
+
       applyToken(newToken);
       setUser(returnedUser || null);
       setRole(returnedUser?.role || null);
-      await fetchUser();
 
-      if (returnedUser?.role === "vendor") {
-        await fetchVendorMe();
-      }
-      if (returnedUser?.role === "client") {
-        await fetchClientProfile();
-      }
+      // Fetch everything immediately after login
+      await fetchAllDataAfterLogin(returnedUser?.role);
 
       toast.success("Logged in");
       return true;
@@ -204,6 +200,43 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
   };
+
+  const fetchAllDataAfterLogin = async (userRole?: Role) => {
+    try {
+      if (!userRole) return;
+
+      // Always load common global data first
+      await Promise.allSettled([
+        fetchVendors(),
+        fetchClients(),
+        fetchAllReviews(),
+        fetchBlogs(),
+      ]);
+
+      // Then role-specific data
+      if (userRole === "vendor") {
+        await Promise.allSettled([
+          fetchVendorMe(),
+          fetchVendorBookings(),
+          fetchMessages(),
+          fetchVendorPosts(),
+        ]);
+      }
+
+      if (userRole === "client") {
+        await Promise.allSettled([
+          fetchClientProfile(),
+          fetchClientBookings(),
+          fetchMessages(),
+        ]);
+      }
+
+      console.log("✅ All data pre-fetched after login");
+    } catch (err) {
+      console.error("Error prefetching after login:", err);
+    }
+  };
+
 
   const register = async (payload: RegisterPayload) => {
     try {
