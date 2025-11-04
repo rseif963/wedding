@@ -1,4 +1,3 @@
-// src/components/ProfileManager.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -17,6 +16,8 @@ export default function ProfileManager({ preview = false }: Props) {
     location: "",
     website: "",
     description: "",
+    phone: "",
+    email: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -24,16 +25,8 @@ export default function ProfileManager({ preview = false }: Props) {
   const [initializing, setInitializing] = useState(true);
 
   const categories = [
-    "Photography",
-    "Venue",
-    "Decoration",
-    "Catering",
-    "Makeup & Beauty",
-    "Dresses",
-    "Tailor",
-    "Cars",
-    "Cake",
-    "Music & Entertainment",
+    "Photography", "Venue", "Decoration", "Catering", "Makeup & Beauty",
+    "Dresses", "Tailor", "Cars", "Cake", "Music & Entertainment",
   ];
 
   const counties = [
@@ -42,8 +35,8 @@ export default function ProfileManager({ preview = false }: Props) {
     "Kirinyaga","Kisii","Kisumu","Kitui","Kwale","Laikipia","Lamu","Machakos",
     "Makueni","Mandera","Marsabit","Meru","Migori","Mombasa","Murang'a",
     "Nairobi","Nakuru","Nandi","Narok","Nyamira","Nyandarua","Nyeri",
-    "Samburu","Siaya","Taita-Taveta","Tana River","Tharaka-Nithi","Trans Nzoia",
-    "Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot"
+    "Samburu","Siaya","Taita-Taveta","Tana River","Tharaka-Nithi",
+    "Trans Nzoia","Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot",
   ];
 
   useEffect(() => {
@@ -65,6 +58,8 @@ export default function ProfileManager({ preview = false }: Props) {
         location: vendorProfile.location || "",
         website: vendorProfile.website || "",
         description: vendorProfile.description || "",
+        phone: vendorProfile.phone || "",
+        email: vendorProfile.email || "",
       });
     } else if (!vendorProfile) {
       setIsEditing(true);
@@ -91,7 +86,6 @@ export default function ProfileManager({ preview = false }: Props) {
     setLoading(false);
   };
 
-  // Loading
   if (initializing) {
     return (
       <section className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-md border border-gray-100">
@@ -100,7 +94,6 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Preview mode
   if (preview) {
     return (
       <section className="bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md">
@@ -117,33 +110,47 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Display mode
   if (!isEditing && vendorProfile) {
     return (
-      <section className="bg-gradient-to-br w-full from-white to-gray-50 p-8 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+      <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-6 sm:p-8 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
         <h2 className="text-2xl font-bold text-[#311970] mb-5">My Profile</h2>
-        <div className="space-y-2 w-full">
+        <div className="space-y-2 w-full break-words">
           <h3 className="text-lg font-semibold text-gray-800">
             {vendorProfile.businessName}
           </h3>
           <p className="text-sm text-gray-500">
             {vendorProfile.category} • {vendorProfile.location}
           </p>
+
+          {vendorProfile.email && (
+            <p className="text-sm text-gray-600">
+              <strong>Email:</strong> {vendorProfile.email}
+            </p>
+          )}
+
+          {vendorProfile.phone && (
+            <p className="text-sm text-gray-600">
+              <strong>Phone:</strong> {vendorProfile.phone}
+            </p>
+          )}
+
           {vendorProfile.website && (
             <a
               href={vendorProfile.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline"
+              className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline break-all"
             >
               {vendorProfile.website}
             </a>
           )}
+
           {vendorProfile.description && (
-            <p className="mt-3 text-gray-700 leading-relaxed">
+            <p className="mt-3 text-gray-700 leading-relaxed break-words">
               {vendorProfile.description}
             </p>
           )}
+
           <button
             onClick={() => setIsEditing(true)}
             className="mt-5 inline-block bg-[#311970] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#261457] transition-all shadow-sm"
@@ -155,14 +162,13 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Form mode
   return (
-    <section className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+    <section className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
       <h2 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h2>
 
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
       >
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Business Name</label>
@@ -172,7 +178,7 @@ export default function ProfileManager({ preview = false }: Props) {
             placeholder="Enter your business name"
             value={formData.businessName}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           />
         </div>
 
@@ -182,7 +188,7 @@ export default function ProfileManager({ preview = false }: Props) {
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           >
             <option value="">Select Category</option>
             {categories.map((cat) => (
@@ -197,7 +203,7 @@ export default function ProfileManager({ preview = false }: Props) {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           >
             <option value="">Select County</option>
             {counties.map((county) => (
@@ -214,7 +220,31 @@ export default function ProfileManager({ preview = false }: Props) {
             placeholder="https://example.com"
             value={formData.website}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+          <input
+            type="tel"
+            name="phone"
+            placeholder="+254 700 000000"
+            value={formData.phone}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-gray-700 mb-2">Email</label>
+          <input
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           />
         </div>
 
@@ -225,7 +255,7 @@ export default function ProfileManager({ preview = false }: Props) {
             placeholder="Describe your business..."
             value={formData.description}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-[#311970] focus:outline-none transition"
+            className="border border-gray-300 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           ></textarea>
         </div>
 
