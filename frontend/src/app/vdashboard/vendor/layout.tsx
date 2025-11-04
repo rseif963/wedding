@@ -13,12 +13,12 @@ export default function VendorDashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen  bg-white relative">
+    <div className="flex min-h-screen bg-white relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:sticky h-screen h-[100vh] inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform
+        className={`fixed md:sticky inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 transition-transform duration-300 ease-in-out h-screen`}
+          md:translate-x-0 transition-transform duration-300 ease-in-out`}
       >
         {/* Close X (mobile only) */}
         <button
@@ -28,9 +28,12 @@ export default function VendorDashboardLayout({
         >
           <X size={20} />
         </button>
-        <div className="h-screen h-[100vh]">
-          <VendorSidebar />
-        </div>  
+
+        {/* Sidebar content */}
+        <div className="h-screen overflow-y-auto">
+          {/* Pass down the callback to close sidebar on link click */}
+          <VendorSidebar onLinkClick={() => setIsSidebarOpen(false)} />
+        </div>
       </div>
 
       {/* Main area */}
