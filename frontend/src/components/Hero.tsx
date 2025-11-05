@@ -56,18 +56,9 @@ export default function Hero() {
           Discover the best venues, photographers, caterers, and more — all in one place.
         </p>
 
-        <div>
-          <Link
-            href="/auth"
-            className="inline-block bg-white text-[#311970] font-semibold px-5 py-2 rounded-lg border border-[#311970] hover:bg-[#311970] hover:text-white transition"
-          >
-            Get started
-          </Link>
-
-        </div>
 
         {/* Action Buttons - hidden on small screens */}
-        <div className="hidden sm:flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center">
+        <div className=" sm:flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center">
           {/* ✅ Use Next.js <Link /> for internal navigation */}
           <Link
             href="/vendors"

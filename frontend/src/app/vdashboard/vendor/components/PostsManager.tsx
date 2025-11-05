@@ -91,13 +91,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
     setCroppedAreaPixels(croppedArea);
   }, []);
 
-  /**
-   * Fixed getCroppedImage:
-   * - Uses the file's object URL to create an HTMLImageElement
-   * - Uses devicePixelRatio for crisp output
-   * - Scales and crops using croppedAreaPixels (assumed to be pixel values from react-easy-crop)
-   * - Returns a File built from the resulting Blob so it can be uploaded directly
-   */
+  
   async function getCroppedImage(file: File, croppedAreaPixels: any) {
     // create temporary object URL and load the image
     const objectUrl = URL.createObjectURL(file);
