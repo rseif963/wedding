@@ -40,13 +40,13 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
 
   return (
     <aside
-      className="w-64 bg-white shadow-lg p-6 flex flex-col"
+      className="w-64 bg-white shadow-lg  flex flex-col"
       style={{ height: viewportHeight }}
     >
-      <h2 className="text-2xl font-bold text-[#311970] bg-white mb-8">Vendor</h2>
+      <h2 className="text-2xl w-full p-4 font-bold text-white bg-[#311970] mb-4">Vendor</h2>
 
       {/* Navigation links */}
-      <nav className="space-y-2 flex-1 overflow-y-auto">
+      <nav className="space-y-1 flex-1 overflow-y-auto">
         {links.map((link) => {
           const active = pathname === link.href;
           return (
@@ -54,7 +54,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
               key={link.href}
               href={link.href}
               onClick={onLinkClick} // ✅ closes sidebar on mobile
-              className={`block px-3 py-1 rounded-lg font-medium transition ${
+              className={`block px-3 rounded-lg font-medium transition ${
                 active
                   ? "bg-[#311970] text-white shadow-md"
                   : "text-gray-700 hover:bg-gray-100"
@@ -71,7 +71,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
         <Link
           href="/vendors"
           onClick={onLinkClick} // ✅ also closes sidebar
-          className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#4527a0] transition w-full text-gray-700 hover:text-white"
+          className="flex items-center gap-2 px-1 py-1 rounded-lg hover:bg-[#4527a0] transition w-full text-gray-700 hover:text-white"
         >
           <ArrowLeftCircle size={20} /> Exit
         </Link>
@@ -81,7 +81,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
             handleLogout();
             onLinkClick?.(); // ✅ optional chaining
           }}
-          className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#4527a0] transition w-full text-gray-700 hover:text-white"
+          className="flex items-center gap-2 px-1 py-1 rounded-lg hover:bg-[#4527a0] transition w-full text-gray-700 hover:text-white"
         >
           <LogOut size={20} /> Logout
         </button>
