@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Briefcase, Home, Mail, Lock, Smartphone } from "lucide-react";
+import { User, Briefcase, Home, Mail, Lock, Smartphone, Eye, EyeOff  } from "lucide-react";
 import Link from "next/link";
 import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
@@ -16,11 +16,14 @@ export default function AuthPage() {
 
   const [role, setRole] = useState<"client" | "vendor">("client");
   const [mode, setMode] = useState<"login" | "signup">("login");
-
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [businessName, setBusinessName] = useState("");
+
+  // NEW: disables form while working (login/register + prefetch)
+  const [submitting, setSubmitting] = useState(false);
 
   const toggleMode = () => {
     setMode(mode === "login" ? "signup" : "login");
@@ -36,62 +39,68 @@ export default function AuthPage() {
       return;
     }
 
-    if (mode === "login") {
-      const ok = await login(email, password);
-      if (ok) {
-        let actualRole: "client" | "vendor" | null = null;
+    setSubmitting(true);
 
-        try {
-          await axios.get("/api/clients/me");
-          actualRole = "client";
-        } catch (err) { }
+    try {
+      if (mode === "login") {
+        const ok = await login(email, password);
+        if (ok) {
+          // verify actual role via API (keeps existing behavior)
+          let actualRole: "client" | "vendor" | null = null;
 
-        if (!actualRole) {
           try {
-            await axios.get("/api/vendors/me");
-            actualRole = "vendor";
+            await axios.get("/api/clients/me");
+            actualRole = "client";
           } catch (err) { }
+
+          if (!actualRole) {
+            try {
+              await axios.get("/api/vendors/me");
+              actualRole = "vendor";
+            } catch (err) { }
+          }
+
+          if (!actualRole) {
+            toast.error("Could not verify account role. Please try again.");
+            return;
+          }
+
+          if (actualRole !== role) {
+            toast.error(`This account is registered as a ${actualRole}, not a ${role}.`);
+            return;
+          }
+
+          localStorage.setItem("userRole", actualRole);
+          router.push(actualRole === "client" ? "/dashboard/client" : "/vdashboard/vendor");
         }
+      } else {
+        // ✅ Always send role when signing up
+        const payload: any = {
+          email,
+          password,
+          role,
+          phone,
+        };
 
-        if (!actualRole) {
-          toast.error("Could not verify account role. Please try again.");
-          return;
-        }
-
-        if (actualRole !== role) {
-          toast.error(
-            `This account is registered as a ${actualRole}, not a ${role}.`
-          );
-          return;
-        }
-
-        localStorage.setItem("userRole", actualRole);
-        router.push(
-          actualRole === "client" ? "/dashboard/client" : "/vdashboard/vendor"
-        );
-      }
-    } else {
-      // ✅ Always send role when signing up
-      const payload: any = {
-        email,
-        password,
-        role,
-        phone,
-      };
-
-      if (role === "vendor") {
-        payload.businessName = businessName;
-      }
-
-      const ok = await register(payload);
-      if (ok) {
-        localStorage.setItem("userRole", role);
         if (role === "vendor") {
-          router.push("/vdashboard/vendor"); // 🚀 redirect vendors immediately
-        } else {
-          router.push("/dashboard/client/onboarding");
+          payload.businessName = businessName;
+        }
+
+        const ok = await register(payload);
+        if (ok) {
+          localStorage.setItem("userRole", role);
+          if (role === "vendor") {
+            router.push("/vdashboard/vendor"); // 🚀 redirect vendors immediately
+          } else {
+            router.push("/dashboard/client/onboarding");
+          }
         }
       }
+    } catch (err: any) {
+      // keep behavior: show toast (AppContext already toasts, but keep guard)
+      toast.error(err?.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -110,9 +119,7 @@ export default function AuthPage() {
             className="bg-white text-[#311970] font-semibold px-6 py-3 rounded-xl shadow cursor-pointer"
             onClick={toggleMode}
           >
-            {mode === "login"
-              ? "New here? Sign Up"
-              : "Already have an account? Login"}
+            {mode === "login" ? "New here? Sign Up" : "Already have an account? Login"}
           </motion.div>
         </div>
 
@@ -132,18 +139,16 @@ export default function AuthPage() {
           <div className="flex flex-col sm:flex-row justify-center gap-3 mb-8">
             <button
               onClick={() => setRole("client")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client"
-                  ? "bg-[#311970] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              disabled={submitting}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client" ? "bg-[#311970] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
             >
               <User size={18} /> Client
             </button>
             <button
               onClick={() => setRole("vendor")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor"
-                  ? "bg-[#311970] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              disabled={submitting}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor" ? "bg-[#311970] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
             >
               <Briefcase size={18} /> Vendor
@@ -175,6 +180,7 @@ export default function AuthPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+254 xxx xxx xxx"
+                    disabled={submitting}
                     className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
                   />
                 </div>
@@ -196,6 +202,7 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
+                  disabled={submitting}
                   className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
                 />
               </div>
@@ -206,19 +213,25 @@ export default function AuthPage() {
                 Password
               </label>
               <div className="relative">
-                <Lock
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={18}
-                />
+                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                  disabled={submitting}
+                  className="w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-[#311970] transition"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
+
             </div>
 
             {mode === "signup" && role === "vendor" && (
@@ -232,6 +245,7 @@ export default function AuthPage() {
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="Your Wedding Business"
+                  disabled={submitting}
                   className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
                 />
               </div>
@@ -241,9 +255,20 @@ export default function AuthPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="w-full bg-[#311970] text-white py-3 rounded-lg font-semibold shadow hover:bg-[#261457] transition"
+              disabled={submitting}
+              className="w-full bg-[#311970] text-white py-3 rounded-lg font-semibold shadow hover:bg-[#261457] transition disabled:opacity-70 flex items-center justify-center gap-3"
             >
-              {mode === "login" ? "Login" : "Create Account"}
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                  <span>{mode === "login" ? "Logging in..." : "Creating account..."}</span>
+                </>
+              ) : (
+                <>{mode === "login" ? "Login" : "Create Account"}</>
+              )}
             </motion.button>
           </form>
 
@@ -263,11 +288,10 @@ export default function AuthPage() {
           <div className="mt-6 text-center md:hidden">
             <button
               onClick={toggleMode}
+              disabled={submitting}
               className="text-sm font-medium text-[#311970] hover:underline"
             >
-              {mode === "login"
-                ? "New here? Sign up"
-                : "Already have an account? Login"}
+              {mode === "login" ? "New here? Sign up" : "Already have an account? Login"}
             </button>
           </div>
 
@@ -283,6 +307,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => toast.error("Google login not implemented yet")}
+              disabled={submitting}
               className="w-full py-2 border rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
             >
               <img
@@ -295,6 +320,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => toast.error("Facebook login not implemented yet")}
+              disabled={submitting}
               className="w-full py-2 border rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
             >
               <img
