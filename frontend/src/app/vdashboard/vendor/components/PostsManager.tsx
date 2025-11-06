@@ -510,7 +510,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {posts.length === 0 && <p className="text-gray-500">No posts yet.</p>}
           {posts.map((post) => (
-            <div key={post._id} className="border rounded-lg p-4 shadow-sm bg-gray-50">
+            <div key={post._id} className="border w-full rounded-lg p-4 shadow-sm bg-gray-50">
               {post.mainPhoto && (
                 <img
                   src={getFullUrl(post.mainPhoto)}

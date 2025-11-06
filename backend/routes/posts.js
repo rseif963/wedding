@@ -30,7 +30,8 @@ router.post(
   async (req, res) => {
     try {
       const vendorProfile = await VendorProfile.findOne({ user: req.user.id });
-      if (!vendorProfile) return res.status(400).json({ message: "Vendor profile required" });
+      if (!vendorProfile)
+        return res.status(400).json({ message: "Vendor profile required" });
 
       const { title, description, priceFrom } = req.body;
 
@@ -40,11 +41,15 @@ router.post(
         : undefined;
 
       const galleryImageUrls = req.files?.galleryImages
-        ? await Promise.all(req.files.galleryImages.map((f) => uploadToImageKit(f)))
+        ? await Promise.all(
+            req.files.galleryImages.map((f) => uploadToImageKit(f))
+          )
         : [];
 
       const galleryVideoUrls = req.files?.galleryVideos
-        ? await Promise.all(req.files.galleryVideos.map((f) => uploadToImageKit(f)))
+        ? await Promise.all(
+            req.files.galleryVideos.map((f) => uploadToImageKit(f))
+          )
         : [];
 
       const post = new VendorPost({
@@ -79,7 +84,8 @@ router.put(
   async (req, res) => {
     try {
       const vendorProfile = await VendorProfile.findOne({ user: req.user.id });
-      if (!vendorProfile) return res.status(400).json({ message: "Vendor profile required" });
+      if (!vendorProfile)
+        return res.status(400).json({ message: "Vendor profile required" });
 
       const post = await VendorPost.findById(req.params.id);
       if (!post) return res.status(404).json({ message: "Post not found" });
@@ -88,24 +94,45 @@ router.put(
         return res.status(403).json({ message: "Not authorized" });
       }
 
-      const { title, description, priceFrom } = req.body;
+      const {
+        title,
+        description,
+        priceFrom,
+        removeGalleryImages = "[]",
+      } = req.body;
+      const removeList = JSON.parse(removeGalleryImages);
 
+      // Update text fields
       if (title) post.title = title;
       if (description) post.description = description;
       if (priceFrom) post.priceFrom = Number(priceFrom);
 
+      // ✅ Update main photo (if provided)
       if (req.files?.mainPhoto?.[0]) {
         post.mainPhoto = await uploadToImageKit(req.files.mainPhoto[0]);
       }
+
+      // ✅ Add new gallery images (keep old ones)
       if (req.files?.galleryImages?.length) {
-        post.galleryImages = await Promise.all(
+        const newImages = await Promise.all(
           req.files.galleryImages.map((f) => uploadToImageKit(f))
         );
+        post.galleryImages = [...post.galleryImages, ...newImages];
       }
+
+      // ✅ Remove selected gallery images
+      if (removeList.length > 0) {
+        post.galleryImages = post.galleryImages.filter(
+          (url) => !removeList.includes(url)
+        );
+      }
+
+      // ✅ Add new videos (keep old)
       if (req.files?.galleryVideos?.length) {
-        post.galleryVideos = await Promise.all(
+        const newVideos = await Promise.all(
           req.files.galleryVideos.map((f) => uploadToImageKit(f))
         );
+        post.galleryVideos = [...post.galleryVideos, ...newVideos];
       }
 
       await post.save();
