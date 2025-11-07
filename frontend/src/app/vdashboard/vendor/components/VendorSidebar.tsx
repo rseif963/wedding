@@ -54,7 +54,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
               key={link.href}
               href={link.href}
               onClick={onLinkClick} // ✅ closes sidebar on mobile
-              className={`block px-3 rounded-lg font-medium transition ${
+              className={`block px-3 py-1 rounded-lg font-medium transition ${
                 active
                   ? "bg-[#311970] text-white shadow-md"
                   : "text-gray-700 hover:bg-gray-100"

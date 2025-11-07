@@ -135,6 +135,16 @@ router.put(
         post.galleryVideos = [...post.galleryVideos, ...newVideos];
       }
 
+      // ✅ Remove selected gallery videos
+      if (req.body.removeGalleryVideos) {
+        const removeVideos = JSON.parse(req.body.removeGalleryVideos || "[]");
+        if (removeVideos.length > 0) {
+          post.galleryVideos = post.galleryVideos.filter(
+            (url) => !removeVideos.includes(url)
+          );
+        }
+      }
+
       await post.save();
       res.json(post);
     } catch (err) {

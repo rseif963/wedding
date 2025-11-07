@@ -18,7 +18,7 @@ type Post = {
 };
 
 export default function PostsManager({ preview = false }: { preview?: boolean }) {
-  const { posts: ctxPosts, createPost, updatePost, fetchVendorPosts, } = useAppContext();
+  const { posts: ctxPosts, createPost, vendorProfile, updatePost, fetchVendorPosts, } = useAppContext();
 
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -62,15 +62,18 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
   }, [ctxPosts]);
 
   // --- Fetch posts on mount ---
+
   useEffect(() => {
     (async () => {
       try {
+        // ✅ Only fetch if vendor profile exists
+        if (!vendorProfile?._id) return;
         await fetchVendorPosts();
       } catch {
         /* ignore */
       }
     })();
-  }, [fetchVendorPosts]);
+  }, [fetchVendorPosts, vendorProfile]);
 
   // --- manage croppingSrc object URL lifecycle ---
   useEffect(() => {
@@ -91,7 +94,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
     setCroppedAreaPixels(croppedArea);
   }, []);
 
-  
+
   async function getCroppedImage(file: File, croppedAreaPixels: any) {
     // create temporary object URL and load the image
     const objectUrl = URL.createObjectURL(file);
@@ -323,27 +326,38 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
   // --- Utility ---
   const getFullUrl = (path?: string) => {
     if (!path) return "";
-    return path.startsWith("http") ? path : `${API_URL}${path}`;
+
+    // ✅ If it's already a full ImageKit URL, return as-is
+    if (path.startsWith("https://ik.imagekit.io")) return path;
+
+    // ✅ If it already starts with http (like any other full URL)
+    if (path.startsWith("http")) return path;
+
+    // ✅ Otherwise, assume it's a local backend path
+    const base = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    return `${base}${cleanPath.replace(/\\/g, "/")}`;
   };
 
+
   return (
-    <section className="bg-white p-6 rounded-xl shadow relative">
+    <section className="bg-white p-2  relative w-full min-h-screen overflow-y-auto">
+
       {/* === CROPPER MODAL (ADDED) === */}
       {croppingFile && croppingSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-white rounded-lg w-[95%] max-w-4xl h-[90vh] p-4 flex flex-col">
-            <div className="relative flex-[1.2] bg-gray-800">
+            <div className="relative flex-[2] bg-gray-800 h-[80vh]">
               <Cropper
                 image={croppingSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={16 / 9}   // widescreen ratio
+                aspect={16 / 18} // you can change this if you want
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
             </div>
-
 
             <div className="mt-4 flex items-center gap-3 justify-end">
               <div className="flex items-center gap-2">
@@ -381,7 +395,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
       {(posts.length === 0 || editingPostId) && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 pb-20 border-b border-gray-200"
+          className="space-y-1 pb-6 border-b border-gray-200"
         >
           {/* Price */}
           <div>
@@ -403,7 +417,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
                 <img
                   src={mainPhotoPreview || getFullUrl(existingMainPhotoUrl!)}
                   alt="main"
-                  className="w-32 h-32 object-cover rounded-lg"
+                  className="w-32 h-42 object-cover rounded-lg"
                 />
                 <button
                   type="button"
@@ -505,29 +519,36 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
       )}
 
       {/* === POSTS LIST === */}
-      <div className="mt-10">
-        <h3 className="text-lg font-bold mb-4">My Posts</h3>
+      <div className="mt-1">
+        <h3 className="text-2xl text-center font-bold mb-4">My Posts</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {posts.length === 0 && <p className="text-gray-500">No posts yet.</p>}
           {posts.map((post) => (
-            <div key={post._id} className="border w-full rounded-lg p-4 shadow-sm bg-gray-50">
+            <div key={post._id} className="w-full p-1 bg-gray-30">
               {post.mainPhoto && (
                 <img
                   src={getFullUrl(post.mainPhoto)}
-                  className="w-full h-40 object-cover rounded-md"
+                  className="w-full h-60 object-cover rounded-md"
                 />
               )}
               <p className="font-semibold mt-2">
                 Starting from Ksh {Number(post.priceFrom || 0).toLocaleString()}
               </p>
 
-              <div className="flex flex-wrap gap-2 mt-2">
-                {(post.galleryImages || []).map((img, i) => (
-                  <img key={i} src={getFullUrl(img)} className="w-20 h-20 object-cover rounded-md" />
-                ))}
-                {(post.galleryVideos || []).map((v, i) => (
-                  <video key={i} src={getFullUrl(v)} controls className="w-20 h-20 object-cover rounded-md" />
-                ))}
+              <div className=" gap-2 mt-2">
+                <div className="flex grid grid-cols-4 gap-2 w-full">
+                  {(post.galleryImages || []).map((img, i) => (
+                    <img key={i} src={getFullUrl(img)} className="w-20 h-20 object-cover rounded-md" />
+                  ))}
+                </div>
+
+                <div className="mt-6 flex flex-col gap-4 w-full md:w-[48%] aspect-video rounded-lg ">
+                  <h3 className="text-1xl font-bold mb-1">Videos</h3>
+                  {(post.galleryVideos || []).map((v, i) => (
+                    <video key={i} src={getFullUrl(v)} controls className="w-full h-full object-cover rounded-lg" />
+                  ))}
+                </div>
+
               </div>
 
               <div className="mt-3 flex items-center gap-4">
