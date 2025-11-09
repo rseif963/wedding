@@ -40,7 +40,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
 
   return (
     <aside
-      className="w-64 bg-white shadow-lg  flex flex-col"
+      className="w-64 bg-white shadow-lg flex flex-col"
       style={{ height: viewportHeight }}
     >
       <h2 className="text-2xl w-full p-4 font-bold text-white bg-[#311970] mb-4">Vendor</h2>

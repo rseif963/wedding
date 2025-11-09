@@ -1,4 +1,6 @@
 import "dotenv/config";
+import http from "http";
+import { Server } from "socket.io";
 import "express-async-errors";
 import express from "express";
 import cors from "cors";
@@ -46,9 +48,47 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*", // or your frontend URL
+    methods: ["GET", "POST"],
+  },
+});
+
+const onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("register", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+
+  socket.on("sendMessage", (messageData) => {
+    const { receiverId } = messageData;
+    const receiverSocketId = onlineUsers.get(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("receiveMessage", messageData);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+    [...onlineUsers.entries()].forEach(([uid, sid]) => {
+      if (sid === socket.id) onlineUsers.delete(uid);
+    });
+  });
+});
+
+// ✅ Keep DB connection and listen inside .then()
 connectDB()
   .then(() => {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    server.listen(PORT, () =>
+      console.log(`Server running with Socket.IO on port ${PORT}`)
+    );
   })
   .catch((err) => {
     console.error("Failed to connect to DB", err);

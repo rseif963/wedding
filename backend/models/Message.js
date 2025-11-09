@@ -1,25 +1,48 @@
 import mongoose from "mongoose";
 
-const MessageSchema = new mongoose.Schema({
-  fromUser: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+const messageSchema = new mongoose.Schema(
+  {
+    // 🔹 Sender (can be either a client or a vendor)
+    sender: {
+      id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      role: { type: String, enum: ["client", "vendor"], required: true },
+    },
 
-  // either vendor OR client will be set depending on direction
-  toVendor: { type: mongoose.Schema.Types.ObjectId, ref: "VendorProfile" },
-  toUser: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    // 🔹 Receiver (can be either a client or a vendor)
+    receiver: {
+      id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      role: { type: String, enum: ["client", "vendor"], required: true },
+    },
 
-  text: { type: String, required: true },
-  read: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-});
+    // 🔹 Conversation ID (for grouping messages between one client & one vendor)
+    conversationId: {
+      type: String,
+      index: true,
+    },
 
-// optional: enforce at least one recipient
-MessageSchema.pre("validate", function (next) {
-  if (!this.toVendor && !this.toUser) {
-    next(new Error("Message must have either toVendor or toUser"));
-  } else {
-    next();
+    // 🔹 Message content
+    text: { type: String, default: "" },
+    mediaUrl: { type: String }, // optional photo/video/audio/file
+    mediaType: {
+      type: String,
+      enum: ["image", "video", "audio", "file", "none"],
+      default: "none",
+    },
+
+    // 🔹 Message status
+    seen: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
+
+// 🔸 Auto-generate consistent conversationId (same for both participants)
+messageSchema.pre("save", function (next) {
+  if (!this.conversationId) {
+    const ids = [this.sender.id.toString(), this.receiver.id.toString()].sort();
+    this.conversationId = ids.join("_");
   }
+  next();
 });
 
-const Message = mongoose.model("Message", MessageSchema);
+const Message = mongoose.model("Message", messageSchema);
 export default Message;

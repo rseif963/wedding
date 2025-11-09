@@ -1,130 +1,90 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
 
-type Props = {
-  preview?: boolean;
-};
-
-export default function BookingRequests({ preview = false }: Props) {
-  const {
-    bookings = [],
-    fetchClientBookings,
-    fetchVendorBookings,
-    respondBooking,
-    role,
-  } = useAppContext();
-
-  const [loading, setLoading] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false);
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
-
-  const loadBookings = useCallback(async () => {
-   
-    if (!role) {
-      console.warn("Role not yet defined, skipping fetch");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (role === "vendor" && typeof fetchVendorBookings === "function") {
-        await fetchVendorBookings();
-      } else if (role === "client" && typeof fetchClientBookings === "function") {
-        await fetchClientBookings();
-      } else {
-        console.warn("Unknown role, skipping booking fetch");
-      }
-      setHasFetched(true);
-    } catch (err) {
-      console.error("Failed to load bookings:", err);
-      toast.error("Failed to load bookings");
-    } finally {
-      setLoading(false);
-    }
-  }, [role, fetchClientBookings, fetchVendorBookings]);
+export default function VendorBookings() {
+  const { bookings, fetchVendorBookings } = useAppContext();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (role) {
+    let timeout: NodeJS.Timeout;
+
+    const loadBookings = async () => {
+      try {
+        setLoading(true);
+        await fetchVendorBookings();
+      } catch (err) {
+        console.error("Failed to fetch bookings:", err);
+        toast.error("Failed to load bookings");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Delay slightly so AppContext can apply token from localStorage
+    timeout = setTimeout(() => {
       loadBookings();
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [fetchVendorBookings]);
+
+  const getClientName = (booking: any) => {
+    const client = booking.client ?? booking.clientProfile ?? booking.clientData ?? {};
+    const getFirst = (str?: string) => (str ? str.split(" ")[0] : "");
+    if (client.brideName && client.groomName) {
+      return `${getFirst(client.brideName)} & ${getFirst(client.groomName)}`;
     }
-  }, [role]);
-
-  const safeId = (req: any) => req?._id ?? req?.id ?? "";
-
-  const getClientName = (req: any) => {
-    const client = req?.client;
-    if (!client) return "Unknown Client";
-    if (typeof client === "string") return client;
-    return (
-      client.name ??
-      client.fullName ??
-      client.clientName ??
-      (client.user && (client.user.name || client.user.email)) ??
-      client.email ??
-      "Client"
-    );
+    if (client.coupleName) {
+      return client.coupleName
+        .split("&")
+        .map((n: string) => getFirst(n.trim()))
+        .join(" & ");
+    }
+    if (client.name) return getFirst(client.name);
+    if (client.email) return client.email;
+    return "Client";
   };
 
-  const getServiceName = (req: any) => {
-    const s = req?.service;
-    if (!s) return "Service";
-    if (typeof s === "string") return s;
-    return s.name ?? s.title ?? "Service";
+  const getServiceName = (booking: any) => {
+    const service = booking.service;
+    if (!service) return "Service";
+    if (typeof service === "string") return service;
+    return service.name ?? service.title ?? "Service";
   };
 
-  const getDateString = (req: any) => {
-    if (!req?.date) return "-";
-    const d = new Date(req.date);
-    if (Number.isNaN(d.getTime())) return req.date;
+  const getDateString = (booking: any) => {
+    if (!booking.date) return "-";
+    const d = new Date(booking.date);
+    if (Number.isNaN(d.getTime())) return booking.date;
     return d.toLocaleDateString();
   };
 
-  const onRespond = async (bookingId: string, status: "Accepted" | "Declined") => {
-    if (!bookingId) {
-      toast.error("Invalid booking id");
-      return;
-    }
-    setActionLoading((s) => ({ ...s, [bookingId]: true }));
-    try {
-      await respondBooking(bookingId, status);
-      await loadBookings();
-      toast.success(`Booking ${status.toLowerCase()}`);
-    } catch (err) {
-      console.error("Failed to respond to booking:", err);
-      toast.error("Could not update booking");
-    } finally {
-      setActionLoading((s) => ({ ...s, [bookingId]: false }));
-    }
-  };
-
-  const visibleRequests = preview ? bookings.slice(0, 1) : bookings;
-
   return (
-    <section className="bg-white p-6 rounded-xl ">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Booking Requests</h2>
+    <section className="bg-white p-6 rounded-xl w-full">
+      <h2 className="text-xl font-bold mb-4 text-gray-800">Vendor Bookings</h2>
 
-      {loading && !hasFetched ? ( 
+      {loading ? (
         <p className="text-gray-500">Loading bookings...</p>
-      ) : !loading && hasFetched && visibleRequests.length === 0 ? ( 
-        <p className="text-gray-500">No booking requests yet.</p>
+      ) : bookings.length === 0 ? (
+        <p className="text-gray-500">No bookings yet.</p>
       ) : (
         <ul className="space-y-4">
-          {visibleRequests.map((req: any) => {
-            const id = safeId(req);
-            const status = req?.status ?? "Pending";
+          {bookings.map((b: any) => {
+            const id = b._id ?? b.id ?? Math.random().toString();
+            const status = b.status ?? "Pending";
 
             return (
               <li
-                key={id || Math.random()}
+                key={id}
                 className="flex justify-between items-center border-b pb-3"
               >
                 <div>
-                  <p className="font-medium text-gray-700">{getClientName(req)}</p>
+                  <p className="font-medium text-gray-700">{getClientName(b)}</p>
                   <p className="text-sm text-gray-500">
-                    {getServiceName(req)} • {getDateString(req)}
+                    {getServiceName(b)} • {getDateString(b)}
                   </p>
                   <p
                     className={`text-xs mt-1 ${
@@ -138,26 +98,6 @@ export default function BookingRequests({ preview = false }: Props) {
                     {status}
                   </p>
                 </div>
-
-                {!preview && role === "vendor" && status === "Pending" && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onRespond(id, "Accepted")}
-                      disabled={!id || !!actionLoading[id]}
-                      className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
-                    >
-                      {actionLoading[id] ? "..." : "Accept"}
-                    </button>
-
-                    <button
-                      onClick={() => onRespond(id, "Declined")}
-                      disabled={!id || !!actionLoading[id]}
-                      className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-                    >
-                      {actionLoading[id] ? "..." : "Decline"}
-                    </button>
-                  </div>
-                )}
               </li>
             );
           })}

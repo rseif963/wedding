@@ -1,8 +1,9 @@
 // src/context/AppContext.tsx
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -109,7 +110,7 @@ interface AppContextType {
   messages: MessageItem[];
   reviews: ReviewItem[];
   blogs: BlogPost[];
-
+  socket: any;
   authLoading: boolean;
 
   login: (email: string, password: string) => Promise<boolean>;
@@ -165,8 +166,37 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
-
   const [authLoading, setAuthLoading] = useState(true);
+
+  // --- SOCKET.IO SETUP ---
+  const [socket, setSocket] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // connect socket
+    const newSocket = io(process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000", {
+      transports: ["websocket"],
+    });
+
+    newSocket.emit("register", user.id); // register current user
+    setSocket(newSocket);
+
+    // listen for incoming messages
+    newSocket.on("receiveMessage", (msg) => {
+      setMessages((prev) => [...prev, msg]);
+      try {
+        if (user?.id) {
+          localStorage.setItem(`messages_${user.id}`, JSON.stringify([...messages, msg]));
+        }
+      } catch { }
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [user?.id]);
+
 
   const applyToken = (t: string | null) => {
     if (t) {
@@ -481,12 +511,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch { }
   };
 
-  const fetchVendorBookings = async () => {
+  const fetchVendorBookings = useCallback(async () => {
     try {
       const { data } = await axios.get("/api/bookingRequests/vendor/me");
       setBookings(data || []);
-    } catch { }
-  };
+    } catch (err) {
+      console.error("Failed to fetch vendor bookings:", err);
+      setBookings([]);
+    }
+  }, []); // 👈 empty deps = stable reference
+
 
   const respondBooking = async (bookingId: string, status: "Accepted" | "Declined" | "Pending") => {
     try {
@@ -496,53 +530,88 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch { }
   };
 
-  const sendMessage = async (recipientId: string, text: string) => {
+  const sendMessage = async (recipientId: string, text: string, file?: File | null) => {
     try {
-      let payload: any = { text };
-
-      if (role === "client") {
-        payload.toVendorId = recipientId;
-      }
-      if (role === "vendor") {
-        payload.toUserId = recipientId;
+      if (!recipientId) {
+        toast.error("Recipient ID is required");
+        return null;
       }
 
-      const { data } = await axios.post("/api/messages", payload);
+      if (!token || !role) {
+        toast.error("You are not logged in");
+        return null;
+      }
+
+      const formData = new FormData();
+      formData.append("toId", recipientId);
+
+      // Correct recipient role: if current user is client, recipient is vendor
+      formData.append("toRole", role === "client" ? "vendor" : "client");
+      if (text) formData.append("text", text);
+      if (file) formData.append("file", file);
+
+      const { data } = await axios.post("/api/messages", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // emit live socket event
+      if (socket) {
+        socket.emit("sendMessage", {
+          ...data,
+          receiverId: recipientId,
+        });
+      }
+
+      // update local state safely
       setMessages((prev) => {
         const updated = [...prev, data];
-        if (user?.id) {
-          localStorage.setItem(`messages_${user.id}`, JSON.stringify(updated));
+        const currentId = clientProfile?._id || vendorProfile?._id;
+        if (currentId) {
+          localStorage.setItem(`messages_${currentId}`, JSON.stringify(updated));
         }
         return updated;
       });
 
-      toast.success("Message sent");
-      return data as MessageItem;
-    } catch (err) {
-      console.error("sendMessage error:", err);
-      toast.error("Failed to send message");
+      return data;
+    } catch (err: any) {
+      console.error("sendMessage error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Failed to send message");
       return null;
     }
   };
 
+
+
+
+
   const fetchMessages = async () => {
     try {
-      let url = "";
-      if (role === "vendor") url = "/api/messages/vendor/me";
-      else if (role === "client") url = "/api/messages/client/me";
-      if (!url) return;
+      if (!token) throw new Error("No auth token found");
 
-      const { data } = await axios.get(url);
+      // Get all chats involving current user with auth header
+      const { data } = await axios.get("/api/messages/my-chats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Save to state
       setMessages(data || []);
 
+      // Save to localStorage for offline/cache
       if (user?.id) {
         localStorage.setItem(`messages_${user.id}`, JSON.stringify(data || []));
       }
-    } catch (err) {
-      console.error("Failed to fetch messages:", err);
+
+      console.log("✅ Messages fetched", data.length);
+    } catch (err: any) {
+      console.error("Failed to fetch messages:", err.response?.data || err.message);
       setMessages([]);
     }
   };
+
+
 
   const postReview = async (payload: { vendorId: string; rating: number; text?: string }) => {
     try {
@@ -700,6 +769,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         reviews,
         authLoading,
         blogs,
+        socket,
 
         // auth & profile
         login,

@@ -272,7 +272,7 @@ export default function VendorProfile() {
       </section>
 
       {/* About */}
-      <section className="max-w-5xl mx-auto px-6 py-12">
+      <section className="max-w-5xl mx-auto px-3 py-8">
         <h2 className="text-2xl font-bold text-[#311970] mb-4">About</h2>
         <p className="text-gray-700 leading-relaxed">
           {aboutText || "No description available."}
@@ -281,9 +281,9 @@ export default function VendorProfile() {
 
       {/* Gallery */}
       {galleryArray && galleryArray.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 py-12">
-          <h2 className="text-2xl font-bold text-[#311970] mb-6">Gallery</h2>
-          <div className="grid gap-6 md:grid-cols-3">
+        <section className="max-w-6xl mx-auto px-1 py-12">
+          <h2 className="text-2xl font-bold text-[#311970] mb-3">Gallery</h2>
+          <div className="grid gap-2 md:grid-cols-3">
             {galleryArray.map((img: string, index: number) => (
               <Image
                 key={index}
@@ -291,7 +291,7 @@ export default function VendorProfile() {
                 alt={`${vendor.businessName || vendor.name} gallery ${index + 1}`}
                 width={400}
                 height={300}
-                className="w-full h-64 object-cover rounded-lg shadow"
+                className="w-full h-70 object-cover rounded-lg shadow"
                 unoptimized
               />
             ))}

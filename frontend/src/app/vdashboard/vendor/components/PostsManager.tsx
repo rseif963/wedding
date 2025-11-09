@@ -536,6 +536,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
               </p>
 
               <div className=" gap-2 mt-2">
+                <h3 className="text-1xl font-bold mb-1">Gallery</h3>
                 <div className="flex grid grid-cols-4 gap-2 w-full">
                   {(post.galleryImages || []).map((img, i) => (
                     <img key={i} src={getFullUrl(img)} className="w-20 h-20 object-cover rounded-md" />

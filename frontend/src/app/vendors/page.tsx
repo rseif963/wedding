@@ -145,7 +145,7 @@ const VendorsPage = () => {
       <Navbar />
       {/* Header */}
       <section
-        className="relative text-white py-10 text-center px-2 bg-cover bg-center"
+        className="relative text-white py-10 md:py-42 text-center px-2 bg-cover bg-center"
         style={{
           backgroundImage: "url('/assets/vendor-header.jpg')",
         }}
@@ -233,7 +233,7 @@ const VendorsPage = () => {
         {currentVendors.length === 0 ? (
           <p className="text-center text-gray-600 mt-10">No vendors found.</p>
         ) : (
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {currentVendors.map((post) => {
               const v = post.vendor;
               const imageUrl = getFullUrl(post.mainPhoto);

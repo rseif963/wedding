@@ -1,115 +1,137 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import Message from "../models/Message.js";
 import VendorProfile from "../models/VendorProfile.js";
-import User from "../models/User.js"; // 👈 make sure this exists
+import ClientProfile from "../models/ClientProfile.js";
 
 const router = express.Router();
 
-// -------------------- SEND MESSAGE --------------------
-router.post("/", auth, async (req, res) => {
+// ==========================
+// 📁 Multer setup for file uploads
+// ==========================
+const uploadDir = "uploads/messages";
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, unique + ext);
+  },
+});
+
+const upload = multer({ storage });
+
+// ==========================
+// 📤 SEND MESSAGE (with optional media)
+// ==========================
+router.post("/", auth, upload.single("file"), async (req, res) => {
   try {
-    const { toVendorId, toUserId, text } = req.body;
+    const { toId, toRole, text } = req.body;
+    let mediaUrl = null;
+    let mediaType = "none";
 
-    let msg;
-
-    if (toVendorId) {
-      // ✅ client → vendor
-      const vendorProfile = await VendorProfile.findOne({ user: toVendorId });
-      if (!vendorProfile) {
-        return res.status(404).json({ message: "Vendor profile not found" });
-      }
-
-      msg = await Message.create({
-        fromUser: req.user.id,
-        toVendor: vendorProfile._id,
-        text,
-      });
-
-      msg = await msg.populate([
-        { path: "fromUser", select: "email" },
-        { path: "toVendor", select: "businessName" },
-      ]);
+    if (!toId || !toRole) {
+      return res.status(400).json({ message: "Recipient ID and role required" });
     }
 
-    else if (toUserId) {
-      // ✅ vendor → client
-      const user = await User.findById(toUserId);
-      if (!user) {
-        return res.status(404).json({ message: "Client not found" });
-      }
-
-      msg = await Message.create({
-        fromUser: req.user.id,
-        toUser: toUserId, // 👈 store direct user ref
-        text,
-      });
-
-      msg = await msg.populate([
-        { path: "fromUser", select: "email" },
-        { path: "toUser", select: "email" },
-      ]);
+    // Validate receiver existence
+    if (toRole === "vendor") {
+      const vendor = await VendorProfile.findById(toId);
+      if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+    } else if (toRole === "client") {
+      const client = await ClientProfile.findById(toId);
+      if (!client) return res.status(404).json({ message: "Client not found" });
     }
 
-    else {
-      return res.status(400).json({ message: "Recipient required" });
+    // Handle uploaded file (optional)
+    if (req.file) {
+      mediaUrl = `/uploads/messages/${req.file.filename}`;
+      const mime = req.file.mimetype;
+      if (mime.startsWith("image/")) mediaType = "image";
+      else if (mime.startsWith("video/")) mediaType = "video";
+      else if (mime.startsWith("audio/")) mediaType = "audio";
+      else mediaType = "file";
     }
+
+    // Build and save message
+    const msg = await Message.create({
+      sender: { id: req.user.id, role: req.user.role },
+      receiver: { id: toId, role: toRole },
+      text: text || "",
+      mediaUrl,
+      mediaType,
+    });
 
     res.json(msg);
   } catch (err) {
-    console.error("Error saving message:", err);
-    res.status(500).json({ message: "Failed to save message" });
+    console.error("❌ Error sending message:", err);
+    res.status(500).json({ message: "Failed to send message" });
   }
 });
 
-// -------------------- GET VENDOR MESSAGES --------------------
-router.get("/vendor/me", auth, async (req, res) => {
-  const vendor = await VendorProfile.findOne({ user: req.user.id });
-  if (!vendor) return res.status(400).json({ message: "Vendor profile required" });
-
-  const msgs = await Message.find({ toVendor: vendor._id })
-    .populate("fromUser", "email")
-    .populate("toVendor", "businessName");
-  res.json(msgs);
-});
-
-// -------------------- FULL CONVERSATION --------------------
-router.get("/conversation/:vendorUserId", auth, async (req, res) => {
+// ==========================
+// 💬 GET CONVERSATION (by other user ID)
+// ==========================
+router.get("/conversation/:otherId", auth, async (req, res) => {
   try {
-    const { vendorUserId } = req.params;
+    const { otherId } = req.params;
+    const ids = [req.user.id.toString(), otherId.toString()].sort();
+    const conversationId = ids.join("_");
 
-    const vendorProfile = await VendorProfile.findOne({ user: vendorUserId });
-    if (!vendorProfile) {
-      return res.status(404).json({ message: "Vendor profile not found" });
-    }
-
-    const msgs = await Message.find({
-      $or: [
-        // client → vendor
-        { fromUser: req.user.id, toVendor: vendorProfile._id },
-        // vendor → client
-        { fromUser: vendorUserId, toUser: req.user.id }
-      ],
-    })
-      .sort({ createdAt: 1 })
-      .populate("fromUser", "email")
-      .populate("toVendor", "businessName")
-      .populate("toUser", "email");
-
-    res.json(msgs);
+    const messages = await Message.find({ conversationId }).sort({ createdAt: 1 });
+    res.json(messages);
   } catch (err) {
-    console.error("Error fetching conversation:", err);
+    console.error("❌ Error fetching conversation:", err);
     res.status(500).json({ message: "Failed to fetch conversation" });
   }
 });
 
-// -------------------- CLIENT GET OWN MESSAGES --------------------
-router.get("/client/me", auth, async (req, res) => {
-  const msgs = await Message.find({ fromUser: req.user.id })
-    .populate("toVendor", "businessName")
-    .populate("fromUser", "email")
-    .populate("toUser", "email");
-  res.json(msgs);
+// ==========================
+// 📚 GET MY CHATS (latest per conversation)
+// ==========================
+router.get("/my-chats", auth, async (req, res) => {
+  try {
+    const messages = await Message.find({
+      $or: [{ "sender.id": req.user.id }, { "receiver.id": req.user.id }],
+    }).sort({ createdAt: -1 });
+
+    const latestByChat = {};
+    messages.forEach((msg) => {
+      if (!latestByChat[msg.conversationId]) latestByChat[msg.conversationId] = msg;
+    });
+
+    res.json(Object.values(latestByChat));
+  } catch (err) {
+    console.error("❌ Error fetching chat list:", err);
+    res.status(500).json({ message: "Failed to fetch chat list" });
+  }
+});
+
+// ==========================
+// 👁️ MARK AS SEEN
+// ==========================
+router.put("/:id/seen", auth, async (req, res) => {
+  try {
+    const msg = await Message.findById(req.params.id);
+    if (!msg) return res.status(404).json({ message: "Message not found" });
+
+    if (msg.receiver.id.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    msg.seen = true;
+    await msg.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Error marking as seen:", err);
+    res.status(500).json({ message: "Failed to mark as seen" });
+  }
 });
 
 export default router;

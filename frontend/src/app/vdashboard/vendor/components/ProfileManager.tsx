@@ -22,7 +22,6 @@ export default function ProfileManager({ preview = false }: Props) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [initializing, setInitializing] = useState(true);
 
   const categories = [
     "Photography", "Venue", "Decoration", "Catering", "Makeup & Beauty",
@@ -39,19 +38,17 @@ export default function ProfileManager({ preview = false }: Props) {
     "Trans Nzoia","Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot",
   ];
 
+  // Fetch profile immediately on mount
   useEffect(() => {
     const loadProfile = async () => {
-      try {
-        await fetchVendorMe();
-      } finally {
-        setInitializing(false);
-      }
+      await fetchVendorMe();
     };
     loadProfile();
   }, [fetchVendorMe]);
 
+  // Update form data immediately when profile is available
   useEffect(() => {
-    if (vendorProfile && !isEditing) {
+    if (vendorProfile) {
       setFormData({
         businessName: vendorProfile.businessName || "",
         category: vendorProfile.category || "",
@@ -61,10 +58,11 @@ export default function ProfileManager({ preview = false }: Props) {
         phone: vendorProfile.phone || "",
         email: vendorProfile.email || "",
       });
-    } else if (!vendorProfile) {
-      setIsEditing(true);
+      setIsEditing(false); // Ensure editing mode is off if profile exists
+    } else {
+      setIsEditing(true); // If no profile, start in editing mode
     }
-  }, [vendorProfile, isEditing]);
+  }, [vendorProfile]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -79,21 +77,13 @@ export default function ProfileManager({ preview = false }: Props) {
 
     const updated = await updateVendorProfile(formData);
     if (updated) {
-      await fetchVendorMe();
       setIsEditing(false);
     }
 
     setLoading(false);
   };
 
-  if (initializing) {
-    return (
-      <section className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-md border border-gray-100">
-        <p className="text-gray-500 text-center">Loading profile...</p>
-      </section>
-    );
-  }
-
+  // Preview mode
   if (preview) {
     return (
       <section className="bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md">
@@ -110,45 +100,24 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
+  // Display profile if exists
   if (!isEditing && vendorProfile) {
     return (
       <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-2 sm:p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
-        <h2 className="text-2xl font-bold text-[#311970] mb-5">My Profile</h2>
+        <h2 className="text-2xl font-bold text-purple-700 mb-5">My Profile</h2>
         <div className="space-y-2 w-full break-words">
-          <h3 className="text-lg font-semibold text-gray-800">
-            {vendorProfile.businessName}
-          </h3>
-          <p className="text-sm text-gray-500">
-            {vendorProfile.category} • {vendorProfile.location}
-          </p>
+          <h3 className="text-lg font-semibold text-gray-800">{vendorProfile.businessName}</h3>
+          <p className="text-sm text-gray-500">{vendorProfile.category} • {vendorProfile.location}</p>
 
-          {vendorProfile.email && (
-            <p className="text-sm text-gray-600">
-              <strong>Email:</strong> {vendorProfile.email}
-            </p>
-          )}
-
-          {vendorProfile.phone && (
-            <p className="text-sm text-gray-600">
-              <strong>Phone:</strong> {vendorProfile.phone}
-            </p>
-          )}
-
+          {vendorProfile.email && <p className="text-sm text-gray-600"><strong>Email:</strong> {vendorProfile.email}</p>}
+          {vendorProfile.phone && <p className="text-sm text-gray-600"><strong>Phone:</strong> {vendorProfile.phone}</p>}
           {vendorProfile.website && (
-            <a
-              href={vendorProfile.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline break-all"
-            >
+            <a href={vendorProfile.website} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline break-all">
               {vendorProfile.website}
             </a>
           )}
-
           {vendorProfile.description && (
-            <p className="mt-3 text-gray-700 leading-relaxed break-words">
-              {vendorProfile.description}
-            </p>
+            <p className="mt-3 text-gray-700 leading-relaxed break-words">{vendorProfile.description}</p>
           )}
 
           <button
@@ -162,14 +131,12 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
+  // Editing form
   return (
     <section className="bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
       <h2 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h2>
-
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
-      >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        {/* Business Name */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Business Name</label>
           <input
@@ -181,7 +148,7 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           />
         </div>
-
+        {/* Category */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Category</label>
           <select
@@ -191,12 +158,10 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           >
             <option value="">Select Category</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
+            {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
           </select>
         </div>
-
+        {/* Location */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Location</label>
           <select
@@ -206,12 +171,10 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           >
             <option value="">Select County</option>
-            {counties.map((county) => (
-              <option key={county} value={county}>{county}</option>
-            ))}
+            {counties.map((county) => <option key={county} value={county}>{county}</option>)}
           </select>
         </div>
-
+        {/* Website */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Website</label>
           <input
@@ -223,7 +186,7 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           />
         </div>
-
+        {/* Phone */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
           <input
@@ -235,7 +198,7 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           />
         </div>
-
+        {/* Email */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Email</label>
           <input
@@ -247,7 +210,7 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           />
         </div>
-
+        {/* Description */}
         <div className="flex flex-col md:col-span-2">
           <label className="text-sm font-semibold text-gray-700 mb-2">Business Description</label>
           <textarea
@@ -258,7 +221,7 @@ export default function ProfileManager({ preview = false }: Props) {
             className="border border-gray-300 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
           ></textarea>
         </div>
-
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}

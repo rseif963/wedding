@@ -1,16 +1,49 @@
 "use client";
 
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { CalendarCheck, MessageSquare, Star } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 export default function VendorStatsCards() {
-  const { bookings, messages, reviews } = useAppContext();
+  const {
+    bookings,
+    messages,
+    reviews,
+    fetchVendorBookings,
+    fetchMessages,
+    fetchAllReviews,
+    role,
+  } = useAppContext();
+
+  // ✅ Fetch all data immediately (no waiting for anything else)
+  useEffect(() => {
+    if (role === "vendor") {
+      fetchVendorBookings();
+      fetchMessages();
+      fetchAllReviews();
+    }
+  }, [role]);
 
   const stats = [
-    { label: "Requests", value: bookings?.length || 0, icon: CalendarCheck, href: "/vdashboard/vendor/bookings" },
-    { label: "Messages", value: messages?.length || 0, icon: MessageSquare, href: "/vdashboard/vendor/messages" },
-    { label: "Reviews", value: reviews?.length || 0, icon: Star, href: "/vdashboard/vendor/reviews" },
+    {
+      label: "Requests",
+      value: bookings?.length || 0,
+      icon: CalendarCheck,
+      href: "/vdashboard/vendor/bookings",
+    },
+    {
+      label: "Messages",
+      value: messages?.length || 0,
+      icon: MessageSquare,
+      href: "/vdashboard/vendor/messages",
+    },
+    {
+      label: "Reviews",
+      value: reviews?.length || 0,
+      icon: Star,
+      href: "/vdashboard/vendor/reviews",
+    },
   ];
 
   return (
@@ -31,6 +64,6 @@ export default function VendorStatsCards() {
           </div>
         </Link>
       ))}
-    </div>
-  );
+    </div>
+  );
 }
