@@ -131,8 +131,9 @@ interface AppContextType {
   fetchClientBookings: () => Promise<void>;
   fetchVendorBookings: () => Promise<void>;
   respondBooking: (bookingId: string, status: "Accepted" | "Declined" | "Pending") => Promise<void>;
-  sendMessage: (toVendorId: string, text: string) => Promise<MessageItem | null>;
+  sendMessage: (recipientId: string, text: string, file?: File | null) => Promise<MessageItem | null>;
   fetchMessages: () => Promise<void>;
+  fetchConversation: (otherUserId: string) => Promise<any>;
   postReview: (payload: { vendorId: string; rating: number; text?: string }) => Promise<ReviewItem | null>;
   fetchReviewsForVendor: (vendorId: string) => Promise<void>;
   // NEW: fetch all reviews at once
@@ -611,6 +612,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchConversation = async (otherUserId: string) => {
+    try {
+      if (!token) throw new Error("No auth token found");
+
+      const { data } = await axios.get(`/api/messages/conversation/${otherUserId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMessages(data || []);
+      if (user?.id) {
+        localStorage.setItem(`conversation_${user.id}_${otherUserId}`, JSON.stringify(data || []));
+      }
+
+      return data;
+    } catch (err: any) {
+      console.error("Failed to fetch conversation:", err.response?.data || err.message);
+      setMessages([]);
+      return [];
+    }
+  };
+
 
 
   const postReview = async (payload: { vendorId: string; rating: number; text?: string }) => {
@@ -798,6 +820,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // messaging
         sendMessage,
         fetchMessages,
+        fetchConversation,
+
 
         // reviews
         postReview,

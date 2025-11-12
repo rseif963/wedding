@@ -178,7 +178,6 @@ export default function VendorMessages() {
         </div>
       </div>
 
-      {/* Chat Area */}
       {activeChat && (
         <div className="flex flex-col flex-1">
           {/* Header */}

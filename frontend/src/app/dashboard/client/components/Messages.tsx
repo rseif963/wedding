@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { ArrowLeft, Send, Paperclip, Search, X } from "lucide-react";
 
-type ActiveChat = { vendorId: string; vendorName: string };
+type ActiveChat = { userId: string; userName: string; role: "vendor" | "client" };
 
 export default function ClientMessages() {
   const {
@@ -13,6 +13,7 @@ export default function ClientMessages() {
     messages: contextMessages = [],
     fetchMessages,
     sendMessage,
+    fetchConversation,
     socket,
   } = useAppContext();
 
@@ -33,30 +34,27 @@ export default function ClientMessages() {
     return null;
   };
 
-  const getVendorName = (vendorObj: any) => {
-    if (!vendorObj) return "Vendor";
-    return vendorObj.businessName || vendorObj.name || vendorObj.email || "Vendor";
+  const getUserName = (userObj: any) => {
+    if (!userObj) return "User";
+    return userObj.businessName || userObj.name || userObj.email || "User";
   };
 
   const mergeMessages = (fresh: any[], cached: any[]) => {
     const map = new Map();
-    [...cached, ...fresh].forEach((m) =>
-      map.set(m._id ?? m.id ?? Math.random().toString(), m)
-    );
+    [...cached, ...fresh].forEach((m) => map.set(m._id ?? m.id ?? Math.random().toString(), m));
     return Array.from(map.values()).sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
   };
 
-  // 🔹 Fetch messages + socket listener
+  // 🔹 Fetch all messages + socket listener
   useEffect(() => {
     fetchMessages();
     if (socket) {
       socket.on("receiveMessage", (msg: any) => {
         if (
           activeChat &&
-          (msg.sender?.id === activeChat.vendorId || msg.receiver?.id === activeChat.vendorId)
+          (msg.sender?.id === activeChat.userId || msg.receiver?.id === activeChat.userId)
         ) {
           setChatMessages((prev) => [...prev, msg]);
         }
@@ -69,35 +67,46 @@ export default function ClientMessages() {
 
   // 🔹 Merge context + local messages
   useEffect(() => {
-    if (!activeChat?.vendorId) return;
+    if (!activeChat?.userId) return;
     const conv = contextMessages.filter((m: any) => {
-      const fromId = m.sender?.id ?? m.fromUser?._id ?? m.fromUser?.id;
-      const toId = m.receiver?.id ?? m.toVendor?._id ?? m.toVendor?.id ?? m.toUser?._id ?? m.toUser?.id;
-      return fromId === activeChat.vendorId || toId === activeChat.vendorId;
+      const fromId = m.sender?.id;
+      const toId = m.receiver?.id;
+      return fromId === activeChat.userId || toId === activeChat.userId;
     });
 
     const merged = mergeMessages(conv, chatMessages);
     setChatMessages(merged);
-    localStorage.setItem(
-      `${STORAGE_KEY}_msgs_${activeChat.vendorId}`,
-      JSON.stringify(merged)
-    );
+    localStorage.setItem(`${STORAGE_KEY}_msgs_${activeChat.userId}`, JSON.stringify(merged));
   }, [contextMessages, activeChat]);
 
-  // 🔹 Scroll to bottom
+  // 🔹 Scroll to bottom on new messages
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // 🔹 Open chat and load cached messages
-  const openChat = (vendorObj: any) => {
-    const vendorId = extractId(vendorObj);
-    if (!vendorId) return;
-    const vendorName = getVendorName(vendorObj);
-    setActiveChat({ vendorId, vendorName });
+  // 🔹 Open chat
+  const openChat = async (chatUser: any) => {
+    const userId = extractId(chatUser);
+    if (!userId) return;
 
-    const cached = localStorage.getItem(`${STORAGE_KEY}_msgs_${vendorId}`);
-    if (cached) setChatMessages(JSON.parse(cached));
+    const role = chatUser.businessName ? "vendor" : "client";
+    const userName = getUserName(chatUser);
+    setActiveChat({ userId, userName, role });
+
+    // Load cached messages first
+    const cached = localStorage.getItem(`${STORAGE_KEY}_msgs_${userId}`);
+    const cachedMessages = cached ? JSON.parse(cached) : [];
+    setChatMessages(cachedMessages);
+
+    // Fetch latest conversation
+    try {
+      const fetchedMessages = await fetchConversation(userId);
+      const merged = mergeMessages(fetchedMessages, cachedMessages);
+      setChatMessages(merged);
+      localStorage.setItem(`${STORAGE_KEY}_msgs_${userId}`, JSON.stringify(merged));
+    } catch (err) {
+      console.error("Failed to fetch conversation:", err);
+    }
   };
 
   // 🔹 Send message
@@ -105,7 +114,12 @@ export default function ClientMessages() {
     if (!activeChat || (!chatText.trim() && !fileToSend)) return;
 
     try {
-      const sent = await sendMessage(activeChat.vendorId, chatText.trim(), fileToSend);
+      const sent = await sendMessage(
+        activeChat.userId,
+        chatText.trim(),
+        fileToSend,
+        
+      );
       if (sent) setChatMessages((prev) => [...prev, sent]);
 
       setChatText("");
@@ -130,8 +144,9 @@ export default function ClientMessages() {
     <div className="flex h-screen w-full bg-gray-100 text-gray-900">
       {/* Sidebar */}
       <div
-        className={`${activeChat ? "hidden md:flex" : "flex"
-          } flex-col w-full md:w-1/3 lg:w-1/4 border-r border-gray-300 bg-white`}
+        className={`${
+          activeChat ? "hidden md:flex" : "flex"
+        } flex-col w-full md:w-1/3 lg:w-1/4 border-r border-gray-300 bg-white`}
       >
         <div className="flex items-center justify-between p-3 border-b bg-gray-100">
           <h2 className="text-lg font-semibold">Chats</h2>
@@ -141,9 +156,9 @@ export default function ClientMessages() {
         <div className="flex-1 overflow-y-auto">
           {bookings.map((b: any) => {
             const vendorObj = b.vendor ?? b.vendorProfile ?? b.vendorData ?? null;
-            const name = getVendorName(vendorObj);
-            const vendorId = extractId(vendorObj);
-            if (!vendorId) return null;
+            const name = getUserName(vendorObj);
+            const userId = extractId(vendorObj);
+            if (!userId) return null;
             return (
               <div
                 key={b._id}
@@ -156,7 +171,7 @@ export default function ClientMessages() {
                     {contextMessages
                       .filter(
                         (m: any) =>
-                          m.sender?.id === vendorId || m.receiver?.id === vendorId
+                          m.sender?.id === userId || m.receiver?.id === userId
                       )
                       .slice(-1)[0]?.text}
                   </p>
@@ -178,7 +193,7 @@ export default function ClientMessages() {
             >
               <ArrowLeft size={22} />
             </button>
-            <h2 className="font-medium text-sm">{activeChat.vendorName}</h2>
+            <h2 className="font-medium text-sm">{activeChat.userName}</h2>
           </div>
 
           {/* Messages */}
@@ -190,11 +205,16 @@ export default function ClientMessages() {
               return (
                 <div
                   key={m._id ?? Math.random()}
-                  className={`flex flex-col mb-3 ${isFromMe ? "items-end" : "items-start"}`}
+                  className={`flex flex-col mb-3 ${
+                    isFromMe ? "items-end" : "items-start"
+                  }`}
                 >
                   <div
-                    className={`rounded-lg px-3 py-2 max-w-[75%] shadow-sm ${isFromMe ? "bg-purple-600 text-white" : "bg-white text-gray-900"
-                      }`}
+                    className={`rounded-lg px-3 py-2 max-w-[75%] shadow-sm ${
+                      isFromMe
+                        ? "bg-purple-600 text-white"
+                        : "bg-white text-gray-900"
+                    }`}
                   >
                     {m.text && <p className="text-sm">{m.text}</p>}
                     {m.mediaUrl && m.mediaType === "image" && (
@@ -205,7 +225,11 @@ export default function ClientMessages() {
                       />
                     )}
                     {m.mediaUrl && m.mediaType === "video" && (
-                      <video src={m.mediaUrl} controls className="rounded-lg mt-1 max-w-full" />
+                      <video
+                        src={m.mediaUrl}
+                        controls
+                        className="rounded-lg mt-1 max-w-full"
+                      />
                     )}
                     {m.mediaUrl && m.mediaType === "audio" && (
                       <audio src={m.mediaUrl} controls className="mt-1 w-full" />
@@ -222,7 +246,10 @@ export default function ClientMessages() {
                   </div>
                   <span className="text-[10px] text-gray-500 mt-1">
                     {m.createdAt
-                      ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      ? new Date(m.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : ""}
                   </span>
                 </div>

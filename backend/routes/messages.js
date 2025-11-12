@@ -36,10 +36,12 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
     let mediaType = "none";
 
     if (!toId || !toRole) {
-      return res.status(400).json({ message: "Recipient ID and role required" });
+      return res
+        .status(400)
+        .json({ message: "Recipient ID and role required" });
     }
 
-    // Validate receiver existence
+    // Validate receiver
     if (toRole === "vendor") {
       const vendor = await VendorProfile.findById(toId);
       if (!vendor) return res.status(404).json({ message: "Vendor not found" });
@@ -48,7 +50,7 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
       if (!client) return res.status(404).json({ message: "Client not found" });
     }
 
-    // Handle uploaded file (optional)
+    // Handle uploaded file
     if (req.file) {
       mediaUrl = `/uploads/messages/${req.file.filename}`;
       const mime = req.file.mimetype;
@@ -58,14 +60,26 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
       else mediaType = "file";
     }
 
-    // Build and save message
+    // ✅ Create consistent conversation ID
+    const ids = [req.user.id.toString(), toId.toString()].sort();
+    const conversationId = ids.join("_");
+
+    // ✅ Save message
     const msg = await Message.create({
       sender: { id: req.user.id, role: req.user.role },
       receiver: { id: toId, role: toRole },
+      conversationId,
       text: text || "",
       mediaUrl,
       mediaType,
+      seen: false,
     });
+
+    // ✅ Emit real-time update (if socket is attached)
+    if (req.io) {
+      req.io.to(toId).emit("receiveMessage", msg);
+      req.io.to(req.user.id.toString()).emit("receiveMessage", msg);
+    }
 
     res.json(msg);
   } catch (err) {
@@ -111,6 +125,7 @@ router.get("/my-chats", auth, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch chat list" });
   }
 });
+
 
 // ==========================
 // 👁️ MARK AS SEEN
