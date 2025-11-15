@@ -90,14 +90,6 @@ export default function AdminAuthPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <button
-            onClick={toggleMode}
-            className="text-sm font-medium text-[#311970] hover:underline"
-          >
-            {mode === "login"
-              ? "Need an account? Register"
-              : "Already an admin? Login"}
-          </button>
         </div>
       </div>
     </main>

@@ -5,6 +5,7 @@ import Footer from "../../../components/Footer";
 import Breadcrumb from "../../../components/Breadcrumb";
 import Image from "next/image";
 import { useAppContext } from "../../../context/AppContext";
+import ReactMarkdown from "react-markdown";
 
 type BlogProps = {
   params: { slug: string };
@@ -33,7 +34,7 @@ export default function BlogPost({ params }: BlogProps) {
     return `${process.env.NEXT_PUBLIC_API_BASE_URL}${img.startsWith("/") ? "" : "/"}${img}`;
   };
 
- 
+
   if (!post) {
     return (
       <main className="min-h-screen flex flex-col bg-gray-50">
@@ -73,7 +74,7 @@ export default function BlogPost({ params }: BlogProps) {
         <Breadcrumb />
       </div>
       <article className="max-w-4xl mx-auto px-2 py-3">
-        <h1 className="text-4xl font-bold text-[#311970] mb-6 break-words">
+        <h1 className="text-2xl font-bold text-[#311970] mb-6 break-words">
           {post.title}
         </h1>
 
@@ -85,12 +86,9 @@ export default function BlogPost({ params }: BlogProps) {
           className="w-full h-80 object-cover rounded-lg mb-8"
         />
 
-        <div
-          className="text-gray-700 leading-relaxed prose max-w-none break-words"
-          dangerouslySetInnerHTML={{
-            __html: post.content || post.description || "",
-          }}
-        />
+        <div className="prose prose-lg max-w-none text-gray-700">
+          <ReactMarkdown>{post.content || post.description}</ReactMarkdown>
+        </div>
       </article>
 
       <Footer />

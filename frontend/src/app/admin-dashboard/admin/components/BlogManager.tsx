@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
+import ReactMarkdown from "react-markdown";
 
 interface BlogPost {
   _id?: string;
@@ -138,7 +139,7 @@ export default function BlogManager() {
   return (
     <section className="bg-white p-6 rounded-lg shadow">
       <div className="flex items-center justify-between mb-4">
-        
+
         <h3 className="text-lg font-semibold">Blog Manager</h3>
         <button onClick={handleOpenNew} className="bg-[#7c4dff] text-white px-4 py-2 rounded">
           New Post
@@ -242,9 +243,12 @@ export default function BlogManager() {
             />
           )}
 
-          <p className="text-gray-700 whitespace-pre-line">
-            {selectedPost.description ?? ""}
-          </p>
+          <div className="prose prose-lg max-w-none">
+            <ReactMarkdown>
+              {selectedPost.description}
+            </ReactMarkdown>
+          </div>
+
 
           <div className="mt-4 flex gap-2">
             <button
