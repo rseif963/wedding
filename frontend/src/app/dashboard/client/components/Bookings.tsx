@@ -19,7 +19,7 @@ export default function Bookings() {
   };
 
   return (
-    <div className="bg-white w-screen p-6 rounded-xl shadow mt-6">
+    <div className="bg-white w-screen h-screen p-2 rounded-xl">
       <h2 className="text-lg font-bold mb-4">Recent Bookings</h2>
 
       <table className="w-full min-w-full text-left text-sm">

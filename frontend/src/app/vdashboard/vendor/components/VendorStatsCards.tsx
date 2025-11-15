@@ -13,37 +13,19 @@ export default function VendorStatsCards() {
     fetchVendorBookings,
     fetchMessages,
     fetchAllReviews,
-    role,
   } = useAppContext();
 
-  // ✅ Fetch all data immediately (no waiting for anything else)
+  // Fetch IMMEDIATELY when vendor dashboard loads
   useEffect(() => {
-    if (role === "vendor") {
-      fetchVendorBookings();
-      fetchMessages();
-      fetchAllReviews();
-    }
-  }, [role]);
+    fetchVendorBookings();
+    fetchMessages();
+    fetchAllReviews();
+  }, []);
 
   const stats = [
-    {
-      label: "Requests",
-      value: bookings?.length || 0,
-      icon: CalendarCheck,
-      href: "/vdashboard/vendor/bookings",
-    },
-    {
-      label: "Messages",
-      value: messages?.length || 0,
-      icon: MessageSquare,
-      href: "/vdashboard/vendor/messages",
-    },
-    {
-      label: "Reviews",
-      value: reviews?.length || 0,
-      icon: Star,
-      href: "/vdashboard/vendor/reviews",
-    },
+    { label: "Requests", value: bookings?.length || 0, icon: CalendarCheck, href: "/vdashboard/vendor/bookings" },
+    { label: "Messages", value: messages?.length || 0, icon: MessageSquare, href: "/vdashboard/vendor/messages" },
+    { label: "Reviews", value: reviews?.length || 0, icon: Star, href: "/vdashboard/vendor/reviews" },
   ];
 
   return (
@@ -54,10 +36,7 @@ export default function VendorStatsCards() {
           href={item.href}
           className="bg-[#eee] p-2 rounded-lg shadow flex items-center justify-between hover:shadow-md transition"
         >
-          {/* Icon */}
           <item.icon className="hidden w-6 h-6 text-[#311970]" />
-
-          {/* Text & Number */}
           <div className="ml-3 flex-1">
             <h3 className="text-sm font-medium text-gray-600">{item.label}</h3>
             <p className="text-lg font-bold text-[#311970]">{item.value}</p>

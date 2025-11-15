@@ -90,7 +90,14 @@ export default function FeaturedVendors() {
         </h2>
 
         {featuredPosts.length === 0 ? (
-          <p className="text-center text-gray-500">No featured vendors found.</p>
+          <div className="text-center py-16">
+            <h3 className="text-2xl font-semibold text-gray-600">
+              No featured vendors available yet.
+            </h3>
+            <p className="text-gray-500 mt-2">
+              Please check back soon — new vendors are added frequently.
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {featuredPosts.map((post) => {
@@ -103,7 +110,7 @@ export default function FeaturedVendors() {
               const avgRating =
                 vendorReviews.length > 0
                   ? vendorReviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-                    vendorReviews.length
+                  vendorReviews.length
                   : 0;
 
               return (
@@ -128,11 +135,10 @@ export default function FeaturedVendors() {
                     }}
                   >
                     <Heart
-                      className={`w-5 h-5 transition ${
-                        liked.includes(post._id)
+                      className={`w-5 h-5 transition ${liked.includes(post._id)
                           ? "text-red-500 fill-red-500"
                           : "text-red-500"
-                      }`}
+                        }`}
                     />
                   </button>
 
@@ -161,11 +167,10 @@ export default function FeaturedVendors() {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.round(avgRating)
+                          className={`w-4 h-4 ${i < Math.round(avgRating)
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-gray-300"
-                          }`}
+                            }`}
                         />
                       ))}
                       <span className="text-sm text-gray-600 ml-2">

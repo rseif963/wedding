@@ -1,11 +1,14 @@
 // src/components/Reviews.tsx
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
 
-type Props = { preview?: boolean; vendorId?: string };
+type Props = {
+  preview?: boolean;
+  vendorId?: string;
+};
 
 export default function Reviews({ preview = false, vendorId }: Props) {
   const {
@@ -14,24 +17,20 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     postReview,
     vendorProfile,
     role,
+    replyToReview,
   } = useAppContext();
 
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [submittingReply, setSubmittingReply] = useState<{ [key: string]: boolean }>({});
   const [ratingInput, setRatingInput] = useState<number>(5);
   const [textInput, setTextInput] = useState<string>("");
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
   const [activeReply, setActiveReply] = useState<string | null>(null);
-  
 
+  const resolveVendorId = () => vendorId || vendorProfile?._id;
 
-  // ✅ Resolve vendor id properly
-  const resolveVendorId = () => {
-    if (vendorId) return vendorId;
-    if (vendorProfile?._id) return vendorProfile._id; // main vendor id
-    return undefined;
-  };
-
+  // Load reviews whenever vendorId or vendorProfile changes
   useEffect(() => {
     const loadReviews = async () => {
       const vid = resolveVendorId();
@@ -49,62 +48,52 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     };
 
     loadReviews();
-  }, [vendorId, vendorProfile?._id]);
+  }, [vendorId, vendorProfile?._id,]);
 
-
+  // Post a new review
   const submitReview = async () => {
     const vid = resolveVendorId();
-    if (!vid) {
-      toast.error("No vendor specified");
-      return;
-    }
-    if (!ratingInput || ratingInput < 1 || ratingInput > 5) {
-      toast.error("Rating must be between 1 and 5");
-      return;
-    }
-    setSubmitting(true);
+    if (!vid) return toast.error("No vendor specified");
+    if (!ratingInput || ratingInput < 1 || ratingInput > 5)
+      return toast.error("Rating must be between 1 and 5");
+
+    setSubmittingReview(true);
     try {
       await postReview({ vendorId: vid, rating: ratingInput, text: textInput.trim() });
       setTextInput("");
       setRatingInput(5);
       toast.success("Review posted");
-      // reload reviews
-
-    } catch (err) {
-      console.error("Failed to post review:", err);
-      toast.error("Could not post review");
+      await fetchReviewsForVendor(vid); // refresh immediately
+    } catch {
+      toast.error("Failed to post review");
     } finally {
-      setSubmitting(false);
+      setSubmittingReview(false);
     }
   };
 
+  // Post a reply
   const submitReply = async (reviewId: string) => {
-    if (!replyText[reviewId] || !replyText[reviewId].trim()) {
-      toast.error("Reply cannot be empty");
-      return;
-    }
+    const reply = replyText[reviewId]?.trim();
+    if (!reply) return toast.error("Reply cannot be empty");
 
+    setSubmittingReply((prev) => ({ ...prev, [reviewId]: true }));
     try {
-      // 🔹 You'll need a context function like postReply(reviewId, replyText)
-      // or call your API directly here
-      // Example:
-      // await postReply({ reviewId, reply: replyText[reviewId] });
-
+      await replyToReview(reviewId, reply);
       toast.success("Reply posted");
       setReplyText((prev) => ({ ...prev, [reviewId]: "" }));
-      await fetchReviewsForVendor(resolveVendorId()!); // reload
-    } catch (err) {
-      console.error("Failed to post reply:", err);
-      toast.error("Could not post reply");
+      setActiveReply(null);
+      await fetchReviewsForVendor(resolveVendorId()!); // refresh reviews
+    } catch {
+      toast.error("Failed to post reply");
+    } finally {
+      setSubmittingReply((prev) => ({ ...prev, [reviewId]: false }));
     }
   };
 
-
-  // Preview: show just a small summary
   if (preview) {
     return (
       <section>
-        <h2 className="text-lg font-bold text-gray-800 mb-2">All Reviews</h2>
+        <h2 className="text-lg font-bold mb-2">All Reviews</h2>
         <p className="text-gray-600 text-sm">
           You have {reviews.length} review{reviews.length !== 1 ? "s" : ""}
         </p>
@@ -113,31 +102,34 @@ export default function Reviews({ preview = false, vendorId }: Props) {
   }
 
   return (
-    <section className="bg-white p-2 rounded-xl shadow">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Reviews</h2>
+    <section className="bg-white p-4 rounded-xl shadow">
+      <h2 className="text-xl font-bold mb-4">Reviews</h2>
 
       {loading ? (
         <p className="text-gray-500">Loading reviews...</p>
       ) : reviews.length === 0 ? (
         <p className="text-gray-500">No reviews yet.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {reviews.map((rev: any) => (
-            <li key={rev._id ?? Math.random()} className="border-b pb-2">
+            <li key={rev._id} className="border-b pb-2">
               <p className="font-medium text-gray-700">
                 {rev.client?.name ?? rev.clientName ?? "Client"}
               </p>
-              <p className="text-sm text-gray-600">⭐ {rev.rating ?? "N/A"}/5</p>
+              <p className="text-sm text-gray-600">⭐ {rev.rating}/5</p>
               <p className="text-sm text-gray-500">{rev.text}</p>
+
               {rev.reply && (
-                <div className="mt-3 bg-gray-50 rounded p-2 flex justify-end">
-                  <p className="text-sm text-gray-700 text-right max-w-[70%]">
+                <div className="mt-2 bg-gray-50 rounded p-2">
+                  <p className="text-sm text-gray-700">
                     <strong>Vendor Reply:</strong> {rev.reply}
                   </p>
                 </div>
               )}
-              {role === "vendor" && !rev.reply && (
-                <div className="mt-2 ml-4">
+
+              {/* Reply button for vendors */}
+              {role === "vendor" && (
+                <div className="mt-2 ml-2">
                   {activeReply === rev._id ? (
                     <>
                       <textarea
@@ -152,9 +144,10 @@ export default function Reviews({ preview = false, vendorId }: Props) {
                       <div className="flex gap-2">
                         <button
                           onClick={() => submitReply(rev._id)}
-                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                          disabled={submittingReply[rev._id]}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
                         >
-                          Submit Reply
+                          {submittingReply[rev._id] ? "Posting..." : "Submit Reply"}
                         </button>
                         <button
                           onClick={() => setActiveReply(null)}
@@ -175,27 +168,25 @@ export default function Reviews({ preview = false, vendorId }: Props) {
                 </div>
               )}
             </li>
-
           ))}
         </ul>
       )}
 
-      {/* Optional: allow clients to add a review */}
       {role === "client" && resolveVendorId() && (
         <div className="mt-4 border-t pt-4">
-          <h3 className="font-medium text-gray-800 mb-2">Leave a review</h3>
+          <h3 className="font-medium mb-2">Leave a review</h3>
           <div className="flex items-center gap-2 mb-2">
-            <label className="text-sm text-gray-600">Rating:</label>
+            <label className="text-sm">Rating:</label>
             <select
               value={ratingInput}
               onChange={(e) => setRatingInput(Number(e.target.value))}
               className="border rounded px-2 py-1"
             >
-              <option value={5}>5</option>
-              <option value={4}>4</option>
-              <option value={3}>3</option>
-              <option value={2}>2</option>
-              <option value={1}>1</option>
+              {[5, 4, 3, 2, 1].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -210,10 +201,10 @@ export default function Reviews({ preview = false, vendorId }: Props) {
           <div className="flex justify-end">
             <button
               onClick={submitReview}
-              disabled={submitting}
+              disabled={submittingReview}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >
-              {submitting ? "Posting..." : "Post review"}
+              {submittingReview ? "Posting..." : "Post review"}
             </button>
           </div>
         </div>

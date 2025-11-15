@@ -24,8 +24,8 @@ export default function ProfileManager({ preview = false }: Props) {
   const [loading, setLoading] = useState(false);
 
   const categories = [
-    "Photography", "Venue", "Decoration", "Catering", "Makeup & Beauty",
-    "Dresses", "Tailor", "Cars", "Cake", "Music & Entertainment",
+    "Photography","Venue","Decoration","Catering","Makeup & Beauty",
+    "Dresses","Tailor","Cars","Cake","Music & Entertainment",
   ];
 
   const counties = [
@@ -38,17 +38,14 @@ export default function ProfileManager({ preview = false }: Props) {
     "Trans Nzoia","Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot",
   ];
 
-  // Fetch profile immediately on mount
+  // ✔️ Fetch *only once* when the component mounts
   useEffect(() => {
-    const loadProfile = async () => {
-      await fetchVendorMe();
-    };
-    loadProfile();
-  }, [fetchVendorMe]);
+    fetchVendorMe();
+  }, []); // <-- EMPTY ARRAY (IMPORTANT FIX)
 
-  // Update form data immediately when profile is available
+  // ✔️ Update form only when NOT editing
   useEffect(() => {
-    if (vendorProfile) {
+    if (vendorProfile && !isEditing) {
       setFormData({
         businessName: vendorProfile.businessName || "",
         category: vendorProfile.category || "",
@@ -58,17 +55,13 @@ export default function ProfileManager({ preview = false }: Props) {
         phone: vendorProfile.phone || "",
         email: vendorProfile.email || "",
       });
-      setIsEditing(false); // Ensure editing mode is off if profile exists
-    } else {
-      setIsEditing(true); // If no profile, start in editing mode
     }
-  }, [vendorProfile]);
+  }, [vendorProfile, isEditing]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,24 +93,37 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Display profile if exists
+  // Display profile
   if (!isEditing && vendorProfile) {
     return (
       <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-2 sm:p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
         <h2 className="text-2xl font-bold text-purple-700 mb-5">My Profile</h2>
+
         <div className="space-y-2 w-full break-words">
           <h3 className="text-lg font-semibold text-gray-800">{vendorProfile.businessName}</h3>
-          <p className="text-sm text-gray-500">{vendorProfile.category} • {vendorProfile.location}</p>
+          <p className="text-sm text-gray-500">
+            {vendorProfile.category} • {vendorProfile.location}
+          </p>
 
-          {vendorProfile.email && <p className="text-sm text-gray-600"><strong>Email:</strong> {vendorProfile.email}</p>}
-          {vendorProfile.phone && <p className="text-sm text-gray-600"><strong>Phone:</strong> {vendorProfile.phone}</p>}
+          {vendorProfile.email && (
+            <p className="text-sm text-gray-600"><strong>Email:</strong> {vendorProfile.email}</p>
+          )}
+
+          {vendorProfile.phone && (
+            <p className="text-sm text-gray-600"><strong>Phone:</strong> {vendorProfile.phone}</p>
+          )}
+
           {vendorProfile.website && (
-            <a href={vendorProfile.website} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline break-all">
+            <a href={vendorProfile.website} target="_blank" rel="noopener noreferrer"
+               className="inline-block mt-2 text-sm font-medium text-[#311970] hover:underline break-all">
               {vendorProfile.website}
             </a>
           )}
+
           {vendorProfile.description && (
-            <p className="mt-3 text-gray-700 leading-relaxed break-words">{vendorProfile.description}</p>
+            <p className="mt-3 text-gray-700 leading-relaxed break-words">
+              {vendorProfile.description}
+            </p>
           )}
 
           <button
@@ -131,101 +137,100 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // Editing form
+  // Editing Form
   return (
     <section className="bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
       <h2 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h2>
+
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        {/* Business Name */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Business Name</label>
           <input
             type="text"
             name="businessName"
-            placeholder="Enter your business name"
             value={formData.businessName}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] w-full"
           />
         </div>
-        {/* Category */}
+
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Category</label>
           <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] w-full"
           >
             <option value="">Select Category</option>
-            {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
         </div>
-        {/* Location */}
+
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Location</label>
           <select
             name="location"
             value={formData.location}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] w-full"
           >
             <option value="">Select County</option>
-            {counties.map((county) => <option key={county} value={county}>{county}</option>)}
+            {counties.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
         </div>
-        {/* Website */}
+
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Website</label>
           <input
             type="url"
             name="website"
-            placeholder="https://example.com"
             value={formData.website}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] w-full"
           />
         </div>
-        {/* Phone */}
+
         <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
           <input
             type="tel"
             name="phone"
-            placeholder="+254 700 000000"
             value={formData.phone}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] w-full"
           />
         </div>
-        {/* Email */}
-        <div className="flex flex-col">
+
+      {/*  <div className="flex flex-col">
           <label className="text-sm font-semibold text-gray-700 mb-2">Email</label>
           <input
             type="email"
             name="email"
-            placeholder="you@example.com"
             value={formData.email}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
+            className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#311970] w-full"
           />
-        </div>
-        {/* Description */}
+        </div> */}
+
         <div className="flex flex-col md:col-span-2">
           <label className="text-sm font-semibold text-gray-700 mb-2">Business Description</label>
           <textarea
             name="description"
-            placeholder="Describe your business..."
             value={formData.description}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-[#311970] focus:outline-none transition w-full"
-          ></textarea>
+            className="border border-gray-300 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-[#311970] w-full"
+          />
         </div>
-        {/* Submit */}
+
         <button
           type="submit"
           disabled={loading}
-          className="md:col-span-2 mt-4 bg-gradient-to-r from-[#311970] to-[#4a28b8] text-white py-3 rounded-xl font-semibold shadow-md hover:opacity-90 transition disabled:opacity-70"
+          className="md:col-span-2 mt-4 bg-[#311970] text-white py-3 rounded-xl font-semibold shadow-md hover:bg-[#261457] transition disabled:opacity-70"
         >
           {loading ? "Saving..." : "Save Profile"}
         </button>

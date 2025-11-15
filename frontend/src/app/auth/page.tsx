@@ -175,7 +175,7 @@ export default function AuthPage() {
                     size={18}
                   />
                   <input
-                    type="tel"
+                    type="number"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}

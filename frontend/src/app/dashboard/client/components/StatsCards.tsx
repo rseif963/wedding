@@ -8,31 +8,37 @@ export default function StatsCards() {
     bookings,
     clientProfile,
     fetchClientBookings,
-    fetchClientProfile,
+    fetchClientAll, // fetch profile + guests + tasks + budget
+    fetchClientProfile, // optional, if you need basic profile separately
   } = useAppContext();
 
-  // Fetch data on mount
+  // Fetch all client data on mount
   useEffect(() => {
-    fetchClientBookings();
-    fetchClientProfile();
+    fetchClientBookings(); // bookings
+    fetchClientAll(); // profile, checklist/tasks, guests, budget
+    fetchClientProfile(); // basic profile if needed
   }, []);
 
-  const totalBookings = bookings?.length || 0;
-
+  // Safely handle tasks/checklist
   const completedTasks =
-    clientProfile?.checklist?.filter((t: any) => t.done)?.length || 0;
-  const totalTasks = clientProfile?.checklist?.length || 0;
+    clientProfile?.tasks?.filter((t: any) => t.completed)?.length || 0;
+  const totalTasks = clientProfile?.tasks?.length || 0;
 
-  const budgetUsed = clientProfile?.budget?.used || 0;
-  const budgetTotal = clientProfile?.budget?.total || 0;
+  // Budget
+  const budgetUsed =
+    clientProfile?.budget?.items?.reduce((sum: number, item: any) => {
+      return sum + (item.paid ? item.cost : 0);
+    }, 0) || 0;
+  const budgetTotal = clientProfile?.budget?.plannedAmount || 0;
 
+  // Guests
   const guestsConfirmed =
-    clientProfile?.guests?.filter((g: any) => g?.status === "RSVP")?.length ||
-    0;
+    clientProfile?.guests?.filter((g: any) => g?.status === "RSVP")?.length || 0;
   const totalGuests = clientProfile?.guests?.length || 0;
 
+  // Stats array
   const stats = [
-    { label: "Total Bookings", value: totalBookings, color: "border-blue-500" },
+    { label: "Total Bookings", value: bookings?.length || 0, color: "border-blue-500" },
     {
       label: "Tasks Completed",
       value: `${completedTasks} / ${totalTasks}`,

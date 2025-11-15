@@ -25,9 +25,37 @@ interface ClientProfile {
   groomName?: string;
   weddingDate?: string;
   guests?: Array<{ name?: string; phone?: string; email?: string }>;
+  budget?: Budget;
   phone?: string;
   [k: string]: any;
 }
+
+interface BudgetItem {
+  _id: string;
+  title: string;
+  category?: string;
+  cost: number;
+  paid?: boolean;
+  notes?: string;
+}
+
+interface Budget {
+  plannedAmount: number;
+  items: BudgetItem[];
+  showBudget?: boolean;
+}
+
+interface TaskItem {
+  _id?: string;
+  title: string;
+  description?: string;
+  dueDate?: string | Date;
+  completed?: boolean;
+  category?: string;
+  createdAt?: string | Date;
+}
+
+
 
 interface VendorProfile {
   user?: { _id?: string; email?: string } | string;
@@ -75,8 +103,14 @@ interface ReviewItem {
   _id?: string;
   client?: any;
   vendor?: any;
-  rating?: number;
+  rating?: number; // overall rating
   text?: string;
+  quality?: number;
+  responsiveness?: number;
+  professionalism?: number;
+  flexibility?: number;
+  value?: number;
+  reply?: string; // vendor reply
 }
 
 interface RegisterPayload {
@@ -112,12 +146,50 @@ interface AppContextType {
   blogs: BlogPost[];
   socket: any;
   authLoading: boolean;
+  updatePlannedBudget: (amount: number) => Promise<Budget | null>;
+  addBudgetItem: (item: {
+    title: string;
+    category?: string;
+    cost: number;
+    paid?: boolean;
+    notes?: string;
+  }) => Promise<Budget | null>;
+  updateBudgetItem: (itemId: string, update: any) => Promise<Budget | null>;
+  deleteBudgetItem: (itemId: string) => Promise<Budget | null>;
+  // Guests
+  addGuest: (
+    guest: { name?: string; phone?: string; email?: string }
+  ) => Promise<any>;
+  updateGuest: (
+    guestId: string,
+    update: { name?: string; phone?: string; email?: string }
+  ) => Promise<any>;
+  deleteGuest: (guestId: string) => Promise<any>;
+  toggleGuestVisibility: () => Promise<boolean | null>;
+  updateExpectedGuestCount: (count: number) => Promise<number | null>;
+  // ...existing props
+  tasks: TaskItem[];
+  showChecklist: boolean;
+
+  // TASK FUNCTIONS
+  fetchTasks: () => Promise<void>;
+  addTask: (task: {
+    title: string;
+    description?: string;
+    dueDate?: string | Date;
+    category?: string;
+  }) => Promise<TaskItem[] | null>;
+  updateTask: (taskId: string, update: Partial<TaskItem>) => Promise<TaskItem[] | null>;
+  deleteTask: (taskId: string) => Promise<TaskItem[] | null>;
+  toggleChecklist: (show: boolean) => Promise<boolean>;
+
 
   login: (email: string, password: string) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<boolean>;
   logout: () => void;
   fetchUser: () => Promise<void>;
   fetchClientProfile: () => Promise<void>;
+  fetchClientAll: () => Promise<void>;
   updateClientProfile: (payload: Partial<ClientProfile>) => Promise<ClientProfile | null>;
   updateVendorProfile: (payload: Partial<VendorProfile>) => Promise<VendorProfile | null>;
   fetchVendorProfile: (vendorId: string) => Promise<VendorProfile | null>;
@@ -134,7 +206,19 @@ interface AppContextType {
   sendMessage: (recipientId: string, text: string, file?: File | null) => Promise<MessageItem | null>;
   fetchMessages: () => Promise<void>;
   fetchConversation: (otherUserId: string) => Promise<any>;
-  postReview: (payload: { vendorId: string; rating: number; text?: string }) => Promise<ReviewItem | null>;
+  postReview: (payload: {
+    vendorId: string;
+    rating: number;
+    text?: string;
+    quality?: number;
+    responsiveness?: number;
+    professionalism?: number;
+    flexibility?: number;
+    value?: number;
+  }) => Promise<ReviewItem | null>;
+  replyToReview: (reviewId: string, text: string) => Promise<ReviewItem | null>;
+
+
   fetchReviewsForVendor: (vendorId: string) => Promise<void>;
   // NEW: fetch all reviews at once
   fetchAllReviews: () => Promise<void>;
@@ -158,6 +242,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserPayload | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [showChecklist, setShowChecklist] = useState(true);
+
 
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
   const [vendorProfile, setVendorProfile] = useState<VendorProfile | null>(null);
@@ -257,6 +344,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (userRole === "client") {
         await Promise.allSettled([
           fetchClientProfile(),
+          fetchClientAll(),
           fetchClientBookings(),
           fetchMessages(),
         ]);
@@ -397,6 +485,281 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
   };
+
+  // NEW: fetch full client payload (profile + guests + budget + tasks)
+  const fetchClientAll = async () => {
+    try {
+      const { data } = await axios.get("/api/clients/me/all");
+      // The endpoint returns: { profile, guests, budget, tasks }
+      if (!data) return;
+
+      // Merge server response into clientProfile state consistently
+      // keep existing fields (like user/_id) and override with returned values
+      setClientProfile((prev) => ({
+        ...(prev || {}),
+        // top-level small profile fields come from data.profile
+        ...(data.profile || {}),
+        guests: data.guests ?? (prev?.guests ?? []),
+        budget: data.budget ?? (prev?.budget ?? { plannedAmount: 0, items: [] }),
+        tasks: data.tasks ?? (prev?.tasks ?? []),
+      }));
+    } catch (err) {
+      console.error("fetchClientAll error:", err);
+    }
+  };
+
+
+  // -------------------- GUEST FUNCTIONS --------------------
+
+  // Add a new guest
+  const addGuest = async (guest: { name?: string; phone?: string; email?: string }) => {
+    try {
+      const { data } = await axios.post("/api/clients/guests", guest);
+
+      setClientProfile((prev) => ({
+        ...prev,
+        guests: data.guests,
+      }));
+
+      toast.success("Guest added");
+      return data.guests;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to add guest");
+      return null;
+    }
+  };
+
+  // Update a guest by ID
+  const updateGuest = async (
+    guestId: string,
+    update: { name?: string; phone?: string; email?: string }
+  ) => {
+    try {
+      const { data } = await axios.put(`/api/clients/guests/${guestId}`, update);
+
+      setClientProfile((prev) => ({
+        ...prev,
+        guests: data.guests,
+      }));
+
+      toast.success("Guest updated");
+      return data.guests;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update guest");
+      return null;
+    }
+  };
+
+  // Delete a guest by ID
+  const deleteGuest = async (guestId: string) => {
+    try {
+      const { data } = await axios.delete(`/api/clients/guests/${guestId}`);
+
+      setClientProfile((prev) => ({
+        ...prev,
+        guests: data.guests,
+      }));
+
+      toast.success("Guest removed");
+      return data.guests;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete guest");
+      return null;
+    }
+  };
+
+  // Toggle Show/Hide full guest list
+  const toggleGuestVisibility = async () => {
+    try {
+      const { data } = await axios.put("/api/clients/guests/toggle-visibility");
+
+      setClientProfile((prev) => ({
+        ...prev,
+        showGuests: data.showGuests,
+      }));
+
+      toast.success(
+        data.showGuests ? "Guest list visible" : "Guest list hidden"
+      );
+
+      return data.showGuests;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to toggle guest list");
+      return null;
+    }
+  };
+
+  // Update total expected guest count
+  const updateExpectedGuestCount = async (count: number) => {
+    try {
+      const { data } = await axios.put("/api/clients/guests/expected", {
+        expectedGuests: count,
+      });
+
+      setClientProfile((prev) => ({
+        ...prev,
+        expectedGuests: data.expectedGuests,
+      }));
+
+      toast.success("Expected guests updated");
+      return data.expectedGuests;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update expected guests");
+      return null;
+    }
+  };
+
+  // FETCH ALL TASKS
+  const fetchTasks = async () => {
+    try {
+      const { data } = await axios.get("/api/clients/me/all");
+      setTasks(data.tasks || []);
+      setShowChecklist(data.profile?.showChecklist ?? true);
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+      setTasks([]);
+    }
+  };
+
+  // ADD TASK
+  const addTask = async (task: {
+    title: string;
+    description?: string;
+    dueDate?: string | Date;
+    category?: string;
+  }) => {
+    try {
+      const { data } = await axios.post("/api/clients/tasks", task);
+      setTasks(data);
+      toast.success("Task added");
+      return data;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to add task");
+      return null;
+    }
+  };
+
+  // UPDATE TASK
+  const updateTask = async (taskId: string, update: Partial<TaskItem>) => {
+    try {
+      const { data } = await axios.put(`/api/clients/tasks/${taskId}`, update);
+      setTasks(data);
+      toast.success("Task updated");
+      return data;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update task");
+      return null;
+    }
+  };
+
+  // DELETE TASK
+  const deleteTask = async (taskId: string) => {
+    try {
+      const { data } = await axios.delete(`/api/clients/tasks/${taskId}`);
+      setTasks(data);
+      toast.success("Task deleted");
+      return data;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete task");
+      return null;
+    }
+  };
+
+  // TOGGLE CHECKLIST
+  const toggleChecklist = async (show: boolean) => {
+    try {
+      const { data } = await axios.put("/api/clients/tasks/toggle", { showChecklist: show });
+      setShowChecklist(data.showChecklist);
+      return data.showChecklist;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to toggle checklist");
+      return false;
+    }
+  };
+
+
+
+  // -------------------- BUDGET FUNCTIONS --------------------
+  // -------------------- BUDGET FUNCTIONS (FIXED) --------------------
+
+  const updatePlannedBudget = async (amount: number) => {
+    try {
+      const { data } = await axios.put("/api/clients/budget/planned", {
+        plannedAmount: amount,
+      });
+
+      setClientProfile((prev) => ({
+        ...prev,
+        budget: data.budget,
+      }));
+
+      toast.success("Planned budget updated");
+      return data.budget;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update planned budget");
+      return null;
+    }
+  };
+
+  const addBudgetItem = async (item: {
+    title: string;
+    category?: string;
+    cost: number;
+    paid?: boolean;
+    notes?: string;
+  }) => {
+    try {
+      const { data } = await axios.post("/api/clients/budget/item", item);
+
+      setClientProfile((prev) => ({
+        ...prev,
+        budget: data.budget,
+      }));
+
+      toast.success("Budget item added");
+      return data.budget;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to add budget item");
+      return null;
+    }
+  };
+
+  const updateBudgetItem = async (itemId: string, update: any) => {
+    try {
+      const { data } = await axios.put(`/api/clients/budget/item/${itemId}`, update);
+
+      setClientProfile((prev) => ({
+        ...prev,
+        budget: data.budget,
+      }));
+
+      toast.success("Budget item updated");
+      return data.budget;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update budget item");
+      return null;
+    }
+  };
+
+  const deleteBudgetItem = async (itemId: string) => {
+    try {
+      const { data } = await axios.delete(`/api/clients/budget/item/${itemId}`);
+
+      setClientProfile((prev) => ({
+        ...prev,
+        budget: data.budget,
+      }));
+
+      toast.success("Budget item deleted");
+      return data.budget;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete budget item");
+      return null;
+    }
+  };
+
+
+
 
   const updateVendorProfile = async (payload: Partial<VendorProfile>) => {
     try {
@@ -635,18 +998,55 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 
 
-  const postReview = async (payload: { vendorId: string; rating: number; text?: string }) => {
+  const postReview = async (payload: {
+    vendorId: string;
+    rating: number;
+    text?: string;
+    quality?: number;
+    responsiveness?: number;
+    professionalism?: number;
+    flexibility?: number;
+    value?: number;
+  }) => {
     try {
       const { data } = await axios.post("/api/reviews", payload);
-      // When a new review is posted we push it to reviews state
       setReviews((p) => [data, ...p]);
       toast.success("Review added");
       return data as ReviewItem;
     } catch {
-      toast.error("Failed to post review, Please log in");
+      toast.error("Failed to post review, Please log in As Client");
       return null;
     }
   };
+
+  const replyToReview = async (reviewId: string, text: string) => {
+    if (!token || role !== "vendor") {
+      toast.error("Only vendors can reply to reviews");
+      return null;
+    }
+
+    try {
+      const { data } = await axios.put(
+        `/api/reviews/${reviewId}/reply`,
+        { text },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Update local state safely
+      setReviews((prev) =>
+        prev.map((r) => (r._id === reviewId ? { ...r, reply: data.reply } : r))
+      );
+
+      toast.success("Reply posted");
+      return data;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to reply to review");
+      return null;
+    }
+  };
+
 
   // NEW: fetch all reviews at once (useful for listings)
   const fetchAllReviews = async () => {
@@ -664,22 +1064,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchReviewsForVendor = async (vendorId: string) => {
     try {
-      // Load cached reviews immediately (per vendor)
-      const cached = localStorage.getItem(`reviews_${vendorId}`);
-      if (cached) {
-        setReviews(JSON.parse(cached));
-      }
-
-      // Then fetch fresh reviews
       const { data } = await axios.get(`/api/reviews/vendor/${vendorId}`);
-      setReviews(data || []);
-      try {
-        localStorage.setItem(`reviews_${vendorId}`, JSON.stringify(data || []));
-      } catch { }
-    } catch {
-      console.error("Failed to fetch reviews");
+      setReviews(data || []); // `data` must include category ratings and reply
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+      setReviews([]);
     }
   };
+
 
   // BLOG START
   const createBlog = async (form: FormData) => {
@@ -792,6 +1184,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         authLoading,
         blogs,
         socket,
+        tasks,
+        showChecklist,
+
+
+
+        updatePlannedBudget,
+        addBudgetItem,
+        updateBudgetItem,
+        deleteBudgetItem,
+
+        // guest functions
+        addGuest,
+        updateGuest,
+        deleteGuest,
+        toggleGuestVisibility,
+        updateExpectedGuestCount,
+
+
+
+        fetchTasks,
+        addTask,
+        updateTask,
+        deleteTask,
+        toggleChecklist,
+
+
+
 
         // auth & profile
         login,
@@ -799,6 +1218,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         logout,
         fetchUser,
         fetchClientProfile,
+        fetchClientAll,
         updateClientProfile,
         updateVendorProfile,
         fetchVendorProfile,
@@ -827,6 +1247,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         postReview,
         fetchReviewsForVendor,
         fetchAllReviews, // <-- new export
+        replyToReview,
 
         // vendor/client lists
         fetchVendors,

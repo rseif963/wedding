@@ -10,7 +10,7 @@ export default function Breadcrumb() {
   const parts = pathname.split("/").filter(Boolean);
 
   return (
-    <nav className="bg-gray-50 py-4 px-1 text-sm text-gray-600">
+    <nav className="bg-gray-50 py-1 px-1 mt-1 text-sm text-gray-600">
       <ol className="flex items-center space-x-2">
         <li>
           <Link href="/" className="hover:underline font-medium text-[#311970]">

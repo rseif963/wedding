@@ -23,10 +23,7 @@ export default function VendorHeader({
       </div>
 
       <div className="flex items-center gap-6">
-        <button className="relative text-gray-600 hover:text-[#311970]">
-          <Bell size={22} />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        
       </div>
     </header>
   );

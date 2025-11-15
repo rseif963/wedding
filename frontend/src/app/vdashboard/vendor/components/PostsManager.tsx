@@ -464,37 +464,6 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
             </div>
           </div>
 
-          {/* Gallery Videos */}
-          <div>
-            <h4 className="font-semibold mb-2">Gallery Videos</h4>
-            <div className="flex gap-3 flex-wrap">
-              {existingGalleryVideos.map((u, i) => (
-                <div key={i} className="relative">
-                  <video src={getFullUrl(u)} controls className="w-32 h-32 object-cover rounded-lg" />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingGalleryVideo(u)}
-                    className="absolute top-1 right-1 bg-white rounded-full shadow p-1"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              {galleryVideoPreviews.map((u, i) => (
-                <div key={i} className="relative">
-                  <video src={u} controls className="w-32 h-32 object-cover rounded-lg" />
-                  <button
-                    type="button"
-                    onClick={() => removeNewVideoFile(i)}
-                    className="absolute top-1 right-1 bg-white rounded-full shadow p-1"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              {renderUploadBox(handleFileChange, "video")}
-            </div>
-          </div>
 
           {/* Save / Cancel */}
           <div className="sticky bottom-0 bg-white py-4 border-t flex justify-start gap-4">
@@ -540,13 +509,6 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
                 <div className="flex grid grid-cols-4 gap-2 w-full">
                   {(post.galleryImages || []).map((img, i) => (
                     <img key={i} src={getFullUrl(img)} className="w-20 h-20 object-cover rounded-md" />
-                  ))}
-                </div>
-
-                <div className="mt-6 flex flex-col gap-4 w-full md:w-[48%] aspect-video rounded-lg ">
-                  <h3 className="text-1xl font-bold mb-1">Videos</h3>
-                  {(post.galleryVideos || []).map((v, i) => (
-                    <video key={i} src={getFullUrl(v)} controls className="w-full h-full object-cover rounded-lg" />
                   ))}
                 </div>
 

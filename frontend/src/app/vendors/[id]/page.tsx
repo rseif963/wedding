@@ -5,18 +5,32 @@ import { useParams } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Breadcrumb from "../../../components/Breadcrumb";
-import Image from "next/image";
+import { Heart, Star } from "lucide-react";
+import ImageGallery from "react-image-gallery";
+import "react-image-gallery/styles/css/image-gallery.css";
 import { useAppContext } from "@/context/AppContext";
 import { toast } from "react-hot-toast";
+import { Smile, RefreshCcw, User, SlidersHorizontal, DollarSign } from "lucide-react";
 
-type Review = {
-  _id?: string;
-  client?: any;
-  vendor?: any;
+type ReviewCategory = "quality" | "responsiveness" | "professionalism" | "flexibility" | "value";
+
+type NewReview = {
   rating: number;
   text: string;
-  reply?: string;
+  quality: number;
+  responsiveness: number;
+  professionalism: number;
+  flexibility: number;
+  value: number;
 };
+
+
+{/*const [liked, setLiked] = useState<string[]>([]);
+const toggleLike = (id: string) => {
+    setLiked((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }; */}
 
 function RatingStars({ rating }: { rating: number }) {
   return (
@@ -72,8 +86,16 @@ export default function VendorProfile() {
 
   const [vendorPost, setVendorPost] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [newReview, setNewReview] = useState({ rating: 0, text: "" });
-  const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+  const [newReview, setNewReview] = useState<NewReview>({
+    rating: 0,
+    text: "",
+    quality: 0,
+    responsiveness: 0,
+    professionalism: 0,
+    flexibility: 0,
+    value: 0,
+  });
+
 
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
   const getFullUrl = (path?: string) => {
@@ -126,6 +148,17 @@ export default function VendorProfile() {
 
   const vendor = vendorPost?.vendor || null;
 
+  // Similar Vendors (same category, excluding current vendor)
+  const similarVendors = (posts || [])
+    .filter((p: any) => {
+      return (
+        p._id !== vendorPost?._id &&                      // not current vendor
+        p.vendor?.category === vendor?.category          // same category
+      );
+    })
+    .slice(0, 4); // show only 4
+
+
   const heroSrc =
     vendorPost?.mainPhoto ||
     vendorPost?.image ||
@@ -142,18 +175,6 @@ export default function VendorProfile() {
     vendor?.galleryImages ||
     vendorPost?.images ||
     [];
-
-  let videoUrl =
-    vendorPost?.video ||
-    vendorPost?.videoUrl ||
-    (vendorPost?.galleryVideos && vendorPost.galleryVideos[0]) ||
-    vendor?.video ||
-    vendor?.videoUrl ||
-    null;
-
-  if (videoUrl && videoUrl.includes("watch?v=")) {
-    videoUrl = videoUrl.replace("watch?v=", "embed/");
-  }
 
   const aboutText =
     vendor?.description ||
@@ -174,24 +195,44 @@ export default function VendorProfile() {
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newReview.rating || !newReview.text) return;
 
     if (!vendor?._id) {
       toast.error("Vendor ID missing.");
       return;
     }
 
-    const saved = await postReview({
-      vendorId: vendor._id,
-      rating: newReview.rating,
-      text: newReview.text,
-    });
+    // Compute overall rating as average of categories
+    const overallRating = Math.round(
+      (newReview.quality +
+        newReview.responsiveness +
+        newReview.professionalism +
+        newReview.flexibility +
+        newReview.value) /
+      5
+    );
+
+    if (overallRating === 0 || !newReview.text.trim()) {
+      toast.error("Please provide a rating and comment.");
+      return;
+    }
+
+    const saved = await postReview({ vendorId: vendor._id, rating: overallRating, text: newReview.text, quality: newReview.quality || 0, responsiveness: newReview.responsiveness || 0, professionalism: newReview.professionalism || 0, flexibility: newReview.flexibility || 0, value: newReview.value || 0, });
 
     if (saved) {
       await fetchReviewsForVendor(vendor._id);
-      setNewReview({ rating: 0, text: "" });
+      setNewReview({
+        rating: 0,
+        text: "",
+        quality: 0,
+        responsiveness: 0,
+        professionalism: 0,
+        flexibility: 0,
+        value: 0,
+      });
+      toast.success("Review submitted!");
     }
   };
+
 
   const handleRequestPricing = async () => {
     if (!vendor?._id) {
@@ -242,125 +283,119 @@ export default function VendorProfile() {
     );
   }
 
+  // Build images for react-image-gallery
+  const images = [
+    { original: getFullUrl(heroSrc || undefined), thumbnail: getFullUrl(heroSrc || undefined) },
+    ...(galleryArray || []).map((img: string) => ({
+      original: getFullUrl(img),
+      thumbnail: getFullUrl(img),
+    })),
+  ];
+
   return (
     <main className="min-h-screen flex flex-col">
       <Navbar />
       <div className="w-full overflow-hidden text-ellipsis">
         <Breadcrumb />
       </div>
-      {/* Hero */}
-      <section className="relative h-[50vh] w-full">
-        <Image
-          src={getFullUrl(heroSrc || undefined)}
-          alt={vendor.businessName || vendor.name || "Vendor"}
-          fill
-          className="object-cover"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-black/50 flex flex-col justify-center items-center text-center text-white px-4">
-          <h1 className="text-4xl font-bold">{vendor.businessName || vendor.name}</h1>
-          <p className="mt-2 text-lg">
-            {vendor.category || vendorPost?.category} · {vendor.location || "Kenya"}
-          </p>
-          <button
-            onClick={handleRequestPricing}
-            className="mt-4 bg-[#311970] px-6 py-3 rounded-lg shadow hover:bg-[#261457] transition"
-          >
-            Request Pricing
-          </button>
-        </div>
-      </section>
+      <div className="lg:flex lg:flex-col-2">
+        {/* Gallery section replacing Hero */}
+        <section className="max-w-5xl mx-auto px-2 py-8">
+          <ImageGallery
+            items={images}
+            showPlayButton={true}
+            showFullscreenButton={true}
+            showBullets={false}
+            showIndex={false}
+            slideInterval={4000}
+            autoPlay={true}
+            additionalClass="rounded-lg shadow-md"
+          />
+          {/* INFO BAR BELOW GALLERY */}
+          <div className="max-w-5xl mx-auto px-2 mt-6 p-3 rounded-lg shadow-sm bg-white flex flex-col md:flex-row md:items-center justify-between">
 
-      {/* About */}
-      <section className="max-w-5xl mx-auto px-3 py-8">
-        <h2 className="text-2xl font-bold text-[#311970] mb-4">About</h2>
-        <p className="text-gray-700 leading-relaxed">
-          {aboutText || "No description available."}
-        </p>
-      </section>
+            {/* LEFT SIDE: Name, Location, Rating */}
+            <div className="flex flex-col gap-1">
+              <h1 className="text-2xl font-bold text-[#311970]">
+                {vendor?.businessName}
+              </h1>
 
-      {/* Gallery */}
-      {galleryArray && galleryArray.length > 0 && (
-        <section className="max-w-6xl mx-auto px-1 py-12">
-          <h2 className="text-2xl font-bold text-[#311970] mb-3">Gallery</h2>
-          <div className="grid gap-2 md:grid-cols-3">
-            {galleryArray.map((img: string, index: number) => (
-              <Image
-                key={index}
-                src={getFullUrl(img)}
-                alt={`${vendor.businessName || vendor.name} gallery ${index + 1}`}
-                width={400}
-                height={300}
-                className="w-full h-70 object-cover rounded-lg shadow"
-                unoptimized
-              />
-            ))}
+              {vendor?.location && (
+                <p className="text-sm text-gray-500">{vendor.location}, Kenya</p>
+              )}
+
+              <div className="flex items-center gap-2 mt-1">
+                <RatingStars rating={Math.round(averageRating)} />
+                <span className="text-gray-600 text-sm">
+                  {reviews?.length ?? 0} reviews
+                </span>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE: Price + Favorite + Buttons */}
+            <div className="flex flex-col items-start md:items-end gap-3 mt-4 md:mt-0">
+
+              <div className="flex items-center gap-4">
+                <span className="text-lg font-semibold text-gray-800">
+                  Starting from Ksh {vendorPost?.priceFrom?.toLocaleString()}
+                </span>
+
+                {/* <button
+                    className="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-1 hover:bg-red-100 transition"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleLike(post._id);
+                    }}
+                  >
+                    <Heart
+                      className={`w-5 h-5 transition ${liked.includes(post._id)
+                        ? "text-red-500 fill-red-500"
+                        : "text-red-500"
+                        }`}
+                    />
+                  </button> */}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleRequestPricing}
+                  className="bg-[#311970] text-white px-5 py-2 rounded-lg shadow hover:bg-[#261457] transition"
+                >
+                  Request Pricing
+                </button>
+
+                {phone && (
+                  <button
+                    onClick={() => (window.location.href = `tel:${phone}`)}
+                    className="border border-[#311970] text-[#311970] px-5 py-2 rounded-lg hover:bg-gray-100 transition"
+                  >
+                    Call Now
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </section>
-      )}
 
-      {/* Videos */}
-      {/* Videos */}
-      {(vendorPost?.videos?.length > 0 ||
-        vendor?.videos?.length > 0 ||
-        videoUrl) && (
-          <section className="max-w-6xl mx-auto px-6 py-12">
-            <h2 className="text-2xl font-bold text-[#311970] mb-6">Videos</h2>
-
-            <div className="flex flex-col md:flex-row flex-wrap gap-6">
-              {(vendorPost?.videos || vendor?.videos || [videoUrl]).map(
-                (vid: string, index: number) => {
-                  const embedUrl = vid.includes("watch?v=")
-                    ? vid.replace("watch?v=", "embed/")
-                    : vid;
-                  const isYouTube =
-                    embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be");
-
-                  return (
-                    <div
-                      key={index}
-                      className="w-full md:w-[48%] aspect-video rounded-lg overflow-hidden shadow"
-                    >
-                      {isYouTube ? (
-                        <iframe
-                          src={`${embedUrl}?autoplay=0&mute=0`}
-                          title={`Vendor video ${index + 1}`}
-                          width="100%"
-                          height="100%"
-                          frameBorder="0"
-                          allow="autoplay; encrypted-media"
-                          allowFullScreen
-                        />
-                      ) : (
-                        <video
-                          src={getFullUrl(embedUrl)}
-                          controls
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      )}
-                    </div>
-                  );
-                }
-              )}
+        {/* About section with request pricing button below */}
+        <section className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex flex-col lg:items-start lg:justify-between gap-8">
+            <div className="lg:w-3/4">
+              <h2 className="text-2xl font-bold text-[#311970] mb-4">About</h2>
+              <p className="text-gray-700 leading-relaxed">
+                {aboutText || "No description available."}
+              </p>
             </div>
-          </section>
-        )}
-
+          </div>
+        </section>
+      </div>
 
       {/* Contact */}
-      <section className="max-w-4xl mx-auto px-6 py-12">
+      {/*  <section className="max-w-4xl mx-auto px-6 py-12">
         <h2 className="text-2xl font-bold text-[#311970] mb-4">Contact Information</h2>
         <ul className="space-y-2 text-gray-700">
-          {phone && (
-            <li>
-              <strong>Phone:</strong> {phone}
-            </li>
-          )}
-          {email && (
-            <li>
-              <strong>Email:</strong> {email}
-            </li>
-          )}
+          {phone && <li><strong>Phone:</strong> {phone}</li>}
+          {email && <li><strong>Email:</strong> {email}</li>}
           {whatsapp && (
             <li>
               <a
@@ -374,76 +409,226 @@ export default function VendorProfile() {
             </li>
           )}
         </ul>
-      </section>
+      </section>  */}
 
       {/* Reviews */}
-      <section className="max-w-5xl mx-auto px-2 py-2">
-        <h2 className="text-2xl font-bold text-[#311970] mb-6">Reviews</h2>
+      {/* Reviews Section */}
+      <section className="w-full mx-auto px-1 py-6">
 
-        <div className="flex items-center gap-3 mb-8">
-          <RatingStars rating={Math.round(averageRating)} />
-          <span className="text-gray-700 font-medium">
-            {averageRating.toFixed(1)} / 5 ({reviews?.length ?? 0} reviews)
-          </span>
+        {/* Title */}
+        <div className="flex ml-4 items-center gap-2 mb-3">
+          <Star className="text-[#311970]" />
+          <h2 className="text-2xl font-bold text-[#311970]">Reviews</h2>
         </div>
 
-        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:gap-6 mb-10">
-          {(reviews || []).map((review: any, index: number) => (
-            <div key={review._id || index} className="border border-gray-200 rounded-lg p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-800">
-                  {getReviewerName(review)}
-                </h3>
-                <RatingStars rating={Number(review.rating ?? 0)} />
-              </div>
-              <p className="text-gray-600 mb-3">{review.text}</p>
+        <div className="bg-white rounded-xl shadow-sm p-3">
 
-              {(review.reply ?? (review as any).reply) && (
-                <div className="ml-4 mt-3 border-l-4 border-[#311970] pl-4 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-700">
-                    <strong>Vendor Reply:</strong> {review.reply ?? (review as any).reply}
-                  </p>
-                </div>
-              )}
+          {/* TOP SUMMARY SECTION */}
+          <div className="flex flex-col md:flex-row gap-10">
+
+            {/* Left: Overall Rating Box */}
+            <div className="w-full md:w-1/4 flex flex-col items-center justify-center bg-green-100 rounded-xl py-6">
+              <span className="text-4xl font-bold text-green-700">
+                {averageRating.toFixed(1)}
+              </span>
+              <p className="text-gray-700 mb-2">out of 5.0</p>
+              <RatingStars rating={Math.round(averageRating)} />
             </div>
-          ))}
-        </div>
 
-        <form
-          onSubmit={handleReviewSubmit}
-          className="border border-gray-200 rounded-lg p-6 shadow-md"
-        >
-          <h3 className="text-lg font-semibold text-[#311970] mb-4">Write a Review</h3>
+            {/* Right: Category Ratings */}
+            <div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-          <textarea
-            placeholder="Your Review"
-            value={newReview.text}
-            onChange={(e) => setNewReview({ ...newReview, text: e.target.value })}
-            className="w-full border rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
-          />
+              {[
+                { key: "quality", label: "Quality of Service", icon: <Smile className="w-5 h-5 text-[#311970]" /> },
+                { key: "responsiveness", label: "Responsiveness", icon: <RefreshCcw className="w-5 h-5 text-[#311970]" /> },
+                { key: "professionalism", label: "Professionalism", icon: <User className="w-5 h-5 text-[#311970]" /> },
+                { key: "flexibility", label: "Flexibility", icon: <SlidersHorizontal className="w-5 h-5 text-[#311970]" /> },
+                { key: "value", label: "Value for Money", icon: <DollarSign className="w-5 h-5 text-[#311970]" /> },
+              ].map((cat) => {
+                const catAvg =
+                  reviews && reviews.length > 0
+                    ? reviews.reduce((sum, r: any) => sum + (r[cat.key] ?? 0), 0) / reviews.length
+                    : 0;
 
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-gray-700">Rating:</span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setNewReview({ ...newReview, rating: star })}
-                className={`text-2xl ${star <= newReview.rating ? "text-yellow-400" : "text-gray-300"}`}
+                return (
+                  <div key={cat.key}>
+                    <p className="font-medium text-gray-700 flex items-center gap-2">
+                      {cat.icon} {cat.label}
+                    </p>
+                    <div className="h-2 bg-gray-200 rounded mt-1">
+                      <div
+                        className="h-2 bg-orange-400 rounded"
+                        style={{ width: `${(catAvg / 5) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+
+            </div>
+          </div>
+
+          {/* Review Count */}
+          <p className="mt-8 text-gray-700 font-medium">
+            {reviews?.length} Reviews for {vendor?.businessName}
+          </p>
+
+          {/* LIST OF REVIEWS */}
+          <div className="mt-6 flex flex-col gap-6">
+            {(reviews || []).map((review: any, index: number) => (
+              <div
+                key={review._id || index}
+                className="border border-gray-200 rounded-lg p-2 shadow-sm bg-white"
               >
-                ★
-              </button>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-800">
+                    {getReviewerName(review)}
+                  </h3>
+                  <RatingStars rating={Number(review.rating ?? 0)} />
+                </div>
+
+                <p className="text-gray-600 mb-3">{review.text}</p>
+
+                {(review.reply ?? (review as any).reply) && (
+                  <div className="ml-4 mt-3 border-l-4 border-[#311970] pl-4 bg-gray-50 rounded">
+                    <p className="text-sm text-gray-700">
+                      <strong>Vendor Reply:</strong>{" "}
+                      {review.reply ?? (review as any).reply}
+                    </p>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
-          <button
-            type="submit"
-            className="bg-[#311970] text-white px-6 py-2 rounded-lg shadow hover:bg-[#261457] transition"
+          {/* WRITE REVIEW FORM */}
+          <form
+            onSubmit={handleReviewSubmit}
+            className="mt-10 border border-gray-200 rounded-lg p-2 shadow-md"
           >
-            Submit Review
-          </button>
-        </form>
+            <h3 className="text-2xl font-bold text-[#311970] mb-6 flex items-center gap-2">
+              <Star className="text-[#311970] w-6 h-6" />
+              Write a Review
+            </h3>
+
+            {/* FIVE RATING CATEGORIES */}
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+
+              {/* CATEGORY COMPONENT */}
+
+              {[
+                { label: "Quality of Service", icon: <Smile className="w-6 h-6 text-[#311970]" />, field: "quality" as ReviewCategory },
+                { label: "Responsiveness", icon: <RefreshCcw className="w-6 h-6 text-[#311970]" />, field: "responsiveness" as ReviewCategory },
+                { label: "Professionalism", icon: <User className="w-6 h-6 text-[#311970]" />, field: "professionalism" as ReviewCategory },
+                { label: "Flexibility", icon: <SlidersHorizontal className="w-6 h-6 text-[#311970]" />, field: "flexibility" as ReviewCategory },
+                { label: "Value for Money", icon: <DollarSign className="w-6 h-6 text-[#311970]" />, field: "value" as ReviewCategory }
+              ]
+                .map((item) => (
+                  <div key={item.field}>
+                    <p className="font-semibold text-gray-700 flex items-center gap-2 mb-1">
+                      {item.icon} {item.label}
+                    </p>
+
+                    {/* STAR SELECTOR */}
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() =>
+                            setNewReview((prev: any) => ({ ...prev, [item.field]: star }))
+                          }
+                          className="text-2xl"
+                        >
+                          <span className={newReview[item.field] >= star ? "text-yellow-400" : "text-gray-300"}>
+                            ★
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+            </div>
+
+
+
+            {/* COMMENT FIELD */}
+            <textarea
+              placeholder="Your Comments"
+              className="w-full border rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+              rows={6}
+              value={newReview.text}
+              onChange={(e) =>
+                setNewReview((prev: any) => ({ ...prev, text: e.target.value }))
+              }
+            />
+
+            <button
+              type="submit"
+              className="bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold"
+            >
+              Submit Review
+            </button>
+
+          </form>
+        </div>
       </section>
+
+      {/* ⭐ Similar Vendors Section */}
+      {similarVendors.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 py-10">
+          <h2 className="text-2xl font-bold text-[#311970] mb-6">
+            Similar Vendors
+          </h2>
+
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {similarVendors.map((post: any) => {
+              const v = post.vendor;
+              const image =
+                post.mainPhoto ||
+                v?.logo ||
+                v?.photo ||
+                "/assets/vendor-placeholder.jpg";
+
+              return (
+                <a
+                  key={post._id}
+                  href={`/vendors/${post._id}`}
+                  className="bg-white rounded-xl shadow hover:shadow-lg transition block overflow-hidden"
+                >
+                  <img
+                    src={image}
+                    className="w-full h-48 object-cover"
+                    alt={v?.businessName}
+                  />
+
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg text-[#311970] truncate">
+                      {v?.businessName}
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+                      {v?.category}
+                    </p>
+
+                    <p className="text-sm text-gray-600 mt-1">
+                      {v?.location ? `${v.location}, Kenya` : "Kenya"}
+                    </p>
+
+                    <p className="mt-2 text-sm">
+                      Starting from{" "}
+                      <span className="font-semibold">
+                        Ksh {post.priceFrom?.toLocaleString()}
+                      </span>
+                    </p>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <Footer />
     </main>

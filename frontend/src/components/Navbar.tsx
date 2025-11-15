@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 
 interface LocalUser {
@@ -17,7 +18,7 @@ interface LocalUser {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, role, authLoading } = useAppContext();
-
+  const pathname = usePathname();
   // local fallback state (used only if context user/role are not available)
   const [localUser, setLocalUser] = useState<LocalUser | null>(null);
   const [localRole, setLocalRole] = useState<string | null>(null);
@@ -29,8 +30,8 @@ export default function Navbar() {
     effectiveRole === "vendor"
       ? "/vdashboard/vendor"
       : effectiveRole === "client"
-      ? "/dashboard/client"
-      : "/profile"; // fallback
+        ? "/dashboard/client"
+        : "/profile"; // fallback
 
   // Detect user if not available in context
   useEffect(() => {
@@ -131,27 +132,42 @@ export default function Navbar() {
       <div className="flex-grow hidden md:flex justify-center">
         <ul className="flex gap-8 text-gray-700 font-medium text-sm">
           <li>
-            <Link href="/" className="hover:text-[#311970] transition">
+            <Link
+              href="/"
+              className={`${pathname === "/" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
+            >
               Home
             </Link>
           </li>
           <li>
-            <Link href="/vendors" className="hover:text-[#311970] transition">
+            <Link
+              href="/vendors"
+              className={`${pathname === "/vendors" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
+            >
               Vendors
             </Link>
           </li>
           <li>
-            <Link href="/blog" className="hover:text-[#311970] transition">
+            <Link
+              href="/blog"
+              className={`${pathname === "/blog" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
+            >
               Blog
             </Link>
           </li>
           <li>
-            <Link href="/about" className="hover:text-[#311970] transition">
+            <Link
+              href="/about"
+              className={`${pathname === "/about" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
+            >
               About
             </Link>
           </li>
           <li>
-            <Link href="/contact" className="hover:text-[#311970] transition">
+            <Link
+              href="/contact"
+              className={`${pathname === "/contact" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
+            >
               Contact
             </Link>
           </li>
@@ -191,39 +207,45 @@ export default function Navbar() {
         <div className="absolute text-sm top-full left-0 w-full bg-white shadow-md flex flex-col items-center py-6 gap-3 md:hidden">
           <Link
             href="/"
-            className="hover:text-[#311970]"
+            className={`${pathname === "/" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
             onClick={() => setMenuOpen(false)}
           >
             Home
           </Link>
+
           <Link
             href="/vendors"
-            className="hover:text-[#311970]"
+            className={`${pathname === "/vendors" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
             onClick={() => setMenuOpen(false)}
           >
             Vendors
           </Link>
+
           <Link
             href="/blog"
-            className="hover:text-[#311970]"
+            className={`${pathname === "/blog" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
             onClick={() => setMenuOpen(false)}
           >
             Blog
           </Link>
+
           <Link
             href="/about"
-            className="hover:text-[#311970]"
+            className={`${pathname === "/about" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
             onClick={() => setMenuOpen(false)}
           >
             About
           </Link>
+
           <Link
             href="/contact"
-            className="hover:text-[#311970]"
+            className={`${pathname === "/contact" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
             onClick={() => setMenuOpen(false)}
           >
             Contact
           </Link>
+
+
 
           {isLoggedIn ? (
             <Link

@@ -29,10 +29,12 @@ export default function Sidebar({
   const handleLogout = () => {
     logout(); // clear user/session from context
     router.push("/"); // 👈 redirect to home
+    onClose(); // close sidebar if mobile
   };
 
   const handleExit = () => {
     router.push("/vendors"); // 👈 redirect to /vendors
+    onClose(); // close sidebar if mobile
   };
 
   const links = [
@@ -67,11 +69,11 @@ export default function Sidebar({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 min-h-screen bg-[#311970] text-white flex-col">
+      <aside className="hidden md:flex w-64 h-screen bg-[#311970] text-white flex-col">
         <div className="px-6 py-6 text-2xl font-bold">Wedpine</div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4">
+        <nav className="flex-1 px-4 overflow-y-auto">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
@@ -117,7 +119,7 @@ export default function Sidebar({
           />
 
           {/* Sidebar content */}
-          <aside className="relative bg-[#311970] text-white w-64 h-full shadow-lg flex flex-col">
+          <aside className="relative bg-[#311970] text-white w-64 h-screen shadow-lg flex flex-col">
             {/* Close button */}
             <button
               onClick={onClose}
@@ -129,13 +131,14 @@ export default function Sidebar({
 
             <div className="px-6 py-6 text-2xl font-bold">Wedpine</div>
 
-            <nav className="flex-1 px-4">
+            <nav className="flex-1 px-4 overflow-y-auto">
               {links.map((link) => {
                 const active = pathname === link.href;
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
+                    onClick={onClose} // 👈 close sidebar on link click
                     className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${
                       active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
                     }`}
@@ -149,14 +152,14 @@ export default function Sidebar({
 
             <div className="px-2 py-4 text-sm space-y-1">
               <button
-                onClick={handleExit} // 👈 exit handler
+                onClick={handleExit} // 👈 exit handler closes sidebar
                 className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#4527a0] transition w-full"
               >
                 <ArrowLeftCircle size={20} /> Exit
               </button>
 
               <button
-                onClick={handleLogout} // 👈 logout handler
+                onClick={handleLogout} // 👈 logout handler closes sidebar
                 className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#4527a0] transition w-full"
               >
                 <LogOut size={20} /> Logout
