@@ -35,12 +35,13 @@ export default function GuestList() {
 
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const [newGuest, setNewGuest] = useState({
+  const [newGuest, setNewGuest] = useState<Guest>({
     name: "",
     phone: "",
     email: "",
-    rsvp: "pending" as RSVP,
+    rsvp: "pending",
   });
+
 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
@@ -67,10 +68,10 @@ export default function GuestList() {
     return r === "attending"
       ? "bg-green-100 text-green-700"
       : r === "pending"
-      ? "bg-yellow-100 text-yellow-700"
-      : r === "declined"
-      ? "bg-red-100 text-red-700"
-      : "bg-gray-100 text-gray-600";
+        ? "bg-yellow-100 text-yellow-700"
+        : r === "declined"
+          ? "bg-red-100 text-red-700"
+          : "bg-gray-100 text-gray-600";
   };
 
   const statusLabel = (rsvp: RSVP) => {
@@ -78,10 +79,10 @@ export default function GuestList() {
     return r === "attending"
       ? "Confirmed"
       : r === "pending"
-      ? "Pending"
-      : r === "declined"
-      ? "Declined"
-      : "Unknown";
+        ? "Pending"
+        : r === "declined"
+          ? "Declined"
+          : "Unknown";
   };
 
   const handleAdd = async () => {
@@ -91,15 +92,15 @@ export default function GuestList() {
       name: newGuest.name,
       phone: newGuest.phone,
       email: newGuest.email,
-      // FIXED: removed TypeScript red underline
-      rsvp: newGuest.rsvp as "attending" | "pending" | "declined",
+      // ✅ TS knows this exists
     });
+
 
     setNewGuest({ name: "", phone: "", email: "", rsvp: "pending" });
 
     try {
       await fetchClientAll();
-    } catch {}
+    } catch { }
   };
 
   const TabButton = ({
@@ -118,11 +119,10 @@ export default function GuestList() {
       <button
         onClick={() => setFilter(value)}
         className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition
-        ${
-          active
+        ${active
             ? "bg-black text-white border-black shadow"
             : "border-gray-300 text-gray-700 hover:bg-gray-100"
-        }`}
+          }`}
       >
         <Icon size={16} />
         {label} ({count})
