@@ -13,13 +13,17 @@ const Loader = () => {
           <div className="w-full h-full rounded-full border-[7px] border-[#31197030] border-t-[#311970]"></div>
         </div>
 
-        {/* Logo */}
-        <Image
-          src="/assets/logo.png"
-          alt="Wedpine Logo"
-          fill
-          className="object-contain animate-soft-bounce drop-shadow-xl"
-        />
+        {/* Smaller favicon inside the spinning circle */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 relative">
+            <Image
+              src="/favicon.ico"
+              alt="Wedpine Favicon"
+              fill
+              className="object-contain animate-soft-bounce drop-shadow-xl"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Text */}
