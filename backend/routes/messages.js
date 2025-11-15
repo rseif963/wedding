@@ -1,29 +1,17 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import Message from "../models/Message.js";
 import VendorProfile from "../models/VendorProfile.js";
 import ClientProfile from "../models/ClientProfile.js";
+import imagekit from "../config/imagekit.js"; // ✅ Use your existing ImageKit config
 
 const router = express.Router();
 
 // ==========================
-// 📁 Multer setup for file uploads
+// 📁 Multer setup for in-memory storage
 // ==========================
-const uploadDir = "uploads/messages";
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + ext);
-  },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // ==========================
@@ -36,9 +24,7 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
     let mediaType = "none";
 
     if (!toId || !toRole) {
-      return res
-        .status(400)
-        .json({ message: "Recipient ID and role required" });
+      return res.status(400).json({ message: "Recipient ID and role required" });
     }
 
     // Validate receiver
@@ -52,7 +38,14 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
 
     // Handle uploaded file
     if (req.file) {
-      mediaUrl = `/uploads/messages/${req.file.filename}`;
+      // Upload file to ImageKit
+      const uploadResponse = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `message_${Date.now()}`,
+        folder: "/messages",
+      });
+      mediaUrl = uploadResponse.url;
+
       const mime = req.file.mimetype;
       if (mime.startsWith("image/")) mediaType = "image";
       else if (mime.startsWith("video/")) mediaType = "video";
@@ -84,7 +77,7 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
     res.json(msg);
   } catch (err) {
     console.error("❌ Error sending message:", err);
-    res.status(500).json({ message: "Failed to send message" });
+    res.status(500).json({ message: "Failed to send message", details: err.message });
   }
 });
 
@@ -125,7 +118,6 @@ router.get("/my-chats", auth, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch chat list" });
   }
 });
-
 
 // ==========================
 // 👁️ MARK AS SEEN
