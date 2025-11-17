@@ -1,3 +1,4 @@
+// routes/reviews.js
 import express from "express";
 import { auth, permit } from "../middleware/auth.js";
 import Review from "../models/Review.js";
@@ -5,13 +6,14 @@ import ClientProfile from "../models/ClientProfile.js";
 
 const router = express.Router();
 
-// client posts review
-// client posts review
+// ================================
+// Client posts a review
+// ================================
 router.post("/", auth, permit("client"), async (req, res) => {
   try {
     const client = await ClientProfile.findOne({ user: req.user.id });
+    if (!client) return res.status(404).json({ error: "Client profile not found" });
 
-    // Destructure category ratings from the request, defaulting to 0
     const {
       vendorId,
       rating,
@@ -33,6 +35,7 @@ router.post("/", auth, permit("client"), async (req, res) => {
       professionalism,
       flexibility,
       value,
+      replies: [], // ensure replies array exists
     });
 
     res.json(review);
@@ -42,11 +45,48 @@ router.post("/", auth, permit("client"), async (req, res) => {
   }
 });
 
+// ================================
+// Vendor posts a reply to a review
+// ================================
+router.post("/:reviewId/reply", auth, permit("vendor"), async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { text } = req.body;
 
-// get reviews for vendor
-router.get("/vendor/:id", async (req, res) => {
-  const reviews = await Review.find({ vendor: req.params.id }).populate("client");
-  res.json(reviews);
+    if (!text || !text.trim()) return res.status(400).json({ error: "Reply cannot be empty" });
+
+    const review = await Review.findById(reviewId);
+    if (!review) return res.status(404).json({ error: "Review not found" });
+
+    // Ensure the logged-in vendor owns this review
+    if (review.vendor.toString() !== req.user.id)
+      return res.status(403).json({ error: "Not authorized to reply to this review" });
+
+    // Add new reply
+    review.replies.push({ vendor: req.user.id, text });
+    await review.save();
+
+    res.json(review);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to post reply" });
+  }
 });
 
-export default router;
+// ================================
+// Get all reviews for a vendor
+// ================================
+router.get("/vendor/:id", async (req, res) => {
+  try {
+    const reviews = await Review.find({ vendor: req.params.id })
+      .populate("client", "user name")       // populate client info
+      .populate("replies.vendor", "user name"); // populate vendor info in replies
+
+    res.json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  }
+});
+
+export default router;

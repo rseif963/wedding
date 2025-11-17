@@ -883,7 +883,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to fetch vendor bookings:", err);
       setBookings([]);
     }
-  }, []); // 👈 empty deps = stable reference
+  }, []);
 
 
   const respondBooking = async (bookingId: string, status: "Accepted" | "Declined" | "Pending") => {
@@ -1020,28 +1020,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const replyToReview = async (reviewId: string, text: string) => {
-    if (!token || role !== "vendor") {
-      toast.error("Only vendors can reply to reviews");
-      return null;
-    }
+    const vendorToken = vendorProfile?.token || token;
+    
 
     try {
-      const { data } = await axios.put(
+      const { data } = await axios.post(
         `/api/reviews/${reviewId}/reply`,
         { text },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${vendorToken}` },
         }
       );
 
-      // Update local state safely
+      // Update the review locally
       setReviews((prev) =>
-        prev.map((r) => (r._id === reviewId ? { ...r, reply: data.reply } : r))
+        prev.map((r) => (r._id === reviewId ? { ...r, reply: data.reply || text } : r))
       );
 
       toast.success("Reply posted");
       return data;
     } catch (err: any) {
+      console.error("replyToReview error:", err.response?.data || err.message);
       toast.error(err.response?.data?.message || "Failed to reply to review");
       return null;
     }

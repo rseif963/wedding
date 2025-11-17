@@ -10,22 +10,40 @@ export default function VendorStatsCards() {
     bookings,
     messages,
     reviews,
+    vendorProfile,
     fetchVendorBookings,
     fetchMessages,
-    fetchAllReviews,
+    fetchReviewsForVendor,
   } = useAppContext();
 
-  // Fetch IMMEDIATELY when vendor dashboard loads
+  // Fetch vendor data once vendorProfile loads
   useEffect(() => {
+    if (!vendorProfile?._id) return;
+
     fetchVendorBookings();
     fetchMessages();
-    fetchAllReviews();
-  }, []);
+    fetchReviewsForVendor(vendorProfile._id);
+  }, [vendorProfile?._id]);
 
   const stats = [
-    { label: "Requests", value: bookings?.length || 0, icon: CalendarCheck, href: "/vdashboard/vendor/bookings" },
-    { label: "Messages", value: messages?.length || 0, icon: MessageSquare, href: "/vdashboard/vendor/messages" },
-    { label: "Reviews", value: reviews?.length || 0, icon: Star, href: "/vdashboard/vendor/reviews" },
+    {
+      label: "Requests",
+      value: bookings?.length || 0,
+      icon: CalendarCheck,
+      href: "/vdashboard/vendor/bookings",
+    },
+    {
+      label: "Messages",
+      value: messages?.length || 0,
+      icon: MessageSquare,
+      href: "/vdashboard/vendor/messages",
+    },
+    {
+      label: "Reviews",
+      value: reviews?.length || 0,
+      icon: Star,
+      href: "/vdashboard/vendor/reviews",
+    },
   ];
 
   return (

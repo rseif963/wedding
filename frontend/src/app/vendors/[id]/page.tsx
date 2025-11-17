@@ -300,7 +300,7 @@ export default function VendorProfile() {
       </div>
       <div className="lg:flex lg:flex-col-2">
         {/* Gallery section replacing Hero */}
-        <section className="max-w-5xl mx-auto px-2 py-8">
+        <section className="max-w-5xl mx-auto px-2 py-6">
           <ImageGallery
             items={images}
             showPlayButton={true}
@@ -577,12 +577,12 @@ export default function VendorProfile() {
 
       {/* ⭐ Similar Vendors Section */}
       {similarVendors.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 py-10">
+        <section className="w-full mx-auto px-2 py-10">
           <h2 className="text-2xl font-bold text-[#311970] mb-6">
             Similar Vendors
           </h2>
 
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {similarVendors.map((post: any) => {
               const v = post.vendor;
               const image =

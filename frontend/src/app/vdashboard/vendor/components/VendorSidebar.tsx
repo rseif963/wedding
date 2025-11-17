@@ -31,6 +31,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
     { href: "/vdashboard/vendor/bookings", label: "Booking Requests" },
     { href: "/vdashboard/vendor/messages", label: "Messages" },
     { href: "/vdashboard/vendor/reviews", label: "Reviews" },
+    { href: "/vdashboard/vendor/subscriptions", label: "Subscriptions" },
   ];
 
   const handleLogout = () => {
@@ -43,7 +44,7 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
       className="w-64 bg-white shadow-lg flex flex-col"
       style={{ height: viewportHeight }}
     >
-      <h2 className="text-2xl w-full p-4 font-bold text-white bg-[#311970] mb-4">Vendor</h2>
+      <h4 className="text-2xl w-full p-4 font-bold text-white bg-[#311970] mb-4">Vendor</h4>
 
       {/* Navigation links */}
       <nav className="space-y-1 flex-1 overflow-y-auto">

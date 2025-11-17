@@ -341,7 +341,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
 
 
   return (
-    <section className="bg-white p-2  relative w-full min-h-screen overflow-y-auto">
+    <section className="bg-white p-2 justify-center  relative w-full min-h-screen overflow-y-auto">
 
       {/* === CROPPER MODAL (ADDED) === */}
       {croppingFile && croppingSrc && (
@@ -352,11 +352,17 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
                 image={croppingSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={16 / 18} // you can change this if you want
+                minZoom={1}
+                maxZoom={5}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
+                // Remove the aspect ratio to allow free cropping
+                // aspect={16 / 18}  <-- remove this line
+                restrictPosition={false} // optional, allows moving image outside container
+                showGrid={true} // optional, shows grid overlay
               />
+
             </div>
 
             <div className="mt-4 flex items-center gap-3 justify-end">

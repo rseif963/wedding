@@ -16,12 +16,10 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     fetchReviewsForVendor,
     postReview,
     vendorProfile,
-    role,
     replyToReview,
-  } = useAppContext();
+  } = useAppContext(); // removed role from destructuring
 
   const [loading, setLoading] = useState(true);
-  const [submittingReview, setSubmittingReview] = useState(false);
   const [submittingReply, setSubmittingReply] = useState<{ [key: string]: boolean }>({});
   const [ratingInput, setRatingInput] = useState<number>(5);
   const [textInput, setTextInput] = useState<string>("");
@@ -48,30 +46,28 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     };
 
     loadReviews();
-  }, [vendorId, vendorProfile?._id,]);
+  }, [vendorId, vendorProfile?._id]);
 
-  // Post a new review
+  // Post a new review (client side)
   const submitReview = async () => {
     const vid = resolveVendorId();
     if (!vid) return toast.error("No vendor specified");
     if (!ratingInput || ratingInput < 1 || ratingInput > 5)
       return toast.error("Rating must be between 1 and 5");
-
-    setSubmittingReview(true);
     try {
       await postReview({ vendorId: vid, rating: ratingInput, text: textInput.trim() });
       setTextInput("");
       setRatingInput(5);
       toast.success("Review posted");
-      await fetchReviewsForVendor(vid); // refresh immediately
+
+      // Refresh reviews immediately
+      await fetchReviewsForVendor(vid);
     } catch {
       toast.error("Failed to post review");
-    } finally {
-      setSubmittingReview(false);
     }
   };
 
-  // Post a reply
+  // Post a reply (always vendor)
   const submitReply = async (reviewId: string) => {
     const reply = replyText[reviewId]?.trim();
     if (!reply) return toast.error("Reply cannot be empty");
@@ -79,10 +75,15 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     setSubmittingReply((prev) => ({ ...prev, [reviewId]: true }));
     try {
       await replyToReview(reviewId, reply);
-      toast.success("Reply posted");
+
       setReplyText((prev) => ({ ...prev, [reviewId]: "" }));
       setActiveReply(null);
-      await fetchReviewsForVendor(resolveVendorId()!); // refresh reviews
+
+      // Refresh reviews after reply
+      const vid = resolveVendorId();
+      if (vid) await fetchReviewsForVendor(vid);
+
+      toast.success("Reply posted");
     } catch {
       toast.error("Failed to post reply");
     } finally {
@@ -127,88 +128,49 @@ export default function Reviews({ preview = false, vendorId }: Props) {
                 </div>
               )}
 
-              {/* Reply button for vendors */}
-              {role === "vendor" && (
-                <div className="mt-2 ml-2">
-                  {activeReply === rev._id ? (
-                    <>
-                      <textarea
-                        placeholder="Write a reply..."
-                        value={replyText[rev._id] || ""}
-                        onChange={(e) =>
-                          setReplyText((prev) => ({ ...prev, [rev._id]: e.target.value }))
-                        }
-                        className="w-full border rounded p-2 text-sm mb-2"
-                        rows={2}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => submitReply(rev._id)}
-                          disabled={submittingReply[rev._id]}
-                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
-                        >
-                          {submittingReply[rev._id] ? "Posting..." : "Submit Reply"}
-                        </button>
-                        <button
-                          onClick={() => setActiveReply(null)}
-                          className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setActiveReply(rev._id)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                    >
-                      Reply
-                    </button>
-                  )}
-                </div>
-              )}
+              {/* Vendor reply section (always visible for vendor profiles) */}
+              <div className="mt-2 ml-2">
+                {activeReply === rev._id ? (
+                  <>
+                    <textarea
+                      placeholder="Write a reply..."
+                      value={replyText[rev._id] || ""}
+                      onChange={(e) =>
+                        setReplyText((prev) => ({ ...prev, [rev._id]: e.target.value }))
+                      }
+                      className="w-full border rounded p-2 text-sm mb-2"
+                      rows={2}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => submitReply(rev._id)}
+                        disabled={submittingReply[rev._id]}
+                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
+                      >
+                        {submittingReply[rev._id] ? "Posting..." : "Submit Reply"}
+                      </button>
+                      <button
+                        onClick={() => setActiveReply(null)}
+                        className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setActiveReply(rev._id)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                  >
+                    Reply
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      {role === "client" && resolveVendorId() && (
-        <div className="mt-4 border-t pt-4">
-          <h3 className="font-medium mb-2">Leave a review</h3>
-          <div className="flex items-center gap-2 mb-2">
-            <label className="text-sm">Rating:</label>
-            <select
-              value={ratingInput}
-              onChange={(e) => setRatingInput(Number(e.target.value))}
-              className="border rounded px-2 py-1"
-            >
-              {[5, 4, 3, 2, 1].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <textarea
-            placeholder="Write your review..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            className="w-full border rounded p-2 text-sm mb-2"
-            rows={3}
-          />
-
-          <div className="flex justify-end">
-            <button
-              onClick={submitReview}
-              disabled={submittingReview}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              {submittingReview ? "Posting..." : "Post review"}
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

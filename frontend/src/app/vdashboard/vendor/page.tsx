@@ -3,6 +3,7 @@
 import VendorStatsCards from "./components/VendorStatsCards";
 import ProfileManager from "./components/ProfileManager";
 import PostsManager from "./components/PostsManager";
+import Subscriptions from "./components/Subscriptions";
 
 
 export default function DashboardPage() {
@@ -13,7 +14,8 @@ export default function DashboardPage() {
         <div className="lg:col-span-3 space-y-0">
           <div className="w-full">
             <ProfileManager />
-          </div> 
+            <Subscriptions />
+          </div>
         </div>     
       </div>
     </div>

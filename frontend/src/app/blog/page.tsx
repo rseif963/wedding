@@ -32,7 +32,7 @@ export default function Blog() {
       </section>
 
       {/* Blog Grid */}
-      <section className="max-w-6xl mx-auto px-3 py-16">
+      <section className="max-w-6xl mx-auto px-3 py-14">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
           {blogs.length === 0 ? (
             <p className="text-center col-span-full text-gray-500">
@@ -55,7 +55,7 @@ export default function Blog() {
                   />
                 </div>
 
-                <div className="p-6">
+                <div className="p-4">
                   <h2 className="text-xl font-bold text-[#311970] mt-2 mb-3">
                     {post.title}
                   </h2>

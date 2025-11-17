@@ -19,7 +19,6 @@ router.post("/", auth, permit("client"), async (req, res) => {
   res.json(br);
 });
 
-// vendor lists requests for themselves
 router.get("/vendor/me", auth, permit("vendor"), async (req, res) => {
   const vendor = await VendorProfile.findOne({ user: req.user.id });
   const requests = await BookingRequest.find({ vendor: vendor._id }).populate("client");
