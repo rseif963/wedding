@@ -140,7 +140,7 @@ export default function ProfileManager({ preview = false }: Props) {
   // Editing Form
   return (
     <section className="bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
-      <h2 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h2>
+      <h5 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h5>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <div className="flex flex-col">
