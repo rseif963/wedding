@@ -66,8 +66,8 @@ export default function Subscriptions() {
           box-shadow: 0 8px 32px rgba(0,0,0,0.05);
         }
         h2 {
-          font-weight: 700;
-          font-size: 2.5rem;
+          font-weight: 500;
+          font-size: 2.0rem;
           margin-bottom: 1rem;
           text-align: center;
           color: #1f2937;
