@@ -19,7 +19,7 @@ export default function VendorHeader({
           <Menu size={24} />
         </button>
 
-        <h1 className="text-xl font-bold text-gray-800">Vendor Dashboard</h1>
+        <h1 className="text-xl ml-6 text-center font-bold text-gray-800">Vendor Dashboard</h1>
       </div>
 
       <div className="flex items-center gap-6">
