@@ -28,7 +28,7 @@ const Loader = () => {
 
       {/* Text */}
       <h2 className="mt-6 text-lg md:text-xl font-semibold text-gray-700 tracking-wide animate-pulse text-center px-4">
-        Everything you need for your wedding day.
+        Everything you need to plan your wedding day.
       </h2>
 
       {/* Custom animations */}

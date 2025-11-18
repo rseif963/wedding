@@ -80,10 +80,10 @@ export default function Header({
             {diffDays} days to go 🎉
           </p>
         )}
-        <button className="relative text-gray-600 hover:text-[#311970]">
+        {/*<button className="relative text-gray-600 hover:text-[#311970]">
           <Bell size={22} />
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        </button>*/}
       </div>
     </header>
   );

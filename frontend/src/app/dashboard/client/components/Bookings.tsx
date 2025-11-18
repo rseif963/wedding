@@ -19,14 +19,14 @@ export default function Bookings() {
   };
 
   return (
-    <div className="bg-white w-screen h-screen p-2 rounded-xl">
+    <div className="bg-white w-full h-screen p-2 rounded-xl">
       <h2 className="text-lg font-bold mb-4">Recent Bookings</h2>
 
       <table className="w-full min-w-full text-left text-sm">
         <thead>
           <tr className="text-gray-500 border-b">
             <th className="pb-2">Vendor</th>
-            <th className="pb-2">Date</th>
+            {/*<th className="pb-2">Date</th>*/} 
             <th className="pb-2">Status</th>
             <th className="pb-2"></th>
           </tr>
@@ -40,7 +40,7 @@ export default function Bookings() {
                     ? b.vendor.businessName || b.vendor.email
                     : b.vendor}
                 </td>
-                <td className="py-2">{b.date}</td>
+                <td className="py-2 hidden">{b.date}</td>
                 <td className="py-2">
                   <span
                     className={`px-3 py-1 text-xs rounded-full ${

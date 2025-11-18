@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 
-export default function FeaturedVendors() {
+export default function TopListingVendors() {
   const { posts, fetchPosts } = useAppContext();
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
@@ -25,27 +25,26 @@ export default function FeaturedVendors() {
     fetchPosts();
   }, []);
 
-  // Fetch reviews for featured vendors
+  // Fetch reviews for ALL vendors because top listing uses ratings
   useEffect(() => {
     let mounted = true;
 
-    const loadVendorReviews = async () => {
+    const loadReviews = async () => {
       if (!posts || posts.length === 0) return;
 
-      const featuredIds = Array.from(
+      const ids = Array.from(
         new Set(
           posts
-            .filter((p) => p.vendor?.featured)
             .map((p) => p.vendor?._id)
             .filter(Boolean)
             .map(String)
         )
       );
 
-      if (featuredIds.length === 0) return;
+      if (ids.length === 0) return;
 
       try {
-        const promises = featuredIds.map((id) =>
+        const promises = ids.map((id) =>
           axios
             .get(`${API_URL}/api/reviews/vendor/${id}`)
             .then((res) => ({ id, data: Array.isArray(res.data) ? res.data : [] }))
@@ -56,16 +55,15 @@ export default function FeaturedVendors() {
         if (!mounted) return;
 
         const map: Record<string, any[]> = {};
-        results.forEach((r) => {
-          map[r.id] = r.data;
-        });
+        results.forEach((r) => (map[r.id] = r.data));
+
         setVendorReviewsMap(map);
       } catch (err) {
-        console.error("Failed to load featured vendor reviews:", err);
+        console.error("Failed to load vendor reviews:", err);
       }
     };
 
-    loadVendorReviews();
+    loadReviews();
     return () => {
       mounted = false;
     };
@@ -77,41 +75,50 @@ export default function FeaturedVendors() {
     );
   };
 
-  // Only featured vendors, max 12
-  const featuredPosts = (posts || [])
-    .filter((post) => post.vendor?.featured === true)
+  // LOGIC: Top Listings = 4.5+ stars OR 10+ reviews
+  const calculatedVendors = (posts || []).map((post) => {
+    const v = post.vendor;
+    const vendorId = v?._id ? String(v._id) : "";
+
+    const reviews = vendorId ? vendorReviewsMap[vendorId] || [] : [];
+    const avgRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+        : 0;
+
+    return {
+      ...post,
+      totalReviews: reviews.length,
+      avgRating,
+    };
+  });
+
+  const topListings = calculatedVendors
+    .filter((v) => v.avgRating >= 4.5 || v.totalReviews >= 10)
+    .sort((a, b) => b.avgRating - a.avgRating) // highest first
     .slice(0, 12);
 
   return (
-    <section className="py-10 bg-gray-50 w-full">
+    <section className="py-10 bg-white w-full">
       <div className="max-w-6xl mx-auto px-3">
-        <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
-          Featured Vendors
+        <h2 className="text-3xl font-bold text-center mb-10 text-[#311970]">
+          Top Listing Vendors
         </h2>
 
-        {featuredPosts.length === 0 ? (
+        {topListings.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-2xl font-semibold text-gray-600">
-              No featured vendors available yet.
+              No top listings yet.
             </h3>
             <p className="text-gray-500 mt-2">
-              Please check back soon — new vendors are added frequently.
+              Check back soon — vendors are being updated.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {featuredPosts.map((post) => {
+            {topListings.map((post) => {
               const v = post.vendor;
               const imageUrl = getFullUrl(post.mainPhoto || v?.logo);
-
-              const vendorId = v?._id ? String(v._id) : "";
-              const vendorReviews = vendorId ? vendorReviewsMap[vendorId] || [] : [];
-
-              const avgRating =
-                vendorReviews.length > 0
-                  ? vendorReviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-                    vendorReviews.length
-                  : 0;
 
               return (
                 <Link
@@ -119,7 +126,7 @@ export default function FeaturedVendors() {
                   href={`/vendors/${post._id}`}
                   className="relative bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition block"
                 >
-                  {/* Like Button */}
+                  {/* Like */}
                   <button
                     className="absolute top-3 right-3 z-30 bg-white/80 rounded-full p-1 hover:bg-red-100 transition"
                     onClick={(e) => {
@@ -136,19 +143,17 @@ export default function FeaturedVendors() {
                     />
                   </button>
 
-                  {/* IMAGE with BADGES */}
+                  {/* Image + Badge */}
                   <div className="relative h-48 w-full">
 
-                    {/* ⭐ Featured Badge */}
-                    {v?.featured && (
-                      <div className="absolute top-3 left-3 bg-yellow-100 text-yellow-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
-                        ⭐ Featured
-                      </div>
-                    )}
+                    {/* 🔥 Top Listing Badge */}
+                    <div className="absolute top-3 left-3 bg-purple-100 text-purple-800 px-2 py-1 text-xs font-semibold rounded z-20">
+                      ⭐ Top Listing
+                    </div>
 
-                    {/* 🔥 Top Rated Badge (5 Stars) */}
-                    {avgRating >= 5 && (
-                      <div className="absolute top-3 left-28 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
+                    {/* If they also have 5 stars */}
+                    {post.avgRating >= 5 && (
+                      <div className="absolute top-3 left-28 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20">
                         🔥 Top Rated
                       </div>
                     )}
@@ -161,7 +166,7 @@ export default function FeaturedVendors() {
                     />
                   </div>
 
-                  {/* Vendor Info */}
+                  {/* Info */}
                   <div className="p-5">
                     <h2 className="text-xl font-bold text-[#311970] truncate">
                       {v?.businessName}
@@ -177,16 +182,14 @@ export default function FeaturedVendors() {
                         <Star
                           key={i}
                           className={`w-4 h-4 ${
-                            i < Math.round(avgRating)
+                            i < Math.round(post.avgRating)
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-gray-300"
                           }`}
                         />
                       ))}
-                      <span className="text-sm text-gray-600 ml-2">
-                        {avgRating > 0
-                          ? `${avgRating.toFixed(1)} (${vendorReviews.length})`
-                          : "No reviews yet"}
+                      <span className="ml-2 text-sm text-gray-600">
+                        {post.avgRating.toFixed(1)} ({post.totalReviews})
                       </span>
                     </div>
 
@@ -202,15 +205,6 @@ export default function FeaturedVendors() {
             })}
           </div>
         )}
-
-        <div className="text-center mt-12">
-          <Link
-            href="/vendors"
-            className="inline-block bg-[#311970] text-white px-6 py-3 rounded-lg shadow hover:bg-[#261457] transition"
-          >
-            Explore More Vendors
-          </Link>
-        </div>
       </div>
     </section>
   );

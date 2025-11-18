@@ -41,6 +41,7 @@ interface BudgetItem {
 
 interface Budget {
   plannedAmount: number;
+  actualSpent: number;
   items: BudgetItem[];
   showBudget?: boolean;
 }
@@ -592,17 +593,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Update total expected guest count
   const updateExpectedGuestCount = async (count: number) => {
     try {
-      const { data } = await axios.put("/api/clients/guests/expected", {
-        expectedGuests: count,
+      const { data } = await axios.put("/api/clients/expected-guests", {
+        expectedGuestsCount: count,
       });
 
       setClientProfile((prev) => ({
         ...prev,
-        expectedGuests: data.expectedGuests,
+        expectedGuestsCount: data.expectedGuestsCount,
       }));
 
       toast.success("Expected guests updated");
-      return data.expectedGuests;
+      return data.expectedGuestsCount;
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to update expected guests");
       return null;
@@ -688,15 +689,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         plannedAmount: amount,
       });
 
-      setClientProfile((prev) => ({
+      // ❗ data = budget object, NOT { budget: ... }
+      setClientProfile((prev: any) => ({
         ...prev,
-        budget: data.budget,
+        budget: data,
       }));
 
       toast.success("Planned budget updated");
-      return data.budget;
+      return data;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update planned budget");
+      toast.error(
+        err.response?.data?.message || "Failed to update planned budget"
+      );
       return null;
     }
   };
@@ -711,35 +715,75 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await axios.post("/api/clients/budget/item", item);
 
-      setClientProfile((prev) => ({
+      // ❗ data = budget object
+      setClientProfile((prev: any) => ({
         ...prev,
-        budget: data.budget,
+        budget: data,
       }));
 
       toast.success("Budget item added");
-      return data.budget;
+      return data;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to add budget item");
+      toast.error(
+        err.response?.data?.message || "Failed to add budget item"
+      );
       return null;
     }
   };
 
   const updateBudgetItem = async (itemId: string, update: any) => {
     try {
-      const { data } = await axios.put(`/api/clients/budget/item/${itemId}`, update);
+      const { data } = await axios.put(
+        `/api/clients/budget/item/${itemId}`,
+        update
+      );
 
-      setClientProfile((prev) => ({
+      // ❗ data = budget object
+      setClientProfile((prev: any) => ({
         ...prev,
-        budget: data.budget,
+        budget: data,
       }));
 
       toast.success("Budget item updated");
-      return data.budget;
+      return data;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update budget item");
+      toast.error(
+        err.response?.data?.message || "Failed to update budget item"
+      );
       return null;
     }
   };
+
+  // ------------------------------
+  // UPDATE ACTUAL SPENT + MARK PAID
+  // ------------------------------
+  const updateBudgetTotals = async (actualSpent: number, itemId: string, paid: false) => {
+    try {
+      const res = await axios.put("/api/clients/me/budget/updateTotals", {
+        actualSpent,
+        itemId,
+        paid,
+      });
+
+      const data = res.data;
+
+      setClientProfile((prev) => ({
+        ...(prev || {}),
+        budget: {
+          plannedAmount: Number(data.budget?.plannedAmount ?? 0),
+          actualSpent: Number(data.budget?.actualSpent ?? 0),
+          items: data.budget?.items ?? [],
+          showBudget: prev?.budget?.showBudget ?? true,
+        },
+      }));
+
+      return true;
+    } catch (error) {
+      console.error("Error updating totals:", error);
+      return false;
+    }
+  };
+
 
   const deleteBudgetItem = async (itemId: string) => {
     try {
@@ -1021,7 +1065,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const replyToReview = async (reviewId: string, text: string) => {
     const vendorToken = vendorProfile?.token || token;
-    
+
 
     try {
       const { data } = await axios.post(
@@ -1192,6 +1236,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addBudgetItem,
         updateBudgetItem,
         deleteBudgetItem,
+
 
         // guest functions
         addGuest,

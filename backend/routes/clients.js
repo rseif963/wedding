@@ -24,17 +24,22 @@ router.get("/", auth, permit("admin"), async (req, res) => {
    GET OWN PROFILE
    =========================================================== */
 router.get("/me", auth, permit("client"), async (req, res) => {
-  const profile = await ClientProfile.findOne({ user: req.user.id }).populate("user", "email");
+  const profile = await ClientProfile.findOne({ user: req.user.id }).populate(
+    "user",
+    "email"
+  );
   res.json(profile);
 });
 
 /* ===========================================================
-   NEW: GET ALL (PROFILE + GUESTS + BUDGET + TASKS)
+   GET ALL (PROFILE + GUESTS + BUDGET + TASKS)
    =========================================================== */
 router.get("/me/all", auth, permit("client"), async (req, res) => {
   try {
-    const profile = await ClientProfile.findOne({ user: req.user.id })
-      .populate("user", "email");
+    const profile = await ClientProfile.findOne({ user: req.user.id }).populate(
+      "user",
+      "email"
+    );
 
     if (!profile) return res.status(404).json({ message: "Profile not found" });
 
@@ -70,6 +75,21 @@ router.put("/me", auth, permit("client"), async (req, res) => {
 });
 
 /* ===========================================================
+   EXPECTED GUESTS
+   =========================================================== */
+router.put("/expected-guests", auth, permit("client"), async (req, res) => {
+  const { expectedGuestsCount } = req.body;
+
+  const profile = await ClientProfile.findOneAndUpdate(
+    { user: req.user.id },
+    { expectedGuestsCount },
+    { new: true }
+  );
+
+  res.json({ expectedGuestsCount: profile.expectedGuestsCount });
+});
+
+/* ===========================================================
    =====================   GUESTS   ===========================
    =========================================================== */
 
@@ -88,9 +108,17 @@ router.post("/guests", auth, permit("client"), async (req, res) => {
 router.put("/guests/:guestId", auth, permit("client"), async (req, res) => {
   const { guestId } = req.params;
 
+  const fieldsToUpdate = {};
+  for (const key of Object.keys(req.body)) {
+    fieldsToUpdate[`guests.$.${key}`] = req.body[key];
+  }
+
   const profile = await ClientProfile.findOneAndUpdate(
-    { user: req.user.id, "guests._id": guestId },
-    { $set: { "guests.$": { _id: guestId, ...req.body } } },
+    {
+      user: req.user.id,
+      "guests._id": guestId,
+    },
+    { $set: fieldsToUpdate },
     { new: true }
   );
 
@@ -107,18 +135,6 @@ router.delete("/guests/:guestId", auth, permit("client"), async (req, res) => {
   );
 
   res.json(profile.guests);
-});
-
-router.put("/expected-guests", auth, permit("client"), async (req, res) => {
-  const { expectedGuestsCount } = req.body;
-
-  const profile = await ClientProfile.findOneAndUpdate(
-    { user: req.user.id },
-    { expectedGuestsCount },
-    { new: true }
-  );
-
-  res.json({ expectedGuestsCount: profile.expectedGuestsCount });
 });
 
 router.put("/toggle-guests", auth, permit("client"), async (req, res) => {
@@ -159,12 +175,18 @@ router.post("/budget/item", auth, permit("client"), async (req, res) => {
   res.json(profile.budget);
 });
 
+/* ✅ FIXED — budget items no longer lose data */
 router.put("/budget/item/:itemId", auth, permit("client"), async (req, res) => {
   const { itemId } = req.params;
 
+  const updateFields = {};
+  for (const key of Object.keys(req.body)) {
+    updateFields[`budget.items.$.${key}`] = req.body[key];
+  }
+
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id, "budget.items._id": itemId },
-    { $set: { "budget.items.$": { _id: itemId, ...req.body } } },
+    { $set: updateFields },
     { new: true }
   );
 
@@ -212,9 +234,14 @@ router.post("/tasks", auth, permit("client"), async (req, res) => {
 router.put("/tasks/:taskId", auth, permit("client"), async (req, res) => {
   const { taskId } = req.params;
 
+  const updateFields = {};
+  for (const key of Object.keys(req.body)) {
+    updateFields[`tasks.$.${key}`] = req.body[key];
+  }
+
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id, "tasks._id": taskId },
-    { $set: { "tasks.$": { _id: taskId, ...req.body } } },
+    { $set: updateFields },
     { new: true }
   );
 

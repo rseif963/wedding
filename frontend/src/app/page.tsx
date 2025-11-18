@@ -12,6 +12,7 @@ import TipsIdeas from "@/components/TipsIdeas";
 import PopularCities from "@/components/PopularCities";
 import Loader from "../components/Loader";
 import { useState, useEffect } from "react";
+import TopListingVendors from "@/components/TopListingVendors";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -36,6 +37,7 @@ export default function Home() {
       <TipsIdeas />
       <PopularCities />
       <HowItWorks />
+      <TopListingVendors />
       <VendorCTA />
       <Testimonials />
       <Footer />

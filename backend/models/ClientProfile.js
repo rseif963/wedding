@@ -9,6 +9,9 @@ const ClientProfileSchema = new mongoose.Schema({
   groomName: String,
   weddingDate: Date,
 
+  // ===========================
+  //        GUESTS
+  // ===========================
   guests: [
     {
       name: { type: String, required: true },
@@ -20,28 +23,36 @@ const ClientProfileSchema = new mongoose.Schema({
         default: "pending",
       },
       notes: String,
-      table: String,       // Optional: table assignment
+      table: String,
       createdAt: { type: Date, default: Date.now },
     },
   ],
 
-  // Expected number of guests (user sets this)
-  expectedGuestsCount: { type: Number, default: 0 },
+  // Expected number of guests (simple number)
+  expectedGuestsCount: {
+    type: Number,
+    default: 0,
+    required: true,
+  },
 
-  // Toggle to enable/disable guest section
-  showGuests: { type: Boolean, default: true },
+  // Toggle to show/hide guests section
+  showGuests: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
 
   // ===========================
-  //       BUDGET TRACKER
+  //        BUDGET
   // ===========================
   budget: {
-    plannedAmount: { type: Number, default: 0 },  // User sets this
-    actualSpent: { type: Number, default: 0 },    // Auto-calc optional
+    plannedAmount: { type: Number, default: 0 },
+    actualSpent: { type: Number, default: 0 },
 
     items: [
       {
         title: { type: String, required: true },
-        category: String, 
+        category: String,
         cost: { type: Number, default: 0 },
         paid: { type: Boolean, default: false },
         notes: String,
@@ -49,16 +60,19 @@ const ClientProfileSchema = new mongoose.Schema({
       },
     ],
 
-    showBudget: { type: Boolean, default: true }, // Toggle
+    showBudget: { type: Boolean, default: true },
   },
 
+  // ===========================
+  //         TASKS
+  // ===========================
   tasks: [
     {
       title: { type: String, required: true },
       description: String,
       dueDate: Date,
       completed: { type: Boolean, default: false },
-      category: String, // Optional: e.g. "Pre-wedding", "Ceremony", etc.
+      category: String,
       createdAt: { type: Date, default: Date.now },
     },
   ],

@@ -97,7 +97,7 @@ export default function ProfileManager({ preview = false }: Props) {
   if (!isEditing && vendorProfile) {
     return (
       <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-2 sm:p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
-        <h2 className="text-2xl font-bold text-purple-700 mb-5">My Profile</h2>
+        <h5 className="text-2xl font-bold text-purple-700 mb-5">My Profile</h5>
 
         <div className="space-y-2 w-full break-words">
           <h3 className="text-lg font-semibold text-gray-800">{vendorProfile.businessName}</h3>
