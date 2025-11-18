@@ -1,334 +1,395 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { Plus, Edit2, Trash2, Save, X, CheckCircle, Circle } from "lucide-react";
+import {
+  Users,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Plus,
+  MoreVertical,
+} from "lucide-react";
 
-export default function BudgetTracker() {
+// RSVP types your DB uses
+type RSVP = "attending" | "pending" | "declined" | "" | null | undefined;
+
+interface Guest {
+  _id?: string;
+  id?: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  rsvp?: RSVP;
+}
+
+type FilterKey = "all" | "attending" | "pending" | "declined";
+
+export default function GuestList() {
   const {
     clientProfile,
-    updatePlannedBudget,
-    addBudgetItem,
-    updateBudgetItem,
-    deleteBudgetItem,
-    fetchClientAll,                     // << added
+    addGuest,
+    updateGuest,
+    deleteGuest,
+    fetchClientAll,
+    updateExpectedGuestCount,
   } = useAppContext();
 
-  const budget = clientProfile?.budget || { plannedAmount: 0, items: [] };
+  const [expectedGuests, setExpectedGuests] = useState<number>(
+    clientProfile?.expectedGuestsCount ?? 0
+  );
 
-  // FORMATTERS --------------------------------------------------
-  const formatNumber = (num: number | string) => {
-    if (!num) return "0";
-    const raw = Number(String(num).replace(/,/g, "")) || 0;
-    return raw.toLocaleString("en-US");
-  };
+  const [isEditingExpected, setIsEditingExpected] = useState(false);
 
-  const cleanNumber = (value: string) =>
-    Number(value.replace(/,/g, "")) || 0;
-
-  // TOTAL BUDGET --------------------------------------------------
-  const [editingTotal, setEditingTotal] = useState(false);
-  const [totalInput, setTotalInput] = useState("");
-
-  useEffect(() => {
-    setTotalInput(formatNumber(budget.plannedAmount));
-  }, [budget.plannedAmount]);
-
-  const handleTotalChange = (val: string) => {
-    const cleaned = val.replace(/[^\d]/g, "");
-    setTotalInput(formatNumber(cleaned));
-  };
-
-  const savePlannedBudget = async () => {
-    const amount = cleanNumber(totalInput);
-    const updated = await updatePlannedBudget(amount);
-
-    if (updated) {
-      setEditingTotal(false);
-      await fetchClientAll();                 // << refresh state
+  const handleUpdateExpectedGuests = async () => {
+    if (!updateExpectedGuestCount) return;
+    try {
+      await updateExpectedGuestCount(expectedGuests);
+      if (fetchClientAll) await fetchClientAll();
+    } catch (err) {
+      console.error("Failed to update expected guests:", err);
     }
   };
 
-  // ADD ITEM --------------------------------------------------
-  const [newItem, setNewItem] = useState({ title: "", cost: "" });
+  const guests: Guest[] = Array.isArray(clientProfile?.guests)
+    ? (clientProfile!.guests as Guest[])
+    : [];
 
-  const handleAddItem = async () => {
-    if (!newItem.title.trim() || !newItem.cost.trim()) return;
+  const [filter, setFilter] = useState<FilterKey>("all");
 
-    const added = await addBudgetItem({
-      title: newItem.title.trim(),
-      cost: cleanNumber(newItem.cost),
-      paid: false,
+  const [newGuest, setNewGuest] = useState<Guest>({
+    name: "",
+    phone: "",
+    email: "",
+    rsvp: "pending",
+  });
+
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const normalized = (r: RSVP) => (r ? r.toLowerCase() : "");
+
+  const counts = useMemo(() => {
+    const acc = { all: guests.length, attending: 0, pending: 0, declined: 0 };
+    guests.forEach((g) => {
+      const r = normalized(g.rsvp);
+      if (r === "attending") acc.attending++;
+      else if (r === "pending") acc.pending++;
+      else if (r === "declined") acc.declined++;
+    });
+    return acc;
+  }, [guests]);
+
+  const filteredGuests = useMemo(() => {
+    if (filter === "all") return guests;
+    return guests.filter((g) => normalized(g.rsvp) === filter);
+  }, [guests, filter]);
+
+  const statusStyle = (rsvp: RSVP) => {
+    const r = normalized(rsvp);
+    return r === "attending"
+      ? "bg-green-100 text-green-700"
+      : r === "pending"
+      ? "bg-yellow-100 text-yellow-700"
+      : r === "declined"
+      ? "bg-red-100 text-red-700"
+      : "bg-gray-100 text-gray-600";
+  };
+
+  const statusLabel = (rsvp: RSVP) => {
+    const r = normalized(rsvp);
+    return r === "attending"
+      ? "Confirmed"
+      : r === "pending"
+      ? "Pending"
+      : r === "declined"
+      ? "Declined"
+      : "Unknown";
+  };
+
+  const handleAdd = async () => {
+    if (!newGuest.name.trim()) return;
+
+    await addGuest({
+      name: newGuest.name,
+      phone: newGuest.phone,
+      email: newGuest.email,
     });
 
-    if (added) {
-      setNewItem({ title: "", cost: "" });
-      await fetchClientAll();                 // << refresh state
+    setNewGuest({ name: "", phone: "", email: "", rsvp: "pending" });
+
+    try {
+      await fetchClientAll();
+    } catch {}
+  };
+
+  const TabButton = ({
+    label,
+    Icon,
+    value,
+    count,
+  }: {
+    label: string;
+    Icon: any;
+    value: FilterKey;
+    count: number;
+  }) => {
+    const active = filter === value;
+    return (
+      <button
+        onClick={() => setFilter(value)}
+        className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition
+        ${
+          active
+            ? "bg-black text-white border-black shadow"
+            : "border-gray-300 text-gray-700 hover:bg-gray-100"
+        }`}
+      >
+        <Icon size={16} />
+        {label} ({count})
+      </button>
+    );
+  };
+
+  const safeUpdateGuest = async (guestId: string, update: Partial<Guest>) => {
+    try {
+      await (updateGuest as unknown as (id: string, u: any) => Promise<any>)(
+        guestId,
+        update
+      );
+      if (fetchClientAll) await fetchClientAll();
+    } catch (err) {
+      console.error("safeUpdateGuest error:", err);
     }
   };
 
-  // EDIT ITEM --------------------------------------------------
-  const [activeEdit, setActiveEdit] = useState<null | string>(null);
-  const [editForm, setEditForm] = useState({ title: "", cost: "" });
-
-  const startEdit = (item: any) => {
-    setActiveEdit(item._id);
-    setEditForm({
-      title: item.title,
-      cost: formatNumber(item.cost),
-    });
-  };
-
-  const saveItem = async (item: any) => {
-    const updated = await updateBudgetItem(item._id, {
-      title: editForm.title.trim(),
-      cost: cleanNumber(editForm.cost),
-    });
-
-    if (updated) {
-      setActiveEdit(null);
-      await fetchClientAll();                 // << refresh state
+  const safeDeleteGuest = async (guestId: string, guestName: string) => {
+    if (!confirm(`Delete guest ${guestName}?`)) return;
+    try {
+      await (deleteGuest as unknown as (id: string) => Promise<any>)(guestId);
+      if (fetchClientAll) await fetchClientAll();
+    } catch (err) {
+      console.error("Delete guest error:", err);
     }
   };
-
-  // DELETE ITEM --------------------------------------------------
-  const removeItem = async (id: string) => {
-    const deleted = await deleteBudgetItem(id);
-    if (deleted) {
-      await fetchClientAll();                 // << refresh state
-    }
-  };
-
-  // PAID TOGGLE --------------------------------------------------
-  const togglePaid = async (item: any) => {
-    const toggled = await updateBudgetItem(item._id, { paid: !item.paid });
-    if (toggled) {
-      await fetchClientAll();                 // << refresh state
-    }
-  };
-
-  // USED + REMAINING CALCULATION --------------------------------
-  const usedAmount =
-    budget.items
-      ?.filter((i: any) => i.paid)
-      .reduce((sum: number, i: any) => sum + i.cost, 0) || 0;
-
-  const remainingAmount = Math.max(budget.plannedAmount - usedAmount, 0);
 
   return (
-    <div className="bg-white w-full h-full p-4 md:p-6 rounded-2xl border border-gray-200 shadow-sm">
-      <h2 className="text-xl font-bold mb-4 tracking-tight text-gray-900">
-        Budget Tracker
-      </h2>
+    <div className="bg-white p-6 rounded-2xl">
+      <h2 className="text-xl font-bold mb-2">Guest List</h2>
 
-      {/* TOTAL STATS */}
-      <div className="mb-8">
-        <div className="flex justify-between mb-2">
-          <span className="font-medium text-gray-700">Total Planned Budget</span>
+      {/* Expected guests editable */}
+      <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
+        <label className="font-medium">Expected Guests:</label>
 
-          {!editingTotal ? (
+        {!isEditingExpected ? (
+          <>
+            <span className="font-semibold">{expectedGuests}</span>
             <button
-              onClick={() => setEditingTotal(true)}
-              className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+              onClick={() => setIsEditingExpected(true)}
+              className="px-3 py-1 border border-gray-400 rounded-lg text-sm hover:bg-gray-100"
             >
-              <Edit2 size={14} /> Edit
+              Edit
             </button>
-          ) : (
-            <div className="flex gap-3">
-              <button
-                onClick={savePlannedBudget}
-                className="text-green-600 hover:text-green-800 text-sm flex items-center gap-1"
-              >
-                <Save size={14} /> Save
-              </button>
-
-              <button
-                onClick={() => setEditingTotal(false)}
-                className="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-1"
-              >
-                <X size={14} /> Cancel
-              </button>
-            </div>
-          )}
-        </div>
-
-        {!editingTotal ? (
-          <p className="text-2xl font-semibold text-gray-900">
-            Ksh {formatNumber(budget.plannedAmount)}
-          </p>
+          </>
         ) : (
-          <input
-            type="text"
-            value={totalInput}
-            onChange={(e) => handleTotalChange(e.target.value)}
-            className="w-full p-2 border rounded-lg text-lg"
-          />
+          <>
+            <input
+              type="number"
+              min={0}
+              value={expectedGuests}
+              onChange={(e) => setExpectedGuests(Number(e.target.value))}
+              className="w-20 p-1 border rounded-lg text-sm"
+            />
+
+            <button
+              onClick={async () => {
+                await handleUpdateExpectedGuests();
+                setIsEditingExpected(false);
+              }}
+              className="px-3 py-1 bg-black text-white rounded-lg text-sm hover:bg-gray-800 transition"
+            >
+              Save
+            </button>
+
+            <button
+              onClick={() => {
+                setExpectedGuests(clientProfile?.expectedGuestsCount ?? 0);
+                setIsEditingExpected(false);
+              }}
+              className="px-3 py-1 border border-gray-400 rounded-lg text-sm hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+          </>
         )}
-
-        {/* USED + REMAINING */}
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="text-green-700 font-medium">
-            Used: Ksh {formatNumber(usedAmount)}
-          </span>
-          <span className="text-red-700 font-medium">
-            Remaining: Ksh {formatNumber(remainingAmount)}
-          </span>
-        </div>
       </div>
 
-      {/* ADD NEW ITEM */}
-      <div className="bg-gray-50 p-4 rounded-xl mb-8 border">
-        <h3 className="font-semibold mb-3 text-gray-800">Add Budget Item</h3>
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <TabButton label="All" Icon={Users} value="all" count={counts.all} />
+        <TabButton
+          label="Confirmed"
+          Icon={CheckCircle}
+          value="attending"
+          count={counts.attending}
+        />
+        <TabButton
+          label="Pending"
+          Icon={Clock}
+          value="pending"
+          count={counts.pending}
+        />
+        <TabButton
+          label="Declined"
+          Icon={XCircle}
+          value="declined"
+          count={counts.declined}
+        />
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-3">
+      {/* Add guest section */}
+      <div className="mb-6 p-4 border rounded-xl bg-gray-50">
+        <h3 className="font-semibold text-gray-800 mb-3">Add New Guest</h3>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
           <input
             type="text"
-            placeholder="Item title"
-            value={newItem.title}
-            onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-            className="flex-1 border p-2 rounded-lg"
+            placeholder="Guest name"
+            value={newGuest.name}
+            onChange={(e) => setNewGuest({ ...newGuest, name: e.target.value })}
+            className="p-2 border rounded-lg"
           />
 
           <input
             type="text"
-            placeholder="Cost"
-            value={newItem.cost}
+            placeholder="Phone (optional)"
+            value={newGuest.phone}
+            onChange={(e) => setNewGuest({ ...newGuest, phone: e.target.value })}
+            className="p-2 border rounded-lg"
+          />
+
+          <input
+            type="email"
+            placeholder="Email (optional)"
+            value={newGuest.email}
+            onChange={(e) => setNewGuest({ ...newGuest, email: e.target.value })}
+            className="p-2 border rounded-lg"
+          />
+
+          <select
+            value={newGuest.rsvp || "pending"}
             onChange={(e) =>
-              setNewItem({
-                ...newItem,
-                cost: formatNumber(e.target.value.replace(/\D/g, "")),
-              })
+              setNewGuest({ ...newGuest, rsvp: e.target.value as RSVP })
             }
-            className="w-40 border p-2 rounded-lg"
-          />
-
-          <button
-            onClick={handleAddItem}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-1"
+            className="p-2 border rounded-lg"
           >
-            Add <Plus size={16} />
-          </button>
+            <option value="pending">Pending</option>
+            <option value="attending">Confirmed</option>
+            <option value="declined">Declined</option>
+          </select>
         </div>
+
+        <button
+          onClick={handleAdd}
+          className="mt-3 flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+        >
+          <Plus size={16} /> Add Guest
+        </button>
       </div>
 
-      {/* ITEMS LIST */}
-      <div className="space-y-6">
-        {budget.items?.length ? (
-          budget.items.map((item: any) => {
-            const percentage = budget.plannedAmount
-              ? Math.min((item.cost / budget.plannedAmount) * 100, 100)
-              : 0;
-
-            const isEditing = activeEdit === item._id;
+      {/* Guest list */}
+      <ul className="space-y-3">
+        {filteredGuests.length ? (
+          filteredGuests.map((g, i) => {
+            const id = String(g._id ?? g.id ?? `guest-${i}`);
 
             return (
-              <div key={item._id} className="pb-4 border-b border-gray-100">
-                {/* HEADER */}
-                <div className="flex justify-between text-sm font-medium mb-2">
-                  {!isEditing ? (
-                    <>
-                      <span className={item.paid ? "line-through text-gray-500" : ""}>
-                        {item.title}
-                      </span>
-                      <span className={item.paid ? "text-green-700 font-semibold" : ""}>
-                        Ksh {formatNumber(item.cost)}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <input
-                        type="text"
-                        value={editForm.title}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, title: e.target.value })
-                        }
-                        className="border p-1 rounded-lg w-32"
-                      />
-
-                      <input
-                        type="text"
-                        value={editForm.cost}
-                        onChange={(e) =>
-                          setEditForm({
-                            ...editForm,
-                            cost: formatNumber(e.target.value.replace(/\D/g, "")),
-                          })
-                        }
-                        className="border p-1 rounded-lg w-24"
-                      />
-                    </>
+              <li
+                key={id}
+                className="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50 transition"
+              >
+                <div>
+                  <div className="font-semibold">{g.name}</div>
+                  {g.phone && (
+                    <div className="text-xs text-gray-500">{g.phone}</div>
+                  )}
+                  {g.email && (
+                    <div className="text-xs text-gray-500">{g.email}</div>
                   )}
                 </div>
 
-                {/* PROGRESS BAR */}
-                <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-                  <div
-                    className={`${item.paid ? "bg-green-600" : "bg-blue-600"} h-3 transition-all`}
-                    style={{ width: `${percentage}%` }}
-                  ></div>
-                </div>
-
-                {/* BUTTONS */}
-                <div className="flex gap-4 mt-2 text-sm items-center">
-                  {/* PAY/UNPAY button */}
-                  <button
-                    onClick={() => togglePaid(item)}
-                    className={`flex items-center gap-1 ${
-                      item.paid ? "text-green-700" : "text-gray-600"
-                    } hover:opacity-80`}
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`px-3 py-1 text-xs rounded-full font-medium ${statusStyle(
+                      g.rsvp
+                    )}`}
                   >
-                    {item.paid ? (
-                      <>
-                        <CheckCircle size={16} /> Paid
-                      </>
-                    ) : (
-                      <>
-                        <Circle size={16} /> Mark as Paid
-                      </>
+                    {statusLabel(g.rsvp)}
+                  </span>
+
+                  <div className="relative">
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                      onClick={() =>
+                        setOpenMenu(openMenu === id ? null : id)
+                      }
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    {openMenu === id && (
+                      <div className="absolute right-0 mt-2 w-36 bg-white border rounded-lg shadow-lg z-10">
+                        <button
+                          onClick={async () => {
+                            await safeUpdateGuest(id, { rsvp: "attending" });
+                            setOpenMenu(null);
+                          }}
+                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        >
+                          Confirmed
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            await safeUpdateGuest(id, { rsvp: "pending" });
+                            setOpenMenu(null);
+                          }}
+                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        >
+                          Pending
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            await safeUpdateGuest(id, { rsvp: "declined" });
+                            setOpenMenu(null);
+                          }}
+                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-red-600"
+                        >
+                          Declined
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            await safeDeleteGuest(id, g.name);
+                            setOpenMenu(null);
+                          }}
+                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-red-700 font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     )}
-                  </button>
-
-                  {!isEditing ? (
-                    <>
-                      <button
-                        onClick={() => startEdit(item)}
-                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Edit2 size={14} /> Edit
-                      </button>
-
-                      <button
-                        onClick={() => removeItem(item._id)}
-                        className="text-red-600 hover:text-red-800 flex items-center gap-1"
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => saveItem(item)}
-                        className="text-green-600 hover:text-green-800 flex items-center gap-1"
-                      >
-                        <Save size={14} /> Save
-                      </button>
-
-                      <button
-                        onClick={() => setActiveEdit(null)}
-                        className="text-gray-600 hover:text-gray-800 flex items-center gap-1"
-                      >
-                        <X size={14} /> Cancel
-                      </button>
-                    </>
-                  )}
+                  </div>
                 </div>
-              </div>
+              </li>
             );
           })
         ) : (
-          <p className="text-gray-500 text-sm">No budget items added yet.</p>
+          <p className="text-center text-sm text-gray-500 py-4">
+            No guests found for this filter.
+          </p>
         )}
-      </div>
+      </ul>
     </div>
   );
 }

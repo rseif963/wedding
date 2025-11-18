@@ -8,18 +8,16 @@ export default function StatsCards() {
     bookings,
     clientProfile,
     fetchClientBookings,
-    fetchClientAll, // fetch profile + guests + tasks + budget
-    fetchClientProfile, // optional, if you need basic profile separately
+    fetchClientAll,
   } = useAppContext();
 
   // Fetch all client data on mount
   useEffect(() => {
-    fetchClientBookings(); // bookings
-    fetchClientAll(); // profile, checklist/tasks, guests, budget
-    fetchClientProfile(); // basic profile if needed
+    fetchClientBookings();
+    fetchClientAll();
   }, []);
 
-  // Safely handle tasks/checklist
+  // Tasks
   const completedTasks =
     clientProfile?.tasks?.filter((t: any) => t.completed)?.length || 0;
   const totalTasks = clientProfile?.tasks?.length || 0;
@@ -31,33 +29,34 @@ export default function StatsCards() {
     }, 0) || 0;
   const budgetTotal = clientProfile?.budget?.plannedAmount || 0;
 
-  // Guests
-  const guestsConfirmed =
-    clientProfile?.guests?.filter((g: any) => g?.status === "RSVP")?.length || 0;
-  const totalGuests = clientProfile?.guests?.length || 0;
+  // Guests — following your GuestList RSVP logic
+  const guests: any[] = Array.isArray(clientProfile?.guests)
+    ? clientProfile.guests
+    : [];
 
-  // Stats array
+  const attendingGuests = guests.filter(
+    (g) => g.rsvp?.toLowerCase() === "attending"
+  ).length;
+
+  const totalGuests = guests.length;
+
   const stats = [
     { label: "Total Bookings", value: bookings?.length || 0, color: "border-blue-500" },
-    {
-      label: "Tasks Completed",
-      value: `${completedTasks} / ${totalTasks}`,
-      color: "border-green-500",
-    },
+    { label: "Tasks Completed", value: `${completedTasks} / ${totalTasks}`, color: "border-green-500" },
     {
       label: "Budget Used",
       value: `Ksh${budgetUsed.toLocaleString()} / Ksh${budgetTotal.toLocaleString()}`,
       color: "border-purple-500",
     },
     {
-      label: "Guests RSVP’d",
-      value: `${guestsConfirmed} / ${totalGuests}`,
+      label: "Guests Attending",
+      value: `${attendingGuests} / ${totalGuests}`,
       color: "border-pink-500",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 w-full md:grid-cols-4 gap-3 mt-1">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full mt-1">
       {stats.map((s) => (
         <div
           key={s.label}

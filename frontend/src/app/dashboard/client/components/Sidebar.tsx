@@ -45,11 +45,6 @@ export default function Sidebar({
       href: "/dashboard/client/bookings",
     },
     {
-      name: "Messages",
-      icon: <MessageSquare size={20} />,
-      href: "/dashboard/client/messages",
-    },
-    {
       name: "Guestlist",
       icon: <Users size={20} />,
       href: "/dashboard/client/guestlist",
@@ -80,7 +75,7 @@ export default function Sidebar({
               <Link
                 key={link.name}
                 href={link.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                className={`flex items-center gap-3 px-2 py-1 rounded-lg transition ${
                   active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
                 }`}
               >
@@ -92,17 +87,17 @@ export default function Sidebar({
         </nav>
 
         {/* Exit + Logout */}
-        <div className="px-4 py-6 space-y-2">
+        <div className="px-1 py-3 space-y-2">
           <button
             onClick={handleExit} // 👈 exit handler
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#4527a0] transition w-full"
+            className="flex items-center gap-3 px-4 rounded-lg hover:bg-[#4527a0] transition w-full"
           >
             <ArrowLeftCircle size={20} /> Exit
           </button>
 
           <button
             onClick={handleLogout} // 👈 logout handler
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#4527a0] transition w-full"
+            className="flex items-center gap-3 px-4 rounded-lg hover:bg-[#4527a0] transition w-full"
           >
             <LogOut size={20} /> Logout
           </button>

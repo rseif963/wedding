@@ -16,8 +16,9 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     fetchReviewsForVendor,
     postReview,
     vendorProfile,
+    fetchVendorMe,
     replyToReview,
-  } = useAppContext(); // removed role from destructuring
+  } = useAppContext();
 
   const [loading, setLoading] = useState(true);
   const [submittingReply, setSubmittingReply] = useState<{ [key: string]: boolean }>({});
@@ -26,7 +27,13 @@ export default function Reviews({ preview = false, vendorId }: Props) {
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
   const [activeReply, setActiveReply] = useState<string | null>(null);
 
+  // Resolve vendorId: either from props or vendorProfile
   const resolveVendorId = () => vendorId || vendorProfile?._id;
+
+  // ✅ Fetch vendor profile on mount so replies work
+  useEffect(() => {
+    fetchVendorMe();
+  }, []);
 
   // Load reviews whenever vendorId or vendorProfile changes
   useEffect(() => {
@@ -54,20 +61,19 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     if (!vid) return toast.error("No vendor specified");
     if (!ratingInput || ratingInput < 1 || ratingInput > 5)
       return toast.error("Rating must be between 1 and 5");
+
     try {
       await postReview({ vendorId: vid, rating: ratingInput, text: textInput.trim() });
       setTextInput("");
       setRatingInput(5);
       toast.success("Review posted");
-
-      // Refresh reviews immediately
-      await fetchReviewsForVendor(vid);
+      await fetchReviewsForVendor(vid); // Refresh reviews immediately
     } catch {
       toast.error("Failed to post review");
     }
   };
 
-  // Post a reply (always vendor)
+  // Post a reply (only vendor can reply)
   const submitReply = async (reviewId: string) => {
     const reply = replyText[reviewId]?.trim();
     if (!reply) return toast.error("Reply cannot be empty");
@@ -79,9 +85,8 @@ export default function Reviews({ preview = false, vendorId }: Props) {
       setReplyText((prev) => ({ ...prev, [reviewId]: "" }));
       setActiveReply(null);
 
-      // Refresh reviews after reply
       const vid = resolveVendorId();
-      if (vid) await fetchReviewsForVendor(vid);
+      if (vid) await fetchReviewsForVendor(vid); // Refresh reviews after reply
 
       toast.success("Reply posted");
     } catch {
@@ -128,49 +133,50 @@ export default function Reviews({ preview = false, vendorId }: Props) {
                 </div>
               )}
 
-              {/* Vendor reply section (always visible for vendor profiles) */}
-              <div className="mt-2 ml-2">
-                {activeReply === rev._id ? (
-                  <>
-                    <textarea
-                      placeholder="Write a reply..."
-                      value={replyText[rev._id] || ""}
-                      onChange={(e) =>
-                        setReplyText((prev) => ({ ...prev, [rev._id]: e.target.value }))
-                      }
-                      className="w-full border rounded p-2 text-sm mb-2"
-                      rows={2}
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => submitReply(rev._id)}
-                        disabled={submittingReply[rev._id]}
-                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
-                      >
-                        {submittingReply[rev._id] ? "Posting..." : "Submit Reply"}
-                      </button>
-                      <button
-                        onClick={() => setActiveReply(null)}
-                        className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setActiveReply(rev._id)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                  >
-                    Reply
-                  </button>
-                )}
-              </div>
+              {/* Vendor reply section: only for logged-in vendor */}
+              {vendorProfile && vendorProfile._id === rev.vendorId && (
+                <div className="mt-2 ml-2">
+                  {activeReply === rev._id ? (
+                    <>
+                      <textarea
+                        placeholder="Write a reply..."
+                        value={replyText[rev._id] || ""}
+                        onChange={(e) =>
+                          setReplyText((prev) => ({ ...prev, [rev._id]: e.target.value }))
+                        }
+                        className="w-full border rounded p-2 text-sm mb-2"
+                        rows={2}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => submitReply(rev._id)}
+                          disabled={submittingReply[rev._id]}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
+                        >
+                          {submittingReply[rev._id] ? "Posting..." : "Submit Reply"}
+                        </button>
+                        <button
+                          onClick={() => setActiveReply(null)}
+                          className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setActiveReply(rev._id)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      Reply
+                    </button>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>
       )}
-
     </section>
   );
 }

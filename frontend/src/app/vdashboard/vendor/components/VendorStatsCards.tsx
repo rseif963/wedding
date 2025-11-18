@@ -33,12 +33,6 @@ export default function VendorStatsCards() {
       href: "/vdashboard/vendor/bookings",
     },
     {
-      label: "Messages",
-      value: messages?.length || 0,
-      icon: MessageSquare,
-      href: "/vdashboard/vendor/messages",
-    },
-    {
       label: "Reviews",
       value: reviews?.length || 0,
       icon: Star,
@@ -47,7 +41,7 @@ export default function VendorStatsCards() {
   ];
 
   return (
-    <div className="grid grid-cols-3 px-2 py-2 md:grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 px-2 py-2 md:grid-cols-3 gap-2">
       {stats.map((item) => (
         <Link
           key={item.label}

@@ -21,8 +21,7 @@ const ReviewSchema = new mongoose.Schema({
   flexibility: { type: Number, min: 1, max: 5, default: 0 },
   value: { type: Number, min: 1, max: 5, default: 0 },
 
-  // Vendor replies (supports multiple replies)
-  replies: [ReplySchema],
+  reply: { type: String, default: "" }, 
 
   createdAt: { type: Date, default: Date.now },
 });

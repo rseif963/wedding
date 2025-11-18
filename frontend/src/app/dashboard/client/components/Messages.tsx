@@ -26,79 +26,83 @@ export default function ClientMessages() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const STORAGE_KEY = "client_active_chat";
 
-  const extractId = (val: any) => {
-    if (!val) return null;
-    if (val._id) return val._id;
-    if (val.user?._id) return val.user._id;
-    if (val.id) return val.id;
-    return null;
-  };
-
-  const getUserName = (userObj: any) => {
-    if (!userObj) return "User";
-    return userObj.businessName || userObj.name || userObj.email || "User";
-  };
+  // Utilities
+  const extractId = (val: any) => val?._id || val?.id || val?.user?._id || null;
+  const getUserName = (val: any) =>
+    val?.businessName || val?.name || val?.email || "User";
 
   const mergeMessages = (fresh: any[], cached: any[]) => {
     const map = new Map();
-    [...cached, ...fresh].forEach((m) => map.set(m._id ?? m.id ?? Math.random().toString(), m));
+    [...cached, ...fresh].forEach((m) => {
+      const key = m._id ?? m.id ?? Math.random().toString();
+      map.set(key, m);
+    });
     return Array.from(map.values()).sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
   };
 
-  // 🔹 Fetch all messages + socket listener
+  // Fetch all chats on mount
   useEffect(() => {
     fetchMessages();
-    if (socket) {
-      socket.on("receiveMessage", (msg: any) => {
-        if (
-          activeChat &&
-          (msg.sender?.id === activeChat.userId || msg.receiver?.id === activeChat.userId)
-        ) {
-          setChatMessages((prev) => [...prev, msg]);
-        }
-      });
-    }
-    return () => {
-      if (socket) socket.off("receiveMessage");
-    };
-  }, [fetchMessages, socket, activeChat]);
+  }, [fetchMessages]);
 
-  // 🔹 Merge context + local messages
+  // Socket listener
   useEffect(() => {
-    if (!activeChat?.userId) return;
-    const conv = contextMessages.filter((m: any) => {
-      const fromId = m.sender?.id;
-      const toId = m.receiver?.id;
-      return fromId === activeChat.userId || toId === activeChat.userId;
-    });
+    if (!socket) return;
 
-    const merged = mergeMessages(conv, chatMessages);
+    const handleMessage = (msg: any) => {
+      // If current chat is active, append
+      if (
+        activeChat &&
+        (msg.sender?.id === activeChat.userId ||
+          msg.receiver?.id === activeChat.userId)
+      ) {
+        setChatMessages((prev) => mergeMessages([msg], prev));
+      }
+    };
+
+    socket.on("receiveMessage", handleMessage);
+    return () => {
+      socket.off("receiveMessage", handleMessage);
+    };
+  }, [socket, activeChat]);
+
+  // Load messages for active chat from context + localStorage
+  useEffect(() => {
+    if (!activeChat) return;
+    const cached = localStorage.getItem(`${STORAGE_KEY}_msgs_${activeChat.userId}`);
+    const cachedMessages = cached ? JSON.parse(cached) : [];
+
+    const conv = contextMessages.filter(
+      (m: any) =>
+        m.sender?.id === activeChat.userId || m.receiver?.id === activeChat.userId
+    );
+
+    const merged = mergeMessages(conv, cachedMessages);
     setChatMessages(merged);
-    localStorage.setItem(`${STORAGE_KEY}_msgs_${activeChat.userId}`, JSON.stringify(merged));
-  }, [contextMessages, activeChat]);
+  }, [activeChat, contextMessages]);
 
-  // 🔹 Scroll to bottom on new messages
+  // Scroll to bottom on new messages
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // 🔹 Open chat
+  // Open a chat
   const openChat = async (chatUser: any) => {
     const userId = extractId(chatUser);
     if (!userId) return;
 
     const role = chatUser.businessName ? "vendor" : "client";
     const userName = getUserName(chatUser);
+
     setActiveChat({ userId, userName, role });
 
-    // Load cached messages first
+    // Load cached
     const cached = localStorage.getItem(`${STORAGE_KEY}_msgs_${userId}`);
     const cachedMessages = cached ? JSON.parse(cached) : [];
     setChatMessages(cachedMessages);
 
-    // Fetch latest conversation
     try {
       const fetchedMessages = await fetchConversation(userId);
       const merged = mergeMessages(fetchedMessages, cachedMessages);
@@ -109,18 +113,13 @@ export default function ClientMessages() {
     }
   };
 
-  // 🔹 Send message
+  // Send message
   const handleSend = async () => {
     if (!activeChat || (!chatText.trim() && !fileToSend)) return;
 
     try {
-      const sent = await sendMessage(
-        activeChat.userId,
-        chatText.trim(),
-        fileToSend,
-        
-      );
-      if (sent) setChatMessages((prev) => [...prev, sent]);
+      const sent = await sendMessage(activeChat.userId, chatText.trim(), fileToSend);
+      if (sent) setChatMessages((prev) => mergeMessages([sent], prev));
 
       setChatText("");
       setFileToSend(null);
@@ -130,14 +129,10 @@ export default function ClientMessages() {
     }
   };
 
-  // 🔹 File selection & preview
   const handleFileSelect = (file: File) => {
     setFileToSend(file);
-    if (file && file.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      setPreviewUrl(null);
-    }
+    if (file?.type.startsWith("image/")) setPreviewUrl(URL.createObjectURL(file));
+    else setPreviewUrl(null);
   };
 
   return (
@@ -159,6 +154,14 @@ export default function ClientMessages() {
             const name = getUserName(vendorObj);
             const userId = extractId(vendorObj);
             if (!userId) return null;
+
+            const lastMsg = mergeMessages(
+              contextMessages.filter(
+                (m: any) => m.sender?.id === userId || m.receiver?.id === userId
+              ),
+              []
+            ).slice(-1)[0];
+
             return (
               <div
                 key={b._id}
@@ -167,14 +170,7 @@ export default function ClientMessages() {
               >
                 <div className="flex-1">
                   <p className="font-medium text-sm">{name}</p>
-                  <p className="text-gray-500 text-xs truncate">
-                    {contextMessages
-                      .filter(
-                        (m: any) =>
-                          m.sender?.id === userId || m.receiver?.id === userId
-                      )
-                      .slice(-1)[0]?.text}
-                  </p>
+                  <p className="text-gray-500 text-xs truncate">{lastMsg?.text}</p>
                 </div>
               </div>
             );
@@ -211,9 +207,7 @@ export default function ClientMessages() {
                 >
                   <div
                     className={`rounded-lg px-3 py-2 max-w-[75%] shadow-sm ${
-                      isFromMe
-                        ? "bg-purple-600 text-white"
-                        : "bg-white text-gray-900"
+                      isFromMe ? "bg-purple-600 text-white" : "bg-white text-gray-900"
                     }`}
                   >
                     {m.text && <p className="text-sm">{m.text}</p>}

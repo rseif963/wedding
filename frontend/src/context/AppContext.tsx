@@ -938,9 +938,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch { }
   };
 
-  const sendMessage = async (recipientId: string, text: string, file?: File | null) => {
+  const sendMessage = async (recipientUserId: string, text: string, file?: File | null) => {
     try {
-      if (!recipientId) {
+      if (!recipientUserId) {
         toast.error("Recipient ID is required");
         return null;
       }
@@ -950,10 +950,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return null;
       }
 
+      // Prepare form
       const formData = new FormData();
-      formData.append("toId", recipientId);
-
-      // Correct recipient role: if current user is client, recipient is vendor
+      formData.append("toId", recipientUserId); // 🔥 REAL USER ID
       formData.append("toRole", role === "client" ? "vendor" : "client");
       if (text) formData.append("text", text);
       if (file) formData.append("file", file);
@@ -965,23 +964,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         },
       });
 
-      // emit live socket event
-      if (socket) {
-        socket.emit("sendMessage", {
-          ...data,
-          receiverId: recipientId,
-        });
-      }
+      // emit via socket
+      socket?.emit("sendMessage", { ...data });
 
-      // update local state safely
-      setMessages((prev) => {
-        const updated = [...prev, data];
-        const currentId = clientProfile?._id || vendorProfile?._id;
-        if (currentId) {
-          localStorage.setItem(`messages_${currentId}`, JSON.stringify(updated));
-        }
-        return updated;
-      });
+      // live local update
+      setMessages((prev) => [...prev, data]);
 
       return data;
     } catch (err: any) {
@@ -992,53 +979,76 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
 
-
-
-
   const fetchMessages = async () => {
     try {
       if (!token) throw new Error("No auth token found");
 
-      // Get all chats involving current user with auth header
       const { data } = await axios.get("/api/messages/my-chats", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Save to state
-      setMessages(data || []);
+      // Transform backend messages --> chat list with partner info
+      const mappedChats = (data || []).map((msg: any) => {
+        const isSender = msg.sender.id === user?.id;
 
-      // Save to localStorage for offline/cache
+        const partner = isSender ? msg.receiver : msg.sender;
+
+        return {
+          chatId: msg.conversationId,
+          lastMessage: msg,
+          partnerUserId: partner.id,       // 🔥 required for opening conversation
+          partnerRole: partner.role,
+          partnerName: partner.name || "",
+          partnerAvatar: partner.avatar || null,
+        };
+      });
+
+      setMessages(mappedChats);
+
       if (user?.id) {
-        localStorage.setItem(`messages_${user.id}`, JSON.stringify(data || []));
+        localStorage.setItem(
+          `messages_${user.id}`,
+          JSON.stringify(mappedChats)
+        );
       }
 
-      console.log("✅ Messages fetched", data.length);
+      console.log("✅ Chats fetched:", mappedChats.length);
     } catch (err: any) {
-      console.error("Failed to fetch messages:", err.response?.data || err.message);
+      console.error(
+        "Failed to fetch messages:",
+        err.response?.data || err.message
+      );
       setMessages([]);
     }
   };
 
+
   const fetchConversation = async (otherUserId: string) => {
     try {
-      if (!token) throw new Error("No auth token found");
-
-      const { data } = await axios.get(`/api/messages/conversation/${otherUserId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await axios.get(
+        `/api/messages/conversation/${otherUserId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       setMessages(data || []);
+
       if (user?.id) {
-        localStorage.setItem(`conversation_${user.id}_${otherUserId}`, JSON.stringify(data || []));
+        localStorage.setItem(
+          `conversation_${user.id}_${otherUserId}`,
+          JSON.stringify(data)
+        );
       }
 
       return data;
     } catch (err: any) {
-      console.error("Failed to fetch conversation:", err.response?.data || err.message);
+      console.error("Failed to fetch conversation:", err.message);
       setMessages([]);
       return [];
     }
   };
+
 
 
 
@@ -1063,32 +1073,51 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Reply to a review
   const replyToReview = async (reviewId: string, text: string) => {
-    const vendorToken = vendorProfile?.token || token;
+    const vendorToken = localStorage.getItem("token"); // get vendor auth token
 
+    if (!vendorToken) {
+      toast.error("Not authorized to reply");
+      return null;
+    }
+
+    if (!text || !text.trim()) {
+      toast.error("Reply cannot be empty");
+      return null;
+    }
 
     try {
+      // Post reply to backend
       const { data } = await axios.post(
         `/api/reviews/${reviewId}/reply`,
         { text },
         {
-          headers: { Authorization: `Bearer ${vendorToken}` },
+          headers: {
+            Authorization: `Bearer ${vendorToken}`,
+          },
         }
       );
 
-      // Update the review locally
-      setReviews((prev) =>
-        prev.map((r) => (r._id === reviewId ? { ...r, reply: data.reply || text } : r))
+      // `data` contains the updated review (including single 'reply' string)
+      // Update local reviews state with new reply string
+      const updatedReviews = reviews.map((review) =>
+        review._id === reviewId ? { ...review, reply: data.reply } : review
       );
 
+      setReviews(updatedReviews);
+      localStorage.setItem("all_reviews", JSON.stringify(updatedReviews));
+
       toast.success("Reply posted");
-      return data;
+
+      return data; // return updated review
     } catch (err: any) {
       console.error("replyToReview error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.message || "Failed to reply to review");
+      toast.error(err.response?.data?.error || "Failed to reply to review");
       return null;
     }
   };
+
 
 
   // NEW: fetch all reviews at once (useful for listings)
@@ -1105,15 +1134,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Fetch reviews for a vendor
   const fetchReviewsForVendor = async (vendorId: string) => {
     try {
       const { data } = await axios.get(`/api/reviews/vendor/${vendorId}`);
-      setReviews(data || []); // `data` must include category ratings and reply
+      // Add vendorId if missing and persist
+      const mapped = data.map((r: any) => ({ ...r, vendorId }));
+      setReviews(mapped);
+      localStorage.setItem("all_reviews", JSON.stringify(mapped));
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
       setReviews([]);
     }
   };
+
 
 
   // BLOG START

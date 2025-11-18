@@ -247,7 +247,7 @@ export default function VendorProfile() {
     });
     if (booking) {
       toast.success("Pricing request sent!");
-      window.location.href = "/dashboard/client/messages";
+      window.location.href = "/dashboard/client/bookings";
     }
   };
 

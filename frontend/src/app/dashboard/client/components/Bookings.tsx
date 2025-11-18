@@ -3,72 +3,84 @@
 import { useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { MessageCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export default function Bookings() {
   const { bookings, fetchClientBookings } = useAppContext();
-  const router = useRouter();
 
   useEffect(() => {
     fetchClientBookings();
   }, [fetchClientBookings]);
 
-  const handleChat = (vendorId: string) => {
-    // Navigate to messages page with vendorId
-    router.push(`/dashboard/client/messages?vendorId=${vendorId}`);
+  const handleChat = (phone: string) => {
+    if (!phone) return;
+    // Remove any spaces, +, or special chars
+    const cleanedPhone = phone.replace(/[^0-9]/g, "");
+    const whatsappUrl = `https://wa.me/${cleanedPhone}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   return (
-    <div className="bg-white w-full h-screen p-2 rounded-xl">
+    <div className="bg-white w-full h-screen p-4 rounded-xl">
       <h2 className="text-lg font-bold mb-4">Recent Bookings</h2>
 
       <table className="w-full min-w-full text-left text-sm">
         <thead>
           <tr className="text-gray-500 border-b">
             <th className="pb-2">Vendor</th>
-            {/*<th className="pb-2">Date</th>*/} 
             <th className="pb-2">Status</th>
-            <th className="pb-2"></th>
+            <th className="pb-2">Chat</th>
           </tr>
         </thead>
         <tbody>
-          {bookings.length > 0 ? (
-            bookings.map((b) => (
-              <tr key={b._id} className="border-b last:border-0">
-                <td className="py-2">
-                  {typeof b.vendor === "object"
-                    ? b.vendor.businessName || b.vendor.email
-                    : b.vendor}
-                </td>
-                <td className="py-2 hidden">{b.date}</td>
-                <td className="py-2">
-                  <span
-                    className={`px-3 py-1 text-xs rounded-full ${
-                      b.status === "Accepted"
-                        ? "bg-green-100 text-green-600"
-                        : b.status === "Pending"
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "bg-red-100 text-red-600"
-                    }`}
-                  >
-                    {b.status}
-                  </span>
-                </td>
-                <td className="py-2">
-                  {b.vendor?._id && (
-                    <button
-                      onClick={() => handleChat(b.vendor._id)}
-                      className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs"
+          {bookings && bookings.length > 0 ? (
+            bookings.map((b) => {
+              // Get vendor name
+              const vendorName =
+                typeof b.vendor === "object"
+                  ? b.vendor.businessName || b.vendor.email || "Unknown"
+                  : b.vendor || "Unknown";
+
+              // Get vendor phone safely
+              const vendorPhone =
+                typeof b.vendor === "object" && b.vendor.phone
+                  ? b.vendor.phone
+                  : null;
+
+              return (
+                <tr key={b._id} className="border-b last:border-0">
+                  <td className="py-2">{vendorName}</td>
+                  <td className="py-2">
+                    <span
+                      className={`px-3 py-1 text-xs rounded-full ${
+                        b.status === "Accepted"
+                          ? "bg-green-100 text-green-600"
+                          : b.status === "Pending"
+                          ? "bg-yellow-100 text-yellow-600"
+                          : "bg-red-100 text-red-600"
+                      }`}
                     >
-                      <MessageCircle size={14} />
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))
+                      {b.status}
+                    </span>
+                  </td>
+                  <td className="py-2">
+                    {b.status === "Accepted" && vendorPhone && (
+                      <button
+                        onClick={() => handleChat(vendorPhone)}
+                        className="flex ml-1 items-center gap-1 text-green-600 hover:text-green-800 text-xs"
+                      >
+                        <MessageCircle size={14} /> Chat
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
-              <td colSpan={4} className="py-4 text-center text-gray-500 text-sm">
+              <td
+                colSpan={3}
+                className="py-4 text-center text-gray-500 text-sm"
+              >
                 No bookings yet
               </td>
             </tr>

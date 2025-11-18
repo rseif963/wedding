@@ -29,7 +29,6 @@ export default function VendorSidebar({ onLinkClick }: VendorSidebarProps) {
     { href: "/vdashboard/vendor/profile", label: "My Profile" },
     { href: "/vdashboard/vendor/posts", label: "My Posts" },
     { href: "/vdashboard/vendor/bookings", label: "Booking Requests" },
-    { href: "/vdashboard/vendor/messages", label: "Messages" },
     { href: "/vdashboard/vendor/reviews", label: "Reviews" },
     { href: "/vdashboard/vendor/subscriptions", label: "Subscriptions" },
   ];

@@ -5,7 +5,7 @@ import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
 
 export default function VendorBookings() {
-  const { bookings, fetchVendorBookings } = useAppContext();
+  const { bookings, fetchVendorBookings, respondBooking } = useAppContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,13 +23,21 @@ export default function VendorBookings() {
       }
     };
 
-    // Delay slightly so AppContext can apply token from localStorage
     timeout = setTimeout(() => {
       loadBookings();
     }, 300);
 
     return () => clearTimeout(timeout);
   }, [fetchVendorBookings]);
+
+  const handleBookingStatus = async (bookingId: string, status: "Accepted" | "Declined") => {
+    try {
+      await respondBooking(bookingId, status); // Update status in MongoDB
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update booking");
+    }
+  };
 
   const getClientName = (booking: any) => {
     const client = booking.client ?? booking.clientProfile ?? booking.clientData ?? {};
@@ -97,6 +105,24 @@ export default function VendorBookings() {
                   >
                     {status}
                   </p>
+
+                  {/* Accept/Decline Buttons */}
+                  {status === "Pending" && (
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleBookingStatus(b._id, "Accepted")}
+                        className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleBookingStatus(b._id, "Declined")}
+                        className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  )}
                 </div>
               </li>
             );

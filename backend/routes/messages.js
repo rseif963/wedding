@@ -4,47 +4,76 @@ import multer from "multer";
 import Message from "../models/Message.js";
 import VendorProfile from "../models/VendorProfile.js";
 import ClientProfile from "../models/ClientProfile.js";
-import imagekit from "../config/imagekit.js"; // ✅ Use your existing ImageKit config
+import imagekit from "../config/imagekit.js";
 
 const router = express.Router();
 
-// ==========================
-// 📁 Multer setup for in-memory storage
-// ==========================
+/*******************************
+ * MULTER MEMORY STORAGE
+ *******************************/
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ==========================
-// 📤 SEND MESSAGE (with optional media)
-// ==========================
+/*******************************
+ * NORMALIZE USER IDs
+ * Converts profile IDs → User IDs
+ *******************************/
+async function resolveRealUserId(role, profileId) {
+  if (role === "client") {
+    const c = await ClientProfile.findById(profileId).populate("user");
+    if (!c) return null;
+    return c.user._id.toString(); // REAL User ID
+  }
+
+  if (role === "vendor") {
+    const v = await VendorProfile.findById(profileId).populate("user");
+    if (!v) return null;
+    return v.user._id.toString(); // REAL User ID
+  }
+
+  return null;
+}
+
+/*******************************
+ * SEND MESSAGE
+ *******************************/
 router.post("/", auth, upload.single("file"), async (req, res) => {
   try {
     const { toId, toRole, text } = req.body;
+
+    if (!toId || !toRole)
+      return res.status(400).json({ message: "Recipient ID and role required" });
+
+    /************************************
+     * VALIDATE sender + receiver roles
+     * (ONLY client ↔ vendor allowed)
+     ************************************/
+    if (req.user.role === toRole)
+      return res.status(400).json({ message: "Same-role messaging not allowed" });
+
+    /************************************
+     * RESOLVE IDs → REAL User IDs
+     ************************************/
+    const senderUserId = req.user.id.toString();
+    const receiverUserId = await resolveRealUserId(toRole, toId);
+
+    if (!receiverUserId)
+      return res.status(404).json({ message: "Recipient not found" });
+
+    /************************************
+     * FILE UPLOAD
+     ************************************/
     let mediaUrl = null;
     let mediaType = "none";
 
-    if (!toId || !toRole) {
-      return res.status(400).json({ message: "Recipient ID and role required" });
-    }
-
-    // Validate receiver
-    if (toRole === "vendor") {
-      const vendor = await VendorProfile.findById(toId);
-      if (!vendor) return res.status(404).json({ message: "Vendor not found" });
-    } else if (toRole === "client") {
-      const client = await ClientProfile.findById(toId);
-      if (!client) return res.status(404).json({ message: "Client not found" });
-    }
-
-    // Handle uploaded file
     if (req.file) {
-      // Upload file to ImageKit
-      const uploadResponse = await imagekit.upload({
+      const uploadRes = await imagekit.upload({
         file: req.file.buffer,
-        fileName: `message_${Date.now()}`,
+        fileName: `msg_${Date.now()}`,
         folder: "/messages",
       });
-      mediaUrl = uploadResponse.url;
+
+      mediaUrl = uploadRes.url;
 
       const mime = req.file.mimetype;
       if (mime.startsWith("image/")) mediaType = "image";
@@ -53,14 +82,18 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
       else mediaType = "file";
     }
 
-    // ✅ Create consistent conversation ID
-    const ids = [req.user.id.toString(), toId.toString()].sort();
+    /************************************
+     * CONSISTENT CONVERSATION ID
+     ************************************/
+    const ids = [senderUserId, receiverUserId].sort();
     const conversationId = ids.join("_");
 
-    // ✅ Save message
+    /************************************
+     * SAVE MESSAGE
+     ************************************/
     const msg = await Message.create({
-      sender: { id: req.user.id, role: req.user.role },
-      receiver: { id: toId, role: toRole },
+      sender: { id: senderUserId, role: req.user.role },
+      receiver: { id: receiverUserId, role: toRole },
       conversationId,
       text: text || "",
       mediaUrl,
@@ -68,75 +101,103 @@ router.post("/", auth, upload.single("file"), async (req, res) => {
       seen: false,
     });
 
-    // ✅ Emit real-time update (if socket is attached)
+    /************************************
+     * SOCKET EMIT (if available)
+     ************************************/
     if (req.io) {
-      req.io.to(toId).emit("receiveMessage", msg);
-      req.io.to(req.user.id.toString()).emit("receiveMessage", msg);
+      req.io.to(receiverUserId).emit("receiveMessage", msg);
+      req.io.to(senderUserId).emit("receiveMessage", msg);
     }
 
     res.json(msg);
   } catch (err) {
-    console.error("❌ Error sending message:", err);
-    res.status(500).json({ message: "Failed to send message", details: err.message });
+    console.error("SEND MESSAGE ERROR:", err);
+    res.status(500).json({ message: "Failed to send message" });
   }
 });
 
-// ==========================
-// 💬 GET CONVERSATION (by other user ID)
-// ==========================
+/*******************************
+ * GET FULL CONVERSATION
+ *******************************/
 router.get("/conversation/:otherId", auth, async (req, res) => {
   try {
-    const { otherId } = req.params;
-    const ids = [req.user.id.toString(), otherId.toString()].sort();
+    const senderUserId = req.user.id.toString();
+    const otherUserId = req.params.otherId.toString();
+
+    const ids = [senderUserId, otherUserId].sort();
     const conversationId = ids.join("_");
 
-    const messages = await Message.find({ conversationId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ conversationId }).sort({
+      createdAt: 1,
+    });
+
     res.json(messages);
   } catch (err) {
-    console.error("❌ Error fetching conversation:", err);
+    console.error("FETCH CONVO ERROR:", err);
     res.status(500).json({ message: "Failed to fetch conversation" });
   }
 });
 
-// ==========================
-// 📚 GET MY CHATS (latest per conversation)
-// ==========================
+/*******************************
+ * GET CHAT LIST (latest per conversation)
+ *******************************/
 router.get("/my-chats", auth, async (req, res) => {
   try {
+    const me = req.user.id.toString();
+
     const messages = await Message.find({
-      $or: [{ "sender.id": req.user.id }, { "receiver.id": req.user.id }],
+      $or: [{ "sender.id": me }, { "receiver.id": me }],
     }).sort({ createdAt: -1 });
 
-    const latestByChat = {};
-    messages.forEach((msg) => {
-      if (!latestByChat[msg.conversationId]) latestByChat[msg.conversationId] = msg;
-    });
+    const chatMap = {};
 
-    res.json(Object.values(latestByChat));
+    for (const msg of messages) {
+      if (!chatMap[msg.conversationId]) {
+        const partnerId =
+          msg.sender.id.toString() === me
+            ? msg.receiver.id.toString()
+            : msg.sender.id.toString();
+
+        // Fetch partner profile
+        let partner = null;
+
+        const vendor = await VendorProfile.findOne({ user: partnerId });
+        const client = await ClientProfile.findOne({ user: partnerId });
+
+        if (vendor) partner = { name: vendor.businessName, avatar: vendor.photo, role: "vendor" };
+        if (client) partner = { name: client.brideName || "Client", avatar: client.photo, role: "client" };
+
+        chatMap[msg.conversationId] = {
+          lastMessage: msg,
+          partner,
+        };
+      }
+    }
+
+    res.json(Object.values(chatMap));
   } catch (err) {
-    console.error("❌ Error fetching chat list:", err);
+    console.error("FETCH CHATS ERROR:", err);
     res.status(500).json({ message: "Failed to fetch chat list" });
   }
 });
 
-// ==========================
-// 👁️ MARK AS SEEN
-// ==========================
+/*******************************
+ * MARK AS SEEN
+ *******************************/
 router.put("/:id/seen", auth, async (req, res) => {
   try {
     const msg = await Message.findById(req.params.id);
     if (!msg) return res.status(404).json({ message: "Message not found" });
 
-    if (msg.receiver.id.toString() !== req.user.id.toString()) {
+    if (msg.receiver.id.toString() !== req.user.id.toString())
       return res.status(403).json({ message: "Not authorized" });
-    }
 
     msg.seen = true;
     await msg.save();
 
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ Error marking as seen:", err);
+    console.error("MARK SEEN ERROR:", err);
     res.status(500).json({ message: "Failed to mark as seen" });
   }
 });
