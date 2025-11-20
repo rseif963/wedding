@@ -29,7 +29,7 @@ export default function Home() {
   if (loading) return <Loader />;
 
   return (
-    <main className="flex flex-col min-h-screen">
+    <main className="flex flex-col min-h-screen bg-white">
       <Navbar />
       <Hero />
       <FeaturedCategories />
