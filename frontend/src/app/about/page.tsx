@@ -8,7 +8,7 @@ export default function About() {
   const team = [
     { name: "Salim Seif", role: "CEO & Founder" },
     { name: "Rashid Seif", role: "CTO & Lead Developer" },
-    { name: "Olivia Njeri", role: "Content Writer" },
+    { name: "Farhiya Mohamed", role: "Content Writer" },
     { name: "Rashid Seif", role: "Vendor Relations Manager" },
   ];
 
