@@ -79,7 +79,7 @@ export default function ProfileManager({ preview = false }: Props) {
   // Preview mode
   if (preview) {
     return (
-      <section className="bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md">
+      <section className="bg-white backdrop-blur-sm p-2 rounded-2xl border border-gray-100 transition hover:shadow-md">
         <h2 className="text-2xl text-center font-semibold text-[#311970] mb-4">My Profile</h2>
         <div>
           <p className="text-gray-800 font-medium text-lg">
