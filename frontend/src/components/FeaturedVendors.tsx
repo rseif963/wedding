@@ -91,11 +91,11 @@ export default function FeaturedVendors() {
 
         {featuredPosts.length === 0 ? (
           <div className="text-center py-16">
-            <h3 className="text-2xl font-semibold text-gray-600">
-              No featured vendors available yet.
-            </h3>
+          {/*<h3 className="text-2xl font-semibold text-gray-600">
+            No featured vendors available yet.
+          </h3>*/}
             <p className="text-gray-500 mt-2">
-              Please check back soon — new vendors are added frequently.
+              Loading posts...
             </p>
           </div>
         ) : (

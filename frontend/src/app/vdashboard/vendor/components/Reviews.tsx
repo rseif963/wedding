@@ -73,6 +73,7 @@ export default function Reviews({ preview = false, vendorId }: Props) {
     }
   };
 
+
   // Post a reply (only vendor can reply)
   const submitReply = async (reviewId: string) => {
     const reply = replyText[reviewId]?.trim();

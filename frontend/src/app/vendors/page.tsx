@@ -241,7 +241,7 @@ const VendorsPage = () => {
 
           {/* Vendor Cards */}
           {currentVendors.length === 0 ? (
-            <p className="text-center text-gray-600 mt-10">No vendors found.</p>
+            <p className="text-center text-gray-600 mt-10">Loading vendors...</p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {currentVendors.map((post) => {

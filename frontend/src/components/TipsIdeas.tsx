@@ -65,7 +65,7 @@ export default function TipsIdeas() {
         >
           {latestBlogs.length === 0 ? (
             <p className="text-gray-500 text-center w-full">
-              No blog posts available.
+              Loading posts....
             </p>
           ) : (
             latestBlogs.map((post) => (

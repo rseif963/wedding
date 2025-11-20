@@ -107,11 +107,11 @@ export default function TopListingVendors() {
 
         {topListings.length === 0 ? (
           <div className="text-center py-16">
-            <h3 className="text-2xl font-semibold text-gray-600">
+            {/*<h3 className="text-2xl font-semibold text-gray-600">
               No top listings yet.
-            </h3>
+            </h3>*/}
             <p className="text-gray-500 mt-2">
-              Check back soon — vendors are being updated.
+              Loading posts...
             </p>
           </div>
         ) : (
