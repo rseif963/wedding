@@ -89,7 +89,10 @@ interface BookingRequest {
   service?: string;
   date?: string;
   status?: string;
+  message?: string; // client initial message
+  reply?: string;   // vendor reply
 }
+
 
 interface MessageItem {
   _id?: string;
@@ -201,6 +204,7 @@ interface AppContextType {
   fetchVendorPosts: () => Promise<void>;
   fetchPostById: (id: string) => Promise<VendorPost | null>;
   createBooking: (payload: { vendorId: string; service: string; date: string; message?: string }) => Promise<BookingRequest | null>;
+  replyToBooking: (bookingId: string, messageId: string, content: string) => Promise<void>;
   fetchClientBookings: () => Promise<void>;
   fetchVendorBookings: () => Promise<void>;
   respondBooking: (bookingId: string, status: "Accepted" | "Declined" | "Pending") => Promise<void>;
@@ -912,6 +916,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+ const replyToBooking = async (
+  bookingId: string,
+  messageId: string,
+  content: string
+) => {
+  try {
+    await axios.put(
+      `/api/bookingRequests/${bookingId}/message/${messageId}/reply`,
+      { content }
+    );
+
+    toast.success("Reply sent");
+
+    // refresh vendor bookings (or client bookings)
+    await fetchVendorBookings();
+  } catch (err: any) {
+    console.error("Failed to send reply:", err);
+    toast.error("Failed to send reply");
+  }
+};
+
+
   const fetchClientBookings = async () => {
     try {
       const { data } = await axios.get("/api/bookingRequests/client/me");
@@ -1314,6 +1340,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         fetchClientBookings,
         fetchVendorBookings,
         respondBooking,
+        replyToBooking, 
 
         // messaging
         sendMessage,

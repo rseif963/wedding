@@ -36,8 +36,8 @@ export default function Home() {
       <FeaturedVendors />
       <TipsIdeas />
       <PopularCities />
+      <TopListingVendors /> 
       <HowItWorks />
-      <TopListingVendors />
       <VendorCTA />
       <Testimonials />
       <Footer />

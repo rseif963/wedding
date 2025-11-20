@@ -48,27 +48,19 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 function getReviewerName(review: any) {
-  if (!review) return "Anonymous";
-  const client = review.client;
+  const client = review?.client ?? {};
 
-  if (client?.brideName || client?.groomName) {
-    const brideFirst = client?.brideName ? client.brideName.trim().split(" ")[0] : "";
-    const groomFirst = client?.groomName ? client.groomName.trim().split(" ")[0] : "";
-    if (brideFirst && groomFirst) return `${brideFirst} & ${groomFirst}`;
-    if (brideFirst) return brideFirst;
-    if (groomFirst) return groomFirst;
+  const getFirst = (str?: string) => (str ? str.split(" ")[0] : "");
+
+  if (client.brideName && client.groomName) {
+    return `${getFirst(client.brideName)} & ${getFirst(client.groomName)}`;
   }
 
-  if (client?.firstName) return client.firstName.trim().split(" ")[0];
-  if (client?.user?.firstName) return client.user.firstName.trim().split(" ")[0];
-  if (client?.name) return String(client.name).split(" ")[0];
-  if (review.clientName) return String(review.clientName).split(" ")[0];
-
-  const email = client?.email || client?.user?.email || review.clientEmail || review.email;
-  if (email) return String(email).split("@")[0];
+  if (client.name) return getFirst(client.name);
 
   return "Anonymous";
 }
+
 
 export default function VendorProfile() {
   const params = useParams();
@@ -85,6 +77,9 @@ export default function VendorProfile() {
   } = useAppContext();
 
   const [vendorPost, setVendorPost] = useState<any | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [submittingBooking, setSubmittingBooking] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [newReview, setNewReview] = useState<NewReview>({
     rating: 0,
@@ -102,7 +97,7 @@ export default function VendorProfile() {
   const [bookingDate, setBookingDate] = useState("");
 
   // New function to handle submission
-  const handleBookingSubmit = async () => {
+  const handleRequestPricing = async () => {
     if (!vendor?._id) {
       toast.error("Vendor not found.");
       return;
@@ -267,22 +262,6 @@ export default function VendorProfile() {
   };
 
 
-  const handleRequestPricing = async () => {
-    if (!vendor?._id) {
-      toast.error("Vendor not found.");
-      return;
-    }
-    const booking = await createBooking({
-      vendorId: vendor._id,
-      service: vendorPost?.title || "Service",
-      date: new Date().toISOString(),
-      message: "Requesting pricing information.",
-    });
-    if (booking) {
-      toast.success("Pricing request sent!");
-      window.location.href = "/dashboard/client/bookings";
-    }
-  };
 
   if (loading) {
     return (
@@ -600,10 +579,21 @@ export default function VendorProfile() {
 
             <button
               type="submit"
-              className="bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold"
+              disabled={submittingReview}
+              className={`bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold flex items-center justify-center gap-2 ${submittingReview ? "cursor-not-allowed opacity-70" : ""}`}
             >
-              Submit Review
+              {submittingReview ? (
+                <span className="flex gap-1">
+                  <span className="animate-bounce">.</span>
+                  <span className="animate-bounce animation-delay-150">.</span>
+                  <span className="animate-bounce animation-delay-300">.</span>
+                  Submitting
+                </span>
+              ) : (
+                "Submit Review"
+              )}
             </button>
+
 
           </form>
         </div>
@@ -698,7 +688,7 @@ export default function VendorProfile() {
             />
 
             <button
-              onClick={handleBookingSubmit}
+              onClick={handleRequestPricing}
               className="w-full bg-[#311970] text-white py-2 rounded-lg shadow hover:bg-[#261457] transition font-semibold"
             >
               Send Request

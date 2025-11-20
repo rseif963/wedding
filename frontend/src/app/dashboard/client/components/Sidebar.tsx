@@ -14,6 +14,8 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext"; // 👈 use context
+import logo from "@/public/assets/wedpine-white-version.png";
+
 
 export default function Sidebar({
   isOpen,
@@ -65,19 +67,25 @@ export default function Sidebar({
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-64 h-screen bg-[#311970] text-white flex-col">
-        <div className="px-6 py-6 text-2xl font-bold">Wedpine</div>
+        <div className="px-2 py-6 mr-18">
+          <img
+            src="/assets/wedpine-white-version.png"
+            alt="Wedpine Logo"
+            className="w-32 mx-auto"
+          />
+        </div>
+
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4 overflow-y-auto">
+        <nav className="flex-1 px-3 overflow-y-auto">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`flex items-center gap-3 px-2 py-1 rounded-lg transition ${
-                  active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
-                }`}
+                className={`flex items-center gap-2 px-2 py-1 rounded-lg transition ${active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
+                  }`}
               >
                 {link.icon}
                 {link.name}
@@ -124,7 +132,14 @@ export default function Sidebar({
               <X size={24} />
             </button>
 
-            <div className="px-6 py-6 text-2xl font-bold">Wedpine</div>
+            <div className="px-2 py-6 mr-18">
+              <img
+                src="/assets/wedpine-white-version.png"
+                alt="Wedpine Logo"
+                className="w-30 mx-auto"
+              />
+            </div>
+
 
             <nav className="flex-1 px-4 overflow-y-auto">
               {links.map((link) => {
@@ -134,9 +149,8 @@ export default function Sidebar({
                     key={link.name}
                     href={link.href}
                     onClick={onClose} // 👈 close sidebar on link click
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${
-                      active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
-                    }`}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
+                      }`}
                   >
                     {link.icon}
                     {link.name}

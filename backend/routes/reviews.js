@@ -94,7 +94,7 @@ router.post("/:reviewId/reply", auth, permit("vendor"), async (req, res) => {
 router.get("/vendor/:id", async (req, res) => {
   try {
     const reviews = await Review.find({ vendor: req.params.id })
-      .populate("client", "user name")
+      .populate("client", "brideName groomName firstName email") //
       .populate("vendor", "user name"); // Only populate client & vendor
 
     res.json(reviews);

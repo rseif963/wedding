@@ -17,24 +17,36 @@ export default function About() {
       <Navbar />
 
       {/* ================= HERO ================= */}
-      <section className="relative overflow-hidden bg-[#311970] text-white py-28 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9 }}
-        >
-          <h1 className="text-5xl font-extrabold mb-4 tracking-tight">
-            Redefining Wedding Planning
-          </h1>
-          <p className="max-w-2xl mx-auto text-base opacity-90">
-            Wedpine is more than a platform — it's a movement. A next-generation
-            digital space built to help couples plan with confidence, connect
-            with trusted vendors, and bring their vision to life effortlessly.
-          </p>
-        </motion.div>
-
+      <section
+        className="relative overflow-hidden text-white py-28 text-center"
+        style={{
+          backgroundImage: "url('/assets/about-header.jpg')", // <-- your image
+          backgroundSize: "cover",        // makes it fill width & height
+          backgroundPosition: "center",   // centers the image
+          backgroundRepeat: "no-repeat",  // prevents repeat
+        }}
+      >
+        <div className="absolute inset-0 bg-[#311970]/50"></div>
+        <div className="relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9 }}
+          >
+            <h1 className="text-5xl text-wite font-extrabold mb-4 tracking-tight">
+              Redefining Wedding Planning
+            </h1>
+            <p className="max-w-2xl mx-auto text-base opacity-90">
+              Wedpine is more than a platform — it's a movement. A next-generation
+              digital space built to help couples plan with confidence, connect
+              with trusted vendors, and bring their vision to life effortlessly.
+            </p>
+          </motion.div>
+        </div>
+        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1e0d4d] opacity-30 pointer-events-none" />
       </section>
+
 
       {/* ================= ABOUT SECTION ================= */}
       <section className="max-w-6xl mx-auto px-6 py-20">

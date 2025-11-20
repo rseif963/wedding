@@ -3,8 +3,10 @@ import mongoose from "mongoose";
 const MessageSchema = new mongoose.Schema({
   sender: { type: String, enum: ["Client", "Vendor"], required: true },
   content: { type: String, required: true },
+  replyTo: { type: mongoose.Schema.Types.ObjectId, default: null }, // NEW
   createdAt: { type: Date, default: Date.now },
 });
+
 
 const BookingRequestSchema = new mongoose.Schema({
   client: { type: mongoose.Schema.Types.ObjectId, ref: "ClientProfile", required: true },

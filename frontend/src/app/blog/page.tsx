@@ -24,12 +24,24 @@ export default function Blog() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-[#311970] text-white py-10 text-center">
-        <h1 className="text-5xl font-bold mb-4">Our Blog</h1>
-        <p className="text-sm p-2 max-w-2xl mx-auto">
-          Tips, inspiration, and ideas to help you plan the perfect wedding.
-        </p>
+      <section
+        className="relative overflow-hidden text-white py-28 text-center"
+        style={{
+          backgroundImage: "url('/assets/blog-header.jpg')", // your image
+          backgroundSize: "cover",       // ensures full coverage
+          backgroundPosition: "center",  // centers the image
+          backgroundRepeat: "no-repeat", // prevents tiling
+        }}
+      >
+        <div className="absolute inset-0 bg-[#311970]/50"></div>
+        <div className="relative z-10">
+          <h1 className="text-5xl font-bold mb-4">Our Blog</h1>
+          <p className="text-sm p-2 max-w-2xl mx-auto">
+            Tips, inspiration, and ideas to help you plan the perfect wedding.
+          </p>
+        </div>
       </section>
+
 
       {/* Blog Grid */}
       <section className="max-w-6xl mx-auto px-3 py-14">
@@ -67,7 +79,7 @@ export default function Blog() {
                     className="text-[#311970] font-semibold hover:underline"
                   >
                     Read More →
-                  </Link> 
+                  </Link>
                 </div>
               </div>
             ))
