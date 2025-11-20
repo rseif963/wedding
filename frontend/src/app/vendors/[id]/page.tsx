@@ -96,6 +96,39 @@ export default function VendorProfile() {
     value: 0,
   });
 
+  // Add at the top inside VendorProfile
+  const [showBookingPopup, setShowBookingPopup] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState("");
+  const [bookingDate, setBookingDate] = useState("");
+
+  // New function to handle submission
+  const handleBookingSubmit = async () => {
+    if (!vendor?._id) {
+      toast.error("Vendor not found.");
+      return;
+    }
+    if (!bookingDate || !bookingMessage.trim()) {
+      toast.error("Please enter a message and booking date.");
+      return;
+    }
+
+    const booking = await createBooking({
+      vendorId: vendor._id,
+      service: vendorPost?.title || "Service",
+      date: bookingDate,
+      message: bookingMessage,
+    });
+
+    if (booking) {
+      toast.success("Booking request sent!");
+      setShowBookingPopup(false);
+      setBookingMessage("");
+      setBookingDate("");
+      window.location.href = "/dashboard/client/bookings";
+    }
+  };
+
+
 
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
   const getFullUrl = (path?: string) => {
@@ -358,11 +391,12 @@ export default function VendorProfile() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={handleRequestPricing}
+                  onClick={() => setShowBookingPopup(true)}
                   className="bg-[#311970] text-white px-5 py-2 rounded-lg shadow hover:bg-[#261457] transition"
                 >
                   Request Pricing
                 </button>
+
 
                 {phone && (
                   <button
@@ -629,6 +663,50 @@ export default function VendorProfile() {
           </div>
         </section>
       )}
+
+      {/* Booking Popup */}
+      {showBookingPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 bg-opacity-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowBookingPopup(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl font-bold"
+            >
+              ×
+            </button>
+
+            <h2 className="text-2xl font-bold text-[#311970] mb-4">
+              Request Pricing
+            </h2>
+
+            <label className="block mb-2 font-semibold text-gray-700">Booking Date</label>
+            <input
+              type="date"
+              value={bookingDate}
+              onChange={(e) => setBookingDate(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+            />
+
+            <label className="block mb-2 font-semibold text-gray-700">Message</label>
+            <textarea
+              value={bookingMessage}
+              onChange={(e) => setBookingMessage(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+              rows={4}
+              placeholder="Enter your message..."
+            />
+
+            <button
+              onClick={handleBookingSubmit}
+              className="w-full bg-[#311970] text-white py-2 rounded-lg shadow hover:bg-[#261457] transition font-semibold"
+            >
+              Send Request
+            </button>
+          </div>
+        </div>
+      )}
+
 
       <Footer />
     </main>
