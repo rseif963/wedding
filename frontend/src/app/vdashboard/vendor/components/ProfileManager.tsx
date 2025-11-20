@@ -96,7 +96,7 @@ export default function ProfileManager({ preview = false }: Props) {
   // Display profile
   if (!isEditing && vendorProfile) {
     return (
-      <section className="bg-gradient-to-br w-full max-w-full overflow-hidden from-white to-gray-50 p-2 sm:p-4 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+      <section className="bg-white w-full max-w-full overflow-hidden from-white to-gray-50 p-2 sm:p-4 rounded-2xl  transition hover:shadow-lg">
         <h5 className="text-2xl text-center font-bold text-purple-700 mb-5">My Profile</h5>
 
         <div className="space-y-2 w-full break-words">
@@ -139,7 +139,7 @@ export default function ProfileManager({ preview = false }: Props) {
 
   // Editing Form
   return (
-    <section className="bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg">
+    <section className="bg-white backdrop-blur-sm p-2 sm:p-3 rounded-2xl border border-gray-100 transition hover:shadow-lg">
       <h5 className="text-2xl text-center font-bold text-[#311970] mb-6">My Profile</h5>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
