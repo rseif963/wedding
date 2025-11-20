@@ -72,7 +72,7 @@ export default function VendorBookings() {
 
   return (
     <section className="bg-white p-6 rounded-xl w-full">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Vendor Bookings</h2>
+      <h2 className="text-xl font-bold mb-4 text-gray-800">Bookings</h2>
 
       {loading ? (
         <p className="text-gray-500">Loading bookings...</p>

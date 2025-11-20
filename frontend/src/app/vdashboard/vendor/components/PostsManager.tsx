@@ -503,7 +503,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
               {post.mainPhoto && (
                 <img
                   src={getFullUrl(post.mainPhoto)}
-                  className="w-full h-60 object-cover rounded-md"
+                  className="w-full h-80 object-cover rounded-md"
                 />
               )}
               <p className="font-semibold mt-2">
@@ -512,7 +512,7 @@ export default function PostsManager({ preview = false }: { preview?: boolean })
 
               <div className=" gap-2 mt-2">
                 <h3 className="text-1xl font-bold mb-1">Gallery</h3>
-                <div className="flex grid grid-cols-4 gap-2 w-full">
+                <div className="flex grid grid-cols-4 md:grid-cols-5 gap-2 w-full">
                   {(post.galleryImages || []).map((img, i) => (
                     <img key={i} src={getFullUrl(img)} className="w-20 h-20 object-cover rounded-md" />
                   ))}

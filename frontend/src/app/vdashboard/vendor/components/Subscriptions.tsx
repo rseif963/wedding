@@ -1,61 +1,53 @@
 import React, { useState } from "react";
 
 const plans = [
-    {
-        name: "Basic",
-        features: [
-            "Profile",
-            "8 Photos",
-            "Contact Button",
-            "10 Reviews",
-        ],
-        monthly: 499,
-        yearly: 4490,
-        yearlyDiscountPercent: 25,
-    },
-    {
-        name: "Pro",
-        features: [
-            "Profile",
-            "Top Listing",
-            "16 Photos",
-            "Contact Button",
-            "50 Reviews",
-        ],
-        monthly: 1299,
-        yearly: 11690,
-        yearlyDiscountPercent: 25,
-    },
-    {
-        name: "Premium",
-        features: [
-            "Profile",
-            "Featured",
-            "Unlimited Photos",
-            "Contact Button",
-            "Unlimited Reviews",
-            "Unlimited Bookings",
-        ],
-        monthly: 1999,
-        yearly: 16790,
-        yearlyDiscountPercent: 30,
-    },
+  {
+    name: "Basic",
+    features: [
+      "Profile",
+      "8 Photos",
+      "Contact Button",
+      "10 Reviews",
+    ],
+    monthly: 499,
+    yearly: 4490,
+    yearlyDiscountPercent: 25,
+  },
+  {
+    name: "Pro",
+    features: [
+      "Profile",
+      "Top Listing",
+      "16 Photos",
+      "Contact Button",
+      "50 Reviews",
+    ],
+    monthly: 1299,
+    yearly: 11690,
+    yearlyDiscountPercent: 25,
+  },
+  {
+    name: "Premium",
+    features: [
+      "Profile",
+      "Featured",
+      "Unlimited Photos",
+      "Contact Button",
+      "Unlimited Reviews",
+      "Unlimited Bookings",
+    ],
+    monthly: 1999,
+    yearly: 16790,
+    yearlyDiscountPercent: 30,
+  },
 ];
 
 export default function Subscriptions() {
-    const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
-    return (
-        <>
-            <style>{`
-        body {
-          font-family: 'Inter', sans-serif;
-          background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
-          margin: 0;
-          display: flex;
-          justify-content: center;
-          min-height: 100vh;
-        }
+  return (
+    <>
+      <style>{`
         .container {
           max-width: 1200px;
           width: 100%;
@@ -104,23 +96,31 @@ export default function Subscriptions() {
 /* slider */
 .toggle-slider {
   position: absolute;
-  top: 0.15rem;
+  top: 50%;
   left: 0.15rem;
+  transform: translateY(-50%);
   width: 50%;
-  height: 2.2rem;
+  height: 2rem; /* slightly smaller height */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background: #4f46e5;
   border-radius: 9999px;
-  color: #e0e7ff;
-  z-index: 5;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+
   transition: transform 0.3s ease;
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
 }
 
+
 /* move slider on check */
 .toggle-label input:checked ~ .toggle-slider {
-  transform: translateX(100%);
+  transform: translate(calc(100% - 0.3rem), -50%);
 }
-
 /* text colors: purple on unselected, white on selected */
 .toggle-label input:not(:checked) ~ span.monthly {
   color: white; /* Monthly selected by default */
@@ -145,6 +145,17 @@ export default function Subscriptions() {
         input:not(:checked) ~ span.yearly {
           color: #a5b4fc;
         }
+
+        .toggle-label input[type="checkbox"] {
+           position: absolute;
+           opacity: 0;
+           width: 0;
+           height: 0;
+           margin: 0;
+           padding: 0;
+           pointer-events: none; /* optional: disables direct clicks on the checkbox */
+        }
+
 
         .plans {
           display: grid;
@@ -260,64 +271,66 @@ export default function Subscriptions() {
         }
       `}</style>
 
-            <div className="container" role="region" aria-label="Subscription Plans">
-                <h2>Choose Your Subscription Plan</h2>
+      <div className="container" role="region" aria-label="Subscription Plans">
+        <h2>Choose Your Subscription Plan</h2>
 
-                <div className="billing-toggle" role="group" aria-label="Billing Cycle Toggle">
-                    <label className="toggle-label">
-                        <input
-                            type="checkbox"
-                            checked={billingCycle === "yearly"}
-                            onChange={() =>
-                                setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")
-                            }
-                            aria-checked={billingCycle === "yearly"}
-                            aria-label="Toggle billing cycle between monthly and yearly"
-                        />
-                        <span className="monthly" aria-live="polite">Monthly</span>
-                        <span className="yearly" aria-live="polite">Yearly</span>
-                        <span className="toggle-slider" />
-                    </label>
+        <div className="billing-toggle" role="group" aria-label="Billing Cycle Toggle">
+          <label className="toggle-label">
+            <input
+              type="checkbox"
+              checked={billingCycle === "yearly"}
+              onChange={() =>
+                setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")
+              }
+              aria-checked={billingCycle === "yearly"}
+              aria-label="Toggle billing cycle between monthly and yearly"
+            />
+            <span className="monthly" aria-live="polite">Monthly</span>
+            <span className="yearly" aria-live="polite">Yearly</span>
+            <span className="toggle-slider">
+              {billingCycle === "monthly" ? "Monthly" : "Yearly"}
+            </span>
+          </label>
+        </div>
+
+        <div className="plans">
+          {plans.map(({ name, features, monthly, yearly, yearlyDiscountPercent }) => {
+            const price = billingCycle === "monthly" ? monthly : yearly;
+            const discount = billingCycle === "yearly" ? yearlyDiscountPercent : 0;
+
+            return (
+              <article
+                key={name}
+                className={`plan-card ${name.toLowerCase() === "premium" ? "premium" : ""}`}
+                tabIndex={0}
+                aria-label={`${name} plan with features and pricing`}
+              >
+                <h3 className="plan-name">{name}</h3>
+                <ul className="plan-features">
+                  {features.map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+
+                <div className="plan-price" aria-live="polite" aria-atomic="true">
+                  Ksh {price.toLocaleString()}
+                  <small>{billingCycle === "monthly" ? "/month" : "/year"}</small>
                 </div>
 
-                <div className="plans">
-                    {plans.map(({ name, features, monthly, yearly, yearlyDiscountPercent }) => {
-                        const price = billingCycle === "monthly" ? monthly : yearly;
-                        const discount = billingCycle === "yearly" ? yearlyDiscountPercent : 0;
+                {discount > 0 && (
+                  <div className="plan-discount" aria-label="Discount percentage">
+                    Save {discount}%
+                  </div>
+                )}
 
-                        return (
-                            <article
-                                key={name}
-                                className={`plan-card ${name.toLowerCase() === "premium" ? "premium" : ""}`}
-                                tabIndex={0}
-                                aria-label={`${name} plan with features and pricing`}
-                            >
-                                <h3 className="plan-name">{name}</h3>
-                                <ul className="plan-features">
-                                    {features.map((feature) => (
-                                        <li key={feature}>{feature}</li>
-                                    ))}
-                                </ul>
-
-                                <div className="plan-price" aria-live="polite" aria-atomic="true">
-                                    Ksh {price.toLocaleString()}
-                                    <small>{billingCycle === "monthly" ? "/month" : "/year"}</small>
-                                </div>
-
-                                {discount > 0 && (
-                                    <div className="plan-discount" aria-label="Discount percentage">
-                                        Save {discount}%
-                                    </div>
-                                )}
-
-                                <button className="btn-subscribe" type="button" aria-label={`Subscribe to ${name} plan`}>
-                                    Get Started
-                                </button>
-                            </article>
-                        );
-                    })}
-                </div>
-            </div>
-        </>
-    );
+                <button className="btn-subscribe" type="button" aria-label={`Subscribe to ${name} plan`}>
+                  Get Started
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
 }

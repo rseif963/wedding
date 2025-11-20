@@ -41,7 +41,7 @@ export default function VendorStatsCards() {
   ];
 
   return (
-    <div className="grid grid-cols-2 px-2 py-2 md:grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 px-2 py-2 md:grid-cols-2 gap-2">
       {stats.map((item) => (
         <Link
           key={item.label}
