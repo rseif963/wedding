@@ -26,6 +26,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+      <head>
+      <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMT9GH8T3L"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GMT9GH8T3L');
+  </script>
+      </head>
       <body className="font-sans bg-gray-50 text-gray-800 bg-white">
         <AppProvider>
           {children}
