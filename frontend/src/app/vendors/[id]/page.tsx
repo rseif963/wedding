@@ -312,7 +312,7 @@ export default function VendorProfile() {
       </div>
       <div className="lg:flex lg:flex-col-2">
         {/* Gallery section replacing Hero */}
-        <section className="max-w-5xl mx-auto px-2 py-6">
+        <section className="w-full h-150 md:w-150 mx-auto px-2 py-6">
           <ImageGallery
             items={images}
             showPlayButton={true}
@@ -326,7 +326,6 @@ export default function VendorProfile() {
           {/* INFO BAR BELOW GALLERY */}
           <div className="max-w-5xl mx-auto px-2 mt-6 p-3 rounded-lg shadow-sm bg-white flex flex-col md:flex-row md:items-center justify-between">
 
-            {/* LEFT SIDE: Name, Location, Rating */}
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-bold text-[#311970]">
                 {vendor?.businessName}
