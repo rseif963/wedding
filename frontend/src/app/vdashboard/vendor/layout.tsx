@@ -14,9 +14,17 @@ export default function VendorDashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-white relative">
+      {/* Mobile overlay for blur */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`fixed h-screen h-[100vh] md:sticky inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform
+        className={`fixed h-screen h-[100vh] md:sticky inset-y-0 left-0 z-50 w-64 bg-white transform
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 transition-transform duration-300 ease-in-out`}
       >
@@ -26,7 +34,7 @@ export default function VendorDashboardLayout({
           aria-label="Close sidebar"
           className="absolute top-3 right-3 md:hidden p-2 rounded-md hover:bg-gray-100 z-50"
         >
-          <X size={20} color={"white"}/>
+          <X size={20} color={"white"} />
         </button>
 
         {/* Sidebar content */}
@@ -44,7 +52,7 @@ export default function VendorDashboardLayout({
         </div>
 
         {/* Scrollable content */}
-        <main className="p-1 flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

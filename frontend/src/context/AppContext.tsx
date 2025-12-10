@@ -66,6 +66,32 @@ interface VendorProfile {
   description?: string;
   logo?: string;
   phone?: string;
+  profilePhoto?: string;
+  coverPhoto?: string;
+
+  serviceCategories?: string[];
+  serviceAreas?: string[];
+
+  pricingPackages?: {
+    name?: string;
+    price?: number;
+    currency?: string;
+    features?: string[];
+  }[];
+
+  verification?: {
+    emailVerified?: boolean;
+    documentsUploaded?: boolean;
+    documentType?: string;
+    documentUrl?: string;
+  };
+
+  availabilitySettings?: {
+    instantInquiries?: boolean;
+    showAvailabilityCalendar?: boolean;
+    emailNotifications?: boolean;
+  };
+
   [k: string]: any;
 }
 

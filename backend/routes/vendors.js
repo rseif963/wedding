@@ -36,34 +36,77 @@ router.get("/me", auth, permit("vendor"), async (req, res) => {
 });
 
 /**
- * ✅ Update vendor profile (upload logo to ImageKit)
+ * ✅ Update vendor profile (logo, profilePhoto, coverPhoto)
  */
-router.put("/me", auth, permit("vendor"), upload.single("logo"), async (req, res) => {
-  try {
-    const updates = req.body;
+router.put(
+  "/me",
+  auth,
+  permit("vendor"),
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "profilePhoto", maxCount: 1 },
+    { name: "coverPhoto", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const updates = req.body;
 
-    if (req.file) {
-      // ✅ Upload to ImageKit using buffer
-      const result = await imagekit.upload({
-        file: req.file.buffer, // file as buffer
-        fileName: req.file.originalname,
-        folder: "/vendor_logos",
-      });
-      updates.logo = result.url; // ✅ store the ImageKit URL
+      const uploadToImageKit = async (file) => {
+        const result = await imagekit.upload({
+          file: file.buffer,
+          fileName: file.originalname,
+          folder: "/vendor_assets",
+        });
+        return result.url;
+      };
+
+      // ✅ Handle image uploads
+      if (req.files?.logo?.[0]) {
+        updates.logo = await uploadToImageKit(req.files.logo[0]);
+      }
+
+      if (req.files?.profilePhoto?.[0]) {
+        updates.profilePhoto = await uploadToImageKit(req.files.profilePhoto[0]);
+      }
+
+      if (req.files?.coverPhoto?.[0]) {
+        updates.coverPhoto = await uploadToImageKit(req.files.coverPhoto[0]);
+      }
+
+      // ✅ Parse JSON fields safely
+      if (updates.serviceCategories) {
+        updates.serviceCategories = JSON.parse(updates.serviceCategories);
+      }
+
+      if (updates.serviceAreas) {
+        updates.serviceAreas = JSON.parse(updates.serviceAreas);
+      }
+
+      if (updates.pricingPackages) {
+        updates.pricingPackages = JSON.parse(updates.pricingPackages);
+      }
+
+      if (updates.verification) {
+        updates.verification = JSON.parse(updates.verification);
+      }
+
+      if (updates.availabilitySettings) {
+        updates.availabilitySettings = JSON.parse(updates.availabilitySettings);
+      }
+
+      const profile = await VendorProfile.findOneAndUpdate(
+        { user: req.user.id },
+        updates,
+        { new: true, upsert: true }
+      );
+
+      res.json(profile);
+    } catch (err) {
+      console.error("Error updating vendor profile:", err);
+      res.status(500).json({ message: "Server error" });
     }
-
-    const profile = await VendorProfile.findOneAndUpdate(
-      { user: req.user.id },
-      updates,
-      { new: true, upsert: true }
-    );
-
-    res.json(profile);
-  } catch (err) {
-    console.error("Error updating vendor profile:", err);
-    res.status(500).json({ message: "Server error" });
   }
-});
+);
 
 /**
  * ✅ Get all posts for this vendor
@@ -88,7 +131,10 @@ router.get("/me/posts", auth, permit("vendor"), async (req, res) => {
  */
 router.get("/:id", async (req, res) => {
   try {
-    const profile = await VendorProfile.findById(req.params.id).populate("user", "email");
+    const profile = await VendorProfile.findById(req.params.id).populate(
+      "user",
+      "email"
+    );
     if (!profile) return res.status(404).json({ message: "Not found" });
     res.json(profile);
   } catch (err) {
@@ -103,7 +149,11 @@ router.get("/:id", async (req, res) => {
 router.put("/:id/feature", auth, permit("admin"), async (req, res) => {
   try {
     const { featured } = req.body;
-    const vendor = await VendorProfile.findByIdAndUpdate(req.params.id, { featured }, { new: true });
+    const vendor = await VendorProfile.findByIdAndUpdate(
+      req.params.id,
+      { featured },
+      { new: true }
+    );
 
     if (!vendor) return res.status(404).json({ message: "Vendor not found" });
 

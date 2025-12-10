@@ -1,574 +1,234 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
-import { Upload, Pencil, X, Trash2 } from "lucide-react";
-import Cropper from "react-easy-crop";
+import React, { useEffect, useState } from "react";
+import { Upload, Trash2, Eye, GripVertical } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-type Post = {
-  _id: string;
-  title?: string;
-  description?: string;
-  priceFrom?: number;
-  mainPhoto?: string;
-  galleryImages?: string[];
-  galleryVideos?: string[];
-  featured?: boolean;
-  createdAt?: string;
-};
+export default function PortfolioGallery() {
+  const { posts: ctxPosts, updatePost, fetchVendorPosts, vendorProfile } =
+    useAppContext();
 
-export default function PostsManager({ preview = false }: { preview?: boolean }) {
-  const { posts: ctxPosts, createPost, vendorProfile, updatePost, fetchVendorPosts, } = useAppContext();
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
-  // --- State ---
-  const [price, setPrice] = useState("");
-  const [mainPhotoFile, setMainPhotoFile] = useState<File | null>(null);
-  const [mainPhotoPreview, setMainPhotoPreview] = useState<string | null>(null);
-
-  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [galleryFilePreviews, setGalleryFilePreviews] = useState<string[]>([]);
-  const [galleryVideoFiles, setGalleryVideoFiles] = useState<File[]>([]);
-  const [galleryVideoPreviews, setGalleryVideoPreviews] = useState<string[]>([]);
-
-  const [existingGalleryImages, setExistingGalleryImages] = useState<string[]>([]);
-  const [existingGalleryVideos, setExistingGalleryVideos] = useState<string[]>([]);
-  const [existingMainPhotoUrl, setExistingMainPhotoUrl] = useState<string | null>(null);
-
-  const [removedExistingGalleryImages, setRemovedExistingGalleryImages] = useState<string[]>([]);
-  const [removedExistingGalleryVideos, setRemovedExistingGalleryVideos] = useState<string[]>([]);
-  const [removeExistingMainPhoto, setRemoveExistingMainPhoto] = useState(false);
-
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [postId, setPostId] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [croppingFile, setCroppingFile] = useState<File | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-  const [saveTarget, setSaveTarget] = useState<"main" | "photo" | null>(null);
-
-  // croppingSrc holds the object URL used by the Cropper UI and is revoked automatically
-  const [croppingSrc, setCroppingSrc] = useState<string | null>(null);
-
-  const MAX_PHOTOS = 6;
-  const MAX_VIDEOS = 6;
-
-  // --- Sync posts ---
-  useEffect(() => {
-    setPosts(ctxPosts || []);
-  }, [ctxPosts]);
-
-  // --- Fetch posts on mount ---
-
-  useEffect(() => {
-    (async () => {
-      try {
-        // ✅ Only fetch if vendor profile exists
-        if (!vendorProfile?._id) return;
-        await fetchVendorPosts();
-      } catch {
-        /* ignore */
-      }
-    })();
-  }, [fetchVendorPosts, vendorProfile]);
-
-  // --- manage croppingSrc object URL lifecycle ---
-  useEffect(() => {
-    if (!croppingFile) {
-      setCroppingSrc(null);
-      return;
-    }
-    const url = URL.createObjectURL(croppingFile);
-    setCroppingSrc(url);
-    return () => {
-      URL.revokeObjectURL(url);
-      setCroppingSrc(null);
-    };
-  }, [croppingFile]);
-
-  // --- Cropper helpers ---
-  const onCropComplete = useCallback((_: any, croppedArea: any) => {
-    setCroppedAreaPixels(croppedArea);
-  }, []);
-
-
-  async function getCroppedImage(file: File, croppedAreaPixels: any) {
-    // create temporary object URL and load the image
-    const objectUrl = URL.createObjectURL(file);
-    const image = await createImage(objectUrl);
-    // revoke URL quickly to avoid leaks
-    URL.revokeObjectURL(objectUrl);
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-
-    // Use integer values
-    const cropX = Math.round(croppedAreaPixels.x);
-    const cropY = Math.round(croppedAreaPixels.y);
-    const cropWidth = Math.round(croppedAreaPixels.width);
-    const cropHeight = Math.round(croppedAreaPixels.height);
-
-    // device pixel ratio to improve sharpness on high-DPI screens
-    const dpr = window.devicePixelRatio || 1;
-
-    canvas.width = cropWidth * dpr;
-    canvas.height = cropHeight * dpr;
-    // set CSS size (not strictly necessary, but keeps canvas consistent)
-    canvas.style.width = `${cropWidth}px`;
-    canvas.style.height = `${cropHeight}px`;
-
-    // scale context so drawn image maps to CSS pixels
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingQuality = "high";
-
-    // draw the cropped area from the source image onto the canvas
-    // Note: croppedAreaPixels returned by react-easy-crop are relative to the image's natural size,
-    // so drawing directly using those coordinates is correct.
-    ctx.drawImage(
-      image,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight
-    );
-
-    // convert to blob & file
-    return new Promise<File | null>((resolve) => {
-      // Use file.type if available, otherwise default to jpeg
-      const outType = file.type || "image/jpeg";
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            // preserve original filename
-            const newFile = new File([blob], file.name, { type: outType });
-            resolve(newFile);
-          } else {
-            resolve(null);
-          }
-        },
-        outType,
-        0.95
-      );
-    });
-  }
-
-  // --- Handle File Input ---
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "main" | "photo" | "video") => {
-    if (!e.target.files) return;
-    const file = e.target.files[0];
-
-    if (type === "video") {
-      if (galleryVideoFiles.length >= MAX_VIDEOS) return alert(`Maximum ${MAX_VIDEOS} videos allowed`);
-      setGalleryVideoFiles((p) => [...p, file]);
-      setGalleryVideoPreviews((p) => [...p, URL.createObjectURL(file)]);
-      return;
-    }
-
-    setCroppingFile(file);
-    setSaveTarget(type);
-  };
-
-  const confirmCrop = async () => {
-    if (!croppingFile || !croppedAreaPixels) return;
-    const croppedFile = await getCroppedImage(croppingFile, croppedAreaPixels);
-    if (!croppedFile) return;
-
-    const url = URL.createObjectURL(croppedFile);
-
-    if (saveTarget === "main") {
-      setMainPhotoFile(croppedFile);
-      setMainPhotoPreview(url);
-      if (existingMainPhotoUrl) {
-        setRemoveExistingMainPhoto(true);
-        setExistingMainPhotoUrl(null);
-      }
-    } else {
-      if (galleryFiles.length >= MAX_PHOTOS) alert(`Maximum ${MAX_PHOTOS} photos allowed`);
-      else {
-        setGalleryFiles((p) => [...p, croppedFile]);
-        setGalleryFilePreviews((p) => [...p, url]);
-      }
-    }
-
-    setCroppingFile(null);
-    setSaveTarget(null);
-  };
-
-  const cancelCrop = () => {
-    setCroppingFile(null);
-    setSaveTarget(null);
-  };
-
-  // --- Helpers to remove files ---
-  const removeNewGalleryFile = (i: number) => {
-    setGalleryFiles((p) => p.filter((_, x) => x !== i));
-    setGalleryFilePreviews((p) => p.filter((_, x) => x !== i));
-  };
-
-  const removeNewVideoFile = (i: number) => {
-    setGalleryVideoFiles((p) => p.filter((_, x) => x !== i));
-    setGalleryVideoPreviews((p) => p.filter((_, x) => x !== i));
-  };
-
-  const removeExistingGalleryImage = (url: string) => {
-    setExistingGalleryImages((p) => p.filter((u) => u !== url));
-    setRemovedExistingGalleryImages((p) => [...p, url]);
-  };
-
-  const removeExistingGalleryVideo = (url: string) => {
-    setExistingGalleryVideos((p) => p.filter((u) => u !== url));
-    setRemovedExistingGalleryVideos((p) => [...p, url]);
-  };
-
-  const removeExistingMain = () => {
-    if (existingMainPhotoUrl) {
-      setExistingMainPhotoUrl(null);
-      setRemoveExistingMainPhoto(true);
-    }
-    if (mainPhotoPreview) URL.revokeObjectURL(mainPhotoPreview);
-    setMainPhotoFile(null);
-    setMainPhotoPreview(null);
-  };
-
-  // --- Edit / Cancel ---
-  const beginEdit = (post: Post) => {
-    setEditingPostId(post._id);
-    setPrice((post.priceFrom || 0).toLocaleString()); // format price with commas
-    setMainPhotoFile(null);
-    setMainPhotoPreview(null);
-    setGalleryFiles([]);
-    setGalleryFilePreviews([]);
-    setGalleryVideoFiles([]);
-    setGalleryVideoPreviews([]);
-    setRemovedExistingGalleryImages([]);
-    setRemovedExistingGalleryVideos([]);
-    setRemoveExistingMainPhoto(false);
-    setExistingGalleryImages(post.galleryImages || []);
-    setExistingGalleryVideos(post.galleryVideos || []);
-    setExistingMainPhotoUrl(post.mainPhoto || null);
-  };
-
-  const cancelEdit = () => {
-    setEditingPostId(null);
-    setPrice("");
-    setMainPhotoFile(null);
-    setMainPhotoPreview(null);
-    setGalleryFiles([]);
-    setGalleryFilePreviews([]);
-    setGalleryVideoFiles([]);
-    setGalleryVideoPreviews([]);
-    setExistingGalleryImages([]);
-    setExistingGalleryVideos([]);
-    setExistingMainPhotoUrl(null);
-    setRemovedExistingGalleryImages([]);
-    setRemovedExistingGalleryVideos([]);
-    setRemoveExistingMainPhoto(false);
-  };
-
-  // --- Handle Price Input with commas ---
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/,/g, "");
-    if (!/^\d*$/.test(raw)) return;
-    const formatted = Number(raw).toLocaleString();
-    setPrice(formatted === "0" ? "" : formatted);
-  };
-
-  // --- Submit form (create or update) ---
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setLoading(true);
-
-    const form = new FormData();
-    if (price) form.append("priceFrom", price.replace(/,/g, ""));
-
-    if (mainPhotoFile) form.append("mainPhoto", mainPhotoFile);
-    else if (editingPostId && removeExistingMainPhoto) form.append("removeMainPhoto", "true");
-
-    galleryFiles.forEach((f) => form.append("galleryImages", f));
-    galleryVideoFiles.forEach((f) => form.append("galleryVideos", f));
-
-    if (editingPostId) {
-      if (removedExistingGalleryImages.length)
-        form.append("removeGalleryImages", JSON.stringify(removedExistingGalleryImages));
-      if (removedExistingGalleryVideos.length)
-        form.append("removeGalleryVideos", JSON.stringify(removedExistingGalleryVideos));
-    }
-
-    try {
-      let result = null;
-      if (editingPostId) result = await updatePost(editingPostId, form);
-      else result = await createPost(form);
-
-      if (result) {
-        await fetchVendorPosts();
-        cancelEdit();
-        alert(editingPostId ? "Post updated successfully!" : "Post created successfully!");
-      } else alert("Failed to save post");
-    } catch (err) {
-      console.error(err);
-      alert("Error saving post");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // --- Delete Post ---
-
-
-  // --- Utility ---
+  // Build same helper from your code
   const getFullUrl = (path?: string) => {
     if (!path) return "";
-
-    // ✅ If it's already a full ImageKit URL, return as-is
     if (path.startsWith("https://ik.imagekit.io")) return path;
-
-    // ✅ If it already starts with http (like any other full URL)
     if (path.startsWith("http")) return path;
-
-    // ✅ Otherwise, assume it's a local backend path
     const base = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
     return `${base}${cleanPath.replace(/\\/g, "/")}`;
   };
 
+  // Load vendor posts → extract first post's gallery
+  useEffect(() => {
+    if (!vendorProfile?._id) return;
+    (async () => {
+      await fetchVendorPosts();
+    })();
+  }, [vendorProfile]);
+
+  useEffect(() => {
+    if (!ctxPosts || ctxPosts.length === 0) return;
+
+    const p = ctxPosts[0];
+    setPostId(p._id);
+    setGallery(p.galleryImages || []);
+  }, [ctxPosts]);
+
+  // Upload + auto-save
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!postId) return;
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    const form = new FormData();
+    form.append("galleryImages", file);
+
+    setLoading(true);
+    try {
+      await updatePost(postId, form);
+      await fetchVendorPosts();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete photo
+  const deletePhoto = async (img: string) => {
+    if (!postId) return;
+
+    const updated = gallery.filter((x) => x !== img);
+    setGallery(updated);
+
+    const form = new FormData();
+    form.append("removeGalleryImages", JSON.stringify([img]));
+
+    setLoading(true);
+    try {
+      await updatePost(postId, form);
+      await fetchVendorPosts();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reorder
+  const onDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(gallery);
+    const [moved] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, moved);
+
+    setGallery(items);
+
+    // Auto-save reorder
+    const form = new FormData();
+    form.append("galleryImages", JSON.stringify(items)); // backend must handle ordering
+
+    setLoading(true);
+    try {
+      await updatePost(postId!, form);
+      await fetchVendorPosts();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <section className="bg-white p-2 justify-center  relative w-full min-h-screen overflow-y-auto">
-
-      {/* === CROPPER MODAL (ADDED) === */}
-      {croppingFile && croppingSrc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white rounded-lg w-[95%] max-w-4xl h-[90vh] p-4 flex flex-col">
-            <div className="relative flex-[2] bg-gray-800 h-[80vh]">
-              <Cropper
-                image={croppingSrc}
-                crop={crop}
-                zoom={zoom}
-                minZoom={1}
-                maxZoom={5}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-                // Remove the aspect ratio to allow free cropping
-                // aspect={16 / 18}  <-- remove this line
-                restrictPosition={false} // optional, allows moving image outside container
-                showGrid={true} // optional, shows grid overlay
-              />
-
-            </div>
-
-            <div className="mt-4 flex items-center gap-3 justify-end">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600 mr-2">Zoom</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={cancelCrop}
-                className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmCrop}
-                className="px-4 py-2 bg-[#311970] text-white rounded-md hover:bg-[#241255]"
-              >
-                Crop & Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* === FORM === */}
-      {(posts.length === 0 || editingPostId) && (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-1 pb-6 border-b border-gray-200"
-        >
-          {/* Price */}
-          <div>
-            <label className="block font-medium mb-1">Price From</label>
-            <input
-              type="text"
-              value={price}
-              onChange={handlePriceChange}
-              className="w-full border rounded-lg p-2"
-              placeholder="e.g. 20,000"
-            />
-          </div>
-
-          {/* Main Photo */}
-          <div>
-            <h4 className="font-semibold mb-2">Main Photo</h4>
-            {mainPhotoPreview || existingMainPhotoUrl ? (
-              <div className="relative inline-block">
-                <img
-                  src={mainPhotoPreview || getFullUrl(existingMainPhotoUrl!)}
-                  alt="main"
-                  className="w-32 h-42 object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={removeExistingMain}
-                  className="absolute top-1 right-1 bg-white rounded-full shadow p-1"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ) : (
-              renderUploadBox(handleFileChange, "main")
-            )}
-          </div>
-
-          {/* Gallery Photos */}
-          <div>
-            <h4 className="font-semibold mb-2">Gallery Photos</h4>
-            <div className="flex gap-3 flex-wrap">
-              {existingGalleryImages.map((u, i) => (
-                <div key={i} className="relative">
-                  <img src={getFullUrl(u)} className="w-32 h-32 object-cover rounded-lg" />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingGalleryImage(u)}
-                    className="absolute top-1 right-1 bg-white rounded-full shadow p-1"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              {galleryFilePreviews.map((u, i) => (
-                <div key={i} className="relative">
-                  <img src={u} className="w-32 h-32 object-cover rounded-lg" />
-                  <button
-                    type="button"
-                    onClick={() => removeNewGalleryFile(i)}
-                    className="absolute top-1 right-1 bg-white rounded-full shadow p-1"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              {renderUploadBox(handleFileChange, "photo")}
-            </div>
-          </div>
-
-
-          {/* Save / Cancel */}
-          <div className="sticky bottom-0 bg-white py-4 border-t flex justify-start gap-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-[#311970] text-white px-6 py-2 rounded-lg shadow hover:bg-[#241255] disabled:opacity-50"
-            >
-              {loading ? "Saving..." : editingPostId ? "Update Post" : "Create Post"}
-            </button>
-            {editingPostId && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-6 py-2 border rounded-lg shadow"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      )}
-
-      {/* === POSTS LIST === */}
-      <div className="mt-1">
-        <h3 className="text-2xl text-center font-bold mb-4">My Posts</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {posts.length === 0 && <p className="text-gray-500">No posts yet.</p>}
-          {posts.map((post) => (
-            <div key={post._id} className="w-full p-1 bg-gray-30">
-              {post.mainPhoto && (
-                <img
-                  src={getFullUrl(post.mainPhoto)}
-                  className="w-full h-80 object-cover rounded-md"
-                />
-              )}
-              <p className="font-semibold mt-2">
-                Starting from Ksh {Number(post.priceFrom || 0).toLocaleString()}
-              </p>
-
-              <div className=" gap-2 mt-2">
-                <h3 className="text-1xl font-bold mb-1">Gallery</h3>
-                <div className="flex grid grid-cols-4 md:grid-cols-5 gap-2 w-full">
-                  {(post.galleryImages || []).map((img, i) => (
-                    <img key={i} src={getFullUrl(img)} className="w-20 h-20 object-cover rounded-md" />
-                  ))}
-                </div>
-
-              </div>
-
-              <div className="mt-3 flex items-center gap-4">
-                <button
-                  onClick={() => beginEdit(post)}
-                  className="flex items-center gap-2 text-[#311970] font-medium hover:underline"
-                >
-                  <Pencil size={14} /> Edit
-                </button>
-                <button
-                  className="flex items-center gap-2 text-red-600 font-medium hover:underline"
-                >
-                  <Trash2 size={14} /> Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+    <section className="w-full bg-white min-h-screen p-6">
+      {/* Header */}
+      <div className="text-start mb-10">
+        <h1 className="text-3xl font-bold text-gray-900">Portfolio Gallery</h1>
+        <p className="text-gray-500 mt-2">
+          Showcase your best work by uploading high-quality images.
+        </p>
       </div>
+
+      {/* Upload Area */}
+      <div className="w-full max-w-4xl mx-auto border-2 border-dashed border-purple-300 rounded-xl p-10 text-center bg-purple-50">
+        <Upload className="w-10 h-10 text-purple-500 mx-auto" />
+        <p className="mt-4 text-purple-700 font-medium">
+          Drag & drop or upload photos
+        </p>
+        <label className="inline-flex mt-4 items-center gap-2 bg-[#4b1bb4] text-white px-5 py-2.5 rounded-xl cursor-pointer hover:bg-[#3a1591] transition">
+          <Upload className="w-4 h-4" />
+          Upload Photos
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleUpload}
+            className="hidden"
+          />
+        </label>
+
+        {loading && <p className="mt-4 text-purple-600">Saving...</p>}
+      </div>
+
+      {/* Gallery Grid */}
+      <div className="w-full max-w-5xl mx-auto mt-10">
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="gallery" direction="horizontal">
+            {(provided) => (
+              <div
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {gallery.map((img, index) => (
+                  <Draggable key={img} draggableId={img} index={index}>
+                    {(prov) => (
+                      <div
+                        ref={prov.innerRef}
+                        {...prov.draggableProps}
+                        className="relative group rounded-xl overflow-hidden shadow-md bg-gray-100"
+                      >
+                        {/* Image */}
+                        <img
+                          src={getFullUrl(img)}
+                          className="w-full h-40 object-cover"
+                        />
+
+                        {/* Top-left Featured Tag (just visual for now) */}
+                        {index === 0 && (
+                          <span className="absolute top-2 left-2 bg-[#4b1bb4] text-white text-xs px-2 py-1 rounded-md">
+                            Featured
+                          </span>
+                        )}
+
+                        {/* Hover Controls */}
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex justify-between items-start p-2">
+                          {/* Reorder */}
+                          <div
+                            {...prov.dragHandleProps}
+                            className="bg-white rounded-md p-1 shadow cursor-grab"
+                          >
+                            <GripVertical size={18} />
+                          </div>
+
+                          {/* View + Delete */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                window.open(getFullUrl(img), "_blank")
+                              }
+                              className="bg-white rounded-md p-1 shadow"
+                            >
+                              <Eye size={16} />
+                            </button>
+
+                            <button
+                              onClick={() => deletePhoto(img)}
+                              className="bg-red-500 text-white rounded-md p-1 shadow"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+
+                {/* Add More Tile */}
+                <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 transition">
+                  <Upload className="text-gray-500" size={24} />
+                  <span className="mt-2 text-sm text-gray-600">Add More</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
+      {/* Portfolio Tips Card */}
+      <div
+        className="stat-card bg-accent/60 animate-fade-up shadow-sm p-4 rounded-2xl ml-4 mt-10"
+        style={{ animationDelay: "300ms" }}
+      >
+        <h3 className="font-semibold text-foreground mb-3">💡 Portfolio Tips</h3>
+        <ul className="space-y-2 text-sm text-muted-foreground text-gray-500">
+          <li>• Add at least 15-20 high-quality photos for best results</li>
+          <li>• Include variety: portraits, ceremony, reception, details</li>
+          <li>• Your first 3 photos are featured prominently on your profile</li>
+          <li>• Update regularly with your latest and best work</li>
+        </ul>
+      </div>
+
     </section>
   );
-}
-
-// --- Upload UI helper ---
-function renderUploadBox(
-  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>, t: "main" | "photo" | "video") => void,
-  type: "main" | "photo" | "video"
-) {
-  return (
-    <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-[#311970] transition">
-      <div className="flex flex-col items-center text-gray-500">
-        <Upload size={24} />
-        <span className="text-sm mt-1">Upload</span>
-      </div>
-      <input
-        type="file"
-        accept={type === "video" ? "video/*" : "image/*"}
-        onChange={(e) => handleFileChange(e, type)}
-        className="hidden"
-      />
-    </label>
-  );
-}
-
-// --- Utility to create image for cropper ---
-function createImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous");
-    image.src = url;
-  });
 }

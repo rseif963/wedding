@@ -1,35 +1,49 @@
 @import "tailwindcss";
 
+/* === Root Variables === */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff;   /* Light mode background */
+  --foreground: #171717;   /* Light mode text color */
 
-  /* Add custom fonts */
+  /* Custom fonts */
   --font-playfair: "Playfair Display", serif;
   --font-inter: "Inter", sans-serif;
 }
 
+/* === Tailwind Theme Overrides (optional) === */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter); /* make Inter the default */
+  --font-sans: var(--font-inter);   /* Default font */
   --font-heading: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* === Body Styling === */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter);
 }
 
-/* Headings use the elegant font */
+/* === Headings use the elegant font === */
 h1, h2, h3, h4 {
   font-family: var(--font-playfair);
+}
+
+/* === Scrollbar hidden === */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+/* === Optional: Keep Tailwind colors consistent === */
+.bg-white {
+  background-color: var(--background) !important;
+}
+
+.text-black {
+  color: var(--foreground) !important;
 }
