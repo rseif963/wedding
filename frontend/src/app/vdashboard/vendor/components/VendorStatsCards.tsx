@@ -67,7 +67,13 @@ export default function VendorStatsCards() {
     },
     {
       label: "Rating",
-      value: reviews?.length ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : "0.0",
+     value: reviews?.length
+  ? (
+      reviews.reduce((acc, r) => acc + (r.rating ?? 0), 0) /
+      reviews.length
+    ).toFixed(1)
+  : "0.0",
+
       icon: Star,
       bgColor: "bg-yellow-100",
       iconColor: "text-yellow-500",

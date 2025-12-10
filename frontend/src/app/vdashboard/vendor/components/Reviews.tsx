@@ -57,17 +57,13 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
   };
 
   // Rating distribution
-  const safeReviews = reviews.filter((r: any) => typeof r?.rating === "number");
-
-  const total = safeReviews.length || 1;
-
+  const total = reviews.length || 1;
   const avg =
-    safeReviews.reduce((acc: number, r: any) => acc + (r.rating ?? 0), 0) / total;
+    reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / total;
 
   const dist = [1, 2, 3, 4, 5].map(
-    (n) => safeReviews.filter((r: any) => r.rating === n).length
+    (n) => reviews.filter((r: any) => r.rating === n).length
   );
-
 
   return (
     <div className="p-4 md:p-8 bg-gray-50">
@@ -94,7 +90,7 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
 
       {/* TOP CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-10">
-
+        
         {/* AVG RATING CARD */}
         <div
           className="bg-white rounded-3xl shadow"
