@@ -312,7 +312,7 @@ export default function VendorProfile() {
       </div>
       <div className="lg:flex lg:flex-col-2">
         {/* Gallery section replacing Hero */}
-        <section className="w-full h-150 md:w-150 mx-auto px-2 py-6">
+        <section className="w-full md:w-150 mx-auto px-2 py-6">
           <ImageGallery
             items={images}
             showPlayButton={true}
