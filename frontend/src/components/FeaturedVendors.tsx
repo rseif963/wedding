@@ -25,7 +25,7 @@ export default function FeaturedVendors() {
     fetchPosts();
   }, []);
 
-  // Fetch reviews for featured vendors
+  // Load reviews for featured vendors
   useEffect(() => {
     let mounted = true;
 
@@ -45,14 +45,15 @@ export default function FeaturedVendors() {
       if (featuredIds.length === 0) return;
 
       try {
-        const promises = featuredIds.map((id) =>
-          axios
-            .get(`${API_URL}/api/reviews/vendor/${id}`)
-            .then((res) => ({ id, data: Array.isArray(res.data) ? res.data : [] }))
-            .catch(() => ({ id, data: [] }))
+        const results = await Promise.all(
+          featuredIds.map((id) =>
+            axios
+              .get(`${API_URL}/api/reviews/vendor/${id}`)
+              .then((res) => ({ id, data: Array.isArray(res.data) ? res.data : [] }))
+              .catch(() => ({ id, data: [] }))
+          )
         );
 
-        const results = await Promise.all(promises);
         if (!mounted) return;
 
         const map: Record<string, any[]> = {};
@@ -77,29 +78,31 @@ export default function FeaturedVendors() {
     );
   };
 
-  // Only featured vendors, max 12
+  // Only featured vendors (max 12)
   const featuredPosts = (posts || [])
     .filter((post) => post.vendor?.featured === true)
     .slice(0, 12);
 
   return (
-    <section className="py-10 bg-gray-50 w-full">
-      <div className="max-w-6xl mx-auto px-3">
-        <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
-          Featured Vendors
-        </h2>
+    <section className="py-24 bg-gradient-to-b from-[#faf8ff] via-[#f5f3ff] to-white">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+            Featured Vendors
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            Handpicked professionals loved by couples
+          </p>
+        </div>
 
+        {/* Empty state */}
         {featuredPosts.length === 0 ? (
-          <div className="text-center py-16">
-          {/*<h3 className="text-2xl font-semibold text-gray-600">
-            No featured vendors available yet.
-          </h3>*/}
-            <p className="text-gray-500 mt-2">
-              Loading posts...
-            </p>
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">Loading posts...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {featuredPosts.map((post) => {
               const v = post.vendor;
               const imageUrl = getFullUrl(post.mainPhoto || v?.logo);
@@ -117,85 +120,87 @@ export default function FeaturedVendors() {
                 <Link
                   key={post._id}
                   href={`/vendors/${post._id}`}
-                  className="relative bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition block"
+                  className="group block"
                 >
-                  {/* Like Button */}
-                  <button
-                    className="absolute top-3 right-3 z-30 bg-white/80 rounded-full p-1 hover:bg-red-100 transition"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleLike(post._id);
-                    }}
-                  >
-                    <Heart
-                      className={`w-5 h-5 transition ${
-                        liked.includes(post._id)
-                          ? "text-red-500 fill-red-500"
-                          : "text-red-500"
-                      }`}
-                    />
-                  </button>
+                  <div className="bg-white rounded-2xl overflow-hidden shadow-elevated hover:shadow-card transition">
+                    {/* IMAGE */}
+                    <div className="relative aspect-[4/3]">
+                      <Image
+                        src={imageUrl}
+                        alt={v?.businessName || "Vendor"}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
 
-                  {/* IMAGE with BADGES */}
-                  <div className="relative h-48 w-full">
-
-                    {/* ⭐ Featured Badge */}
-                    {v?.featured && (
-                      <div className="absolute top-3 left-3 bg-yellow-100 text-yellow-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
-                        ⭐ Featured
-                      </div>
-                    )}
-
-                    {/* 🔥 Top Rated Badge (5 Stars) */}
-                    {avgRating >= 5 && (
-                      <div className="absolute top-3 left-28 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
-                        🔥 Top Rated
-                      </div>
-                    )}
-
-                    <Image
-                      src={imageUrl}
-                      alt={v?.businessName || "Vendor"}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  {/* Vendor Info */}
-                  <div className="p-5">
-                    <h2 className="text-xl font-bold text-[#311970] truncate">
-                      {v?.businessName}
-                    </h2>
-                    <p className="text-gray-600">{v?.category}</p>
-                    <p className="text-gray-500 text-sm">
-                      {v?.location ? `${v.location}, Kenya` : "Kenya"}
-                    </p>
-
-                    {/* Stars */}
-                    <div className="flex items-center mt-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.round(avgRating)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
+                      {/* Like Button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleLike(post._id);
+                        }}
+                        className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
+                      >
+                        <Heart
+                          className={`h-5 w-5 ${
+                            liked.includes(post._id)
+                              ? "text-red-500 fill-red-500"
+                              : "text-red-500"
                           }`}
                         />
-                      ))}
-                      <span className="text-sm text-gray-600 ml-2">
-                        {avgRating > 0
-                          ? `${avgRating.toFixed(1)} (${vendorReviews.length})`
-                          : "No reviews yet"}
-                      </span>
+                      </button>
+
+                      {/* ⭐ Featured Badge */}
+                      {v?.featured && (
+                        <div className="absolute top-4 left-4 bg-yellow-100 text-yellow-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
+                          ⭐ Featured
+                        </div>
+                      )}
+
+                      {/* 🔥 Top Rated Badge */}
+                      {avgRating >= 5 && (
+                        <div className="absolute top-4 left-28 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
+                          🔥 Top Rated
+                        </div>
+                      )}
                     </div>
 
-                    <p className="text-sm mt-2 text-gray-700">
-                      Starting from{" "}
-                      <span className="font-semibold">
-                        Ksh {post.priceFrom?.toLocaleString()}
-                      </span>
-                    </p>
+                    {/* CONTENT */}
+                    <div className="p-5">
+                      <h3 className="text-xl font-bold text-[#311970] truncate mb-1 group-hover:text-primary transition-colors">
+                        {v?.businessName}
+                      </h3>
+
+                      <p className="text-gray-600 text-sm">{v?.category}</p>
+                      <p className="text-gray-500 text-sm mb-2">
+                        {v?.location ? `${v.location}, Kenya` : "Kenya"}
+                      </p>
+
+                      {/* Ratings */}
+                      <div className="flex items-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < Math.round(avgRating)
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm text-gray-600 ml-2">
+                          {avgRating > 0
+                            ? `${avgRating.toFixed(1)} (${vendorReviews.length})`
+                            : "No reviews yet"}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-gray-700">
+                        Starting from{" "}
+                        <span className="font-semibold">
+                          Ksh {post.priceFrom?.toLocaleString()}
+                        </span>
+                      </p>
+                    </div>
                   </div>
                 </Link>
               );
@@ -203,10 +208,11 @@ export default function FeaturedVendors() {
           </div>
         )}
 
-        <div className="text-center mt-12">
+        {/* CTA */}
+        <div className="text-center mt-14">
           <Link
             href="/vendors"
-            className="inline-block bg-[#311970] text-white px-6 py-3 rounded-lg shadow hover:bg-[#261457] transition"
+            className="inline-block bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition"
           >
             Explore More Vendors
           </Link>

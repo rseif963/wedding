@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
 import {
   Camera,
   Building2,
@@ -13,40 +15,115 @@ import {
   Music,
 } from "lucide-react";
 
-export default function FeaturedCategories() {
-  const categories = [
-    { id: 1, name: "Photography", icon: <Camera size={22} />, link: "/vendors?category=Photography" },
-    { id: 2, name: "Venue", icon: <Building2 size={22} />, link: "/vendors?category=Venue" },
-    { id: 3, name: "Decoration", icon: <Flower2 size={22} />, link: "/vendors?category=Decoration" },
-    { id: 4, name: "Catering", icon: <Utensils size={22} />, link: "/vendors?category=Catering" },
-    { id: 5, name: "Makeup & Beauty", icon: <Heart size={22} />, link: "/vendors?category=Makeup & Beauty" },
-    { id: 6, name: "Dresses", icon: <Shirt size={22} />, link: "/vendors?category=Dresses" },
-    { id: 7, name: "Tailor", icon: <Scissors size={22} />, link: "/vendors?category=Tailor" },
-    { id: 8, name: "Cars", icon: <Car size={22} />, link: "/vendors?category=Cars" },
-    { id: 9, name: "Cake", icon: <Cake size={22} />, link: "/vendors?category=Cakes" },
-    { id: 10, name: "Music & Ent", icon: <Music size={22} />, link: "/vendors?category=Music & Entertainment" },
-  ];
+const categories = [
+  {
+    name: "Photography",
+    icon: Camera,
+    image: "/assets/category-photography.jpg",
+    link: "/vendors?category=Photography",
+  },
+  {
+    name: "Venue",
+    icon: Building2,
+    image: "/assets/category-venues.jpg",
+    link: "/vendors?category=Venue",
+  },
+  {
+    name: "Decoration",
+    icon: Flower2,
+    image: "/assets/category-decor.jpg",
+    link: "/vendors?category=Decoration",
+  },
+  {
+    name: "Catering",
+    icon: Utensils,
+    image: "/assets/category-catering.jpg",
+    link: "/vendors?category=Catering",
+  },
+  {
+    name: "Makeup & Beauty",
+    icon: Heart,
+    image: "/assets/category-makeup.jpg",
+    link: "/vendors?category=Makeup & Beauty",
+  },
+  {
+    name: "Dresses",
+    icon: Shirt,
+    image: "/assets/category-dresses.jpg", // placeholder
+    link: "/vendors?category=Dresses",
+  },
+  {
+    name: "Tailor",
+    icon: Scissors,
+    image: "/assets/category-tailor.jpg", // placeholder
+    link: "/vendors?category=Tailor",
+  },
+  {
+    name: "Cars",
+    icon: Car,
+    image: "/assets/category-cars.jpg", // placeholder
+    link: "/vendors?category=Cars",
+  },
+  {
+    name: "Cake",
+    icon: Cake,
+    image: "/assets/category-cakes.jpg", // placeholder
+    link: "/vendors?category=Cakes",
+  },
+  {
+    name: "Music & Ent",
+    icon: Music,
+    image: "/assets/category-music.jpg", // placeholder
+    link: "/vendors?category=Music & Entertainment",
+  },
+];
 
+export default function CategoriesSection() {
   return (
-    <section className="py-10 bg-white">
-      <div className="max-w-6xl mx-auto px-3">
-        <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
-          Explore Categories
-        </h2>
+    <section className="py-24 bg-muted/30">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+            Explore Categories
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Find the perfect match for every part of your wedding
+          </p>
+        </div>
 
-        {/* ✅ Horizontal scroll & equal box sizing */}
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-          {categories.map((cat) => (
-            <a
-              key={cat.id}
-              href={cat.link}
-              className="flex flex-col items-center justify-center min-w-[110px] h-[110px] bg-gray-100 rounded-lg shadow hover:shadow-lg hover:bg-gray-200 transition flex-shrink-0"
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {categories.map((category, index) => (
+            <Link
+              key={category.name}
+              href={category.link}
+              className="group animate-fade-up"
+              style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div className="text-[#311970] mb-2">{cat.icon}</div>
-              <h3 className="font-medium text-gray-700 text-center text-sm leading-tight">
-                {cat.name}
-              </h3>
-            </a>
+              <div className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-elevated">
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+                {/* Content */}
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <category.icon className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+
+                  <h3 className="font-display text-lg font-semibold text-white leading-tight">
+                    {category.name}
+                  </h3>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

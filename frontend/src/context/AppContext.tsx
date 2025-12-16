@@ -119,6 +119,34 @@ interface BookingRequest {
   reply?: string;   // vendor reply
 }
 
+// types/inquiries.ts
+
+export interface Message {
+  _id?: string; // MongoDB ID
+  sender: "Client" | "Vendor";
+  content: string;
+  replyTo?: string | null; // optional message reference
+  createdAt?: string; // ISO date string
+}
+
+export interface Inquiry {
+  _id: string;
+  client: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  vendor: {
+    _id: string;
+    name: string;
+  };
+  service?: string;
+  date: string; // Booking date as ISO string
+  messages: Message[];
+  status: "Pending" | "Accepted" | "Declined";
+  createdAt: string;
+}
+
 
 interface MessageItem {
   _id?: string;
@@ -248,6 +276,7 @@ interface AppContextType {
     value?: number;
   }) => Promise<ReviewItem | null>;
   replyToReview: (reviewId: string, text: string) => Promise<ReviewItem | null>;
+  
 
 
   fetchReviewsForVendor: (vendorId: string) => Promise<void>;
@@ -486,6 +515,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setVendors([]);
     }
   };
+
+
 
   // fetch all clients (exposed)
   const fetchClients = async () => {
@@ -942,26 +973,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
- const replyToBooking = async (
-  bookingId: string,
-  messageId: string,
-  content: string
-) => {
-  try {
-    await axios.put(
-      `/api/bookingRequests/${bookingId}/message/${messageId}/reply`,
-      { content }
-    );
+  const replyToBooking = async (
+    bookingId: string,
+    messageId: string,
+    content: string
+  ) => {
+    try {
+      await axios.put(
+        `/api/bookingRequests/${bookingId}/message/${messageId}/reply`,
+        { content }
+      );
 
-    toast.success("Reply sent");
+      toast.success("Reply sent");
 
-    // refresh vendor bookings (or client bookings)
-    await fetchVendorBookings();
-  } catch (err: any) {
-    console.error("Failed to send reply:", err);
-    toast.error("Failed to send reply");
-  }
-};
+      // refresh vendor bookings (or client bookings)
+      await fetchVendorBookings();
+    } catch (err: any) {
+      console.error("Failed to send reply:", err);
+      toast.error("Failed to send reply");
+    }
+  };
 
 
   const fetchClientBookings = async () => {
@@ -1366,7 +1397,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         fetchClientBookings,
         fetchVendorBookings,
         respondBooking,
-        replyToBooking, 
+        replyToBooking,
 
         // messaging
         sendMessage,

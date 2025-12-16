@@ -1,55 +1,64 @@
 "use client";
 
-import { Search, Users, CalendarCheck, PartyPopper } from "lucide-react";
-
 export default function HowItWorks() {
-  const steps = [
+  const howItWorks = [
     {
-      id: 1,
+      step: "01",
       title: "Find Vendors",
       description:
         "Browse through hundreds of trusted wedding vendors by category and location.",
-      icon: <Search size={32} />,
     },
     {
-      id: 2,
+      step: "02",
       title: "Compare & Shortlist",
       description:
         "Check ratings, reviews, and portfolios to choose the right vendor for your big day.",
-      icon: <Users size={32} />,
     },
     {
-      id: 3,
+      step: "03",
       title: "Book Easily",
       description:
         "Contact vendors directly and manage bookings seamlessly on our platform.",
-      icon: <CalendarCheck size={32} />,
-    },
-    {
-      id: 4,
-      title: "Celebrate Stress-Free",
-      description:
-        "Enjoy your dream wedding while we help you handle the details.",
-      icon: <PartyPopper size={32} />,
     },
   ];
 
   return (
-    <section className="py-10 bg-white">
-      <div className="max-w-6xl mx-auto px-2 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-12">How It Works</h2>
+    <section className="py-24">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+            How Wedpine Works
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Your journey to the perfect wedding, simplified
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {steps.map((step) => (
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {howItWorks.map((item, index) => (
             <div
-              key={step.id}
-              className="flex flex-col items-center text-center p-6 bg-[#eee] rounded-lg shadow hover:shadow-lg transition"
+              key={item.step}
+              className="text-center animate-fade-up"
+              style={{ animationDelay: `${index * 150}ms` }}
             >
-              <div className="text-[#311970] mb-4">{step.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {step.title}
+              <div className="relative inline-block mb-6">
+                <div className="w-20 h-20 rounded-3xl bg-wedding-purple-light flex items-center justify-center">
+                  <span className="font-display text-3xl font-bold text-primary">
+                    {item.step}
+                  </span>
+                </div>
+
+                {index < howItWorks.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
+                )}
+              </div>
+
+              <h3 className="font-display text-2xl font-semibold mb-3">
+                {item.title}
               </h3>
-              <p className="text-sm text-gray-600">{step.description}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {item.description}
+              </p>
             </div>
           ))}
         </div>

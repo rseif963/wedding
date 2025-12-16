@@ -1,71 +1,78 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
-import Link from "next/link"; // ✅ Added this import
-import { Search } from "lucide-react";
-
-const images = ["/assets/hero.jpg", "/assets/hero2.jpg", "/assets/hero3.jpg"];
+import { Search, MapPin, ArrowRight } from "lucide-react";
 
 export default function Hero() {
-  const [current, setCurrent] = useState(0);
-  const [query, setQuery] = useState("");
-  const router = useRouter();
-
-  // Auto-slide every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % images.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleSearch = () => {
-    if (query.trim()) {
-      router.push(`/vendors?search=${encodeURIComponent(query)}`);
-    } else {
-      router.push("/vendors");
-    }
-  };
-
   return (
-    <section className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden ">
-      {/* Background Images */}
-      {images.map((img, index) => (
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
         <Image
-          key={index}
-          src={img}
-          alt={`Hero ${index + 1}`}
+          src="/assets/hero-wedding.jpg" // ← USE YOUR EXACT IMAGE PATH
+          alt="Wedding background"
           fill
-          priority={index === 0}
-          className={`object-cover transition-opacity duration-1000 ease-in-out ${index === current ? "opacity-100" : "opacity-0"
-            }`}
+          priority
+          className="object-cover"
         />
-      ))}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+      </div>
 
-      {/* Black overlay */}
-      <div className="absolute inset-0 bg-black/50"></div>
+      <div className="container relative z-10 mx-auto px-6 py-20 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="font-display text-4xl md:text-7xl font-bold text-foreground mb-6 animate-fade-up">
+            Everything You Need To Plan Your
+            <span className="text-gradient block mt-2">Wedding Day.</span>
+          </h1>
 
-      {/* Overlay Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-2">
-        <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold mb-3 leading-snug">
-          Plan Your Dream Wedding
-        </h1>
-        <p className="text-sm sm:text-base md:text-lg max-w-xl mb-6">
-          Discover the best venues, photographers, caterers, and more — all in one place.
-        </p>
+          <p className="text-md md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-up delay-100">
+            Connect with verified wedding professionals. From photographers to venues,
+            discover trusted vendors who will make your special day unforgettable.
+          </p>
 
+          {/* Search Bar */}
+          <div className="bg-background/80 backdrop-blur-sm rounded-2xl shadow-elevated p-3 max-w-2xl mx-auto animate-fade-up delay-200">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  placeholder="What are you looking for?"
+                  className="w-full pl-12 py-3 border-0 bg-muted/50 rounded-xl focus:outline-none"
+                />
+              </div>
 
-        {/* Action Buttons - hidden on small screens */}
-        <div className=" sm:flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center">
-          {/* ✅ Use Next.js <Link /> for internal navigation */}
-          <Link
-            href="/vendors"
-            className="bg-[#311970] px-6 py-3 mt-4 rounded-lg font-semibold shadow hover:bg-[#26125a] transition text-center"
-          >
-            Explore Vendors
-          </Link>
+              <div className="relative flex-1">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  placeholder="Location"
+                  className="w-full pl-12 py-3 border-0 bg-muted/50 rounded-xl focus:outline-none"
+                />
+              </div>
+
+              <button className="bg-[#311970] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#26125a] transition md:w-auto">
+                Search
+              </button>
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 animate-fade-up delay-300">
+            <Link
+              href="/vendors"
+              className="inline-flex items-center justify-center border border-border px-6 py-3 rounded-xl font-semibold hover:bg-muted transition"
+            >
+              Browse All Vendors
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+
+            <Link
+              href="/vendor-signup"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition"
+            >
+              List Your Business
+            </Link>
+          </div>
         </div>
       </div>
     </section>

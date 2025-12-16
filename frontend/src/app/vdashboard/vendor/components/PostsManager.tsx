@@ -6,17 +6,26 @@ import { useAppContext } from "@/context/AppContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function PortfolioGallery() {
-  const { posts: ctxPosts, updatePost, fetchVendorPosts, vendorProfile } =
-    useAppContext();
+  const {
+    posts: ctxPosts,
+    createPost,
+    updatePost,
+    fetchVendorPosts,
+    vendorProfile
+  } = useAppContext();
+
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
   const [postId, setPostId] = useState<string | null>(null);
   const [gallery, setGallery] = useState<string[]>([]);
+  const [previewFiles, setPreviewFiles] = useState<File[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
 
-  // Build same helper from your code
+
   const getFullUrl = (path?: string) => {
     if (!path) return "";
     if (path.startsWith("https://ik.imagekit.io")) return path;
@@ -26,7 +35,6 @@ export default function PortfolioGallery() {
     return `${base}${cleanPath.replace(/\\/g, "/")}`;
   };
 
-  // Load vendor posts → extract first post's gallery
   useEffect(() => {
     if (!vendorProfile?._id) return;
     (async () => {
@@ -42,25 +50,64 @@ export default function PortfolioGallery() {
     setGallery(p.galleryImages || []);
   }, [ctxPosts]);
 
-  // Upload + auto-save
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!postId) return;
+  // PREVIEW – not uploading yet
+  // Store file previews before upload
+  const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
 
     const file = e.target.files[0];
+
+    // Reset so selecting same file twice works
+    e.target.value = "";
+
+    // Add to preview list
+    setPreviewFiles((prev) => [...prev, file]);
+  };
+
+
+  const ensurePostExists = async () => {
+    if (postId) return postId;
+
+    const form = new FormData();
+    form.append("title", "Untitled Portfolio");
+    form.append("description", "");
+    form.append("priceFrom", "0");
+
+    // first post creation
+    const created = await createPost(form);
+
+    if (!created) return null;
+
+    setPostId(created._id);
+    return created._id;
+  };
+
+
+  const uploadPreviewFile = async (file: File) => {
+    setUploadingFiles((prev) => [...prev, file]); // mark as uploading
+
+    // 1️⃣ Ensure post exists before uploading images
+    const id = await ensurePostExists();
+    if (!id) {
+      setUploadingFiles((prev) => prev.filter((f) => f !== file));
+      return;
+    }
+
     const form = new FormData();
     form.append("galleryImages", file);
 
-    setLoading(true);
     try {
-      await updatePost(postId, form);
-      await fetchVendorPosts();
+      const updated = await updatePost(id, form);
+      if (updated) await fetchVendorPosts();
     } finally {
-      setLoading(false);
+      setPreviewFiles((prev) => prev.filter((f) => f !== file)); // remove preview
+      setUploadingFiles((prev) => prev.filter((f) => f !== file)); // mark done
     }
   };
 
-  // Delete photo
+
+
+  // DELETE EXISTING IMAGE
   const deletePhoto = async (img: string) => {
     if (!postId) return;
 
@@ -79,7 +126,13 @@ export default function PortfolioGallery() {
     }
   };
 
-  // Reorder
+  const resolveImage = (img: string | File) => {
+    if (img instanceof File) return URL.createObjectURL(img);
+    return getFullUrl(img);
+  };
+
+
+  // REORDER
   const onDragEnd = async (result: any) => {
     if (!result.destination) return;
 
@@ -89,9 +142,8 @@ export default function PortfolioGallery() {
 
     setGallery(items);
 
-    // Auto-save reorder
     const form = new FormData();
-    form.append("galleryImages", JSON.stringify(items)); // backend must handle ordering
+    form.append("galleryImages", JSON.stringify(items));
 
     setLoading(true);
     try {
@@ -113,24 +165,63 @@ export default function PortfolioGallery() {
       </div>
 
       {/* Upload Area */}
-      <div className="w-full max-w-4xl mx-auto border-2 border-dashed border-purple-300 rounded-xl p-10 text-center bg-purple-50">
-        <Upload className="w-10 h-10 text-purple-500 mx-auto" />
-        <p className="mt-4 text-purple-700 font-medium">
-          Drag & drop or upload photos
-        </p>
-        <label className="inline-flex mt-4 items-center gap-2 bg-[#4b1bb4] text-white px-5 py-2.5 rounded-xl cursor-pointer hover:bg-[#3a1591] transition">
-          <Upload className="w-4 h-4" />
-          Upload Photos
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleUpload}
-            className="hidden"
-          />
-        </label>
+      {/* Upload Area */}
+      <div className="w-full max-w-4xl mx-auto border-2 border-dashed border-purple-300 rounded-xl p-4 text-center bg-purple-50 relative min-h-[200px]">
+        {previewFiles.length > 0 ? (
+          <div className="absolute inset-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2 overflow-auto">
+            {previewFiles.map((file, index) => (
+              <div
+                key={index}
+                className="relative rounded-xl overflow-hidden shadow-md bg-gray-200 flex flex-col"
+              >
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="preview"
+                  className="w-full h-full object-cover"
+                />
+
+                {/* Upload button */}
+                <button
+                  onClick={() => uploadPreviewFile(file)}
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-[#4b1bb4] text-white py-1 px-3 text-sm font-semibold rounded"
+                  disabled={uploadingFiles.includes(file)}
+                >
+                  {uploadingFiles.includes(file) ? "Uploading..." : "Upload"}
+                </button>
+
+                {/* Remove button */}
+                <button
+                  onClick={() => setPreviewFiles(prev => prev.filter((_, i) => i !== index))}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Default upload UI
+          <div className="flex flex-col items-center justify-center h-full">
+            <Upload className="w-10 h-10 text-purple-500 mx-auto" />
+            <p className="mt-4 text-purple-700 font-medium">
+              Drag & drop or upload photos
+            </p>
+            <label className="inline-flex mt-4 items-center gap-2 bg-[#4b1bb4] text-white px-5 py-2.5 rounded-xl cursor-pointer hover:bg-[#3a1591] transition">
+              <Upload className="w-4 h-4" />
+              Upload Photos
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleSelectFile}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
 
         {loading && <p className="mt-4 text-purple-600">Saving...</p>}
       </div>
+
 
       {/* Gallery Grid */}
       <div className="w-full max-w-5xl mx-auto mt-10">
@@ -142,6 +233,8 @@ export default function PortfolioGallery() {
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
+                {/* Existing uploaded images */}
+                {/* Existing uploaded images */}
                 {gallery.map((img, index) => (
                   <Draggable key={img} draggableId={img} index={index}>
                     {(prov) => (
@@ -149,41 +242,40 @@ export default function PortfolioGallery() {
                         ref={prov.innerRef}
                         {...prov.draggableProps}
                         className="relative group rounded-xl overflow-hidden shadow-md bg-gray-100"
+                        onClick={(e) => {
+                          // Only open modal if not clicking the drag handle
+                          if (!(e.target as HTMLElement).closest("[data-drag-handle]")) {
+                            setSelectedImage(img);
+                          }
+                        }}
                       >
-                        {/* Image */}
                         <img
                           src={getFullUrl(img)}
-                          className="w-full h-40 object-cover"
+                          className="w-full h-40 object-cover cursor-pointer"
                         />
 
-                        {/* Top-left Featured Tag (just visual for now) */}
                         {index === 0 && (
                           <span className="absolute top-2 left-2 bg-[#4b1bb4] text-white text-xs px-2 py-1 rounded-md">
                             Featured
                           </span>
                         )}
 
-                        {/* Hover Controls */}
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex justify-between items-start p-2">
-                          {/* Reorder */}
                           <div
                             {...prov.dragHandleProps}
+                            data-drag-handle
                             className="bg-white rounded-md p-1 shadow cursor-grab"
                           >
                             <GripVertical size={18} />
                           </div>
 
-                          {/* View + Delete */}
                           <div className="flex gap-2">
                             <button
-                              onClick={() =>
-                                window.open(getFullUrl(img), "_blank")
-                              }
+                              onClick={() => setSelectedImage(img)}
                               className="bg-white rounded-md p-1 shadow"
                             >
                               <Eye size={16} />
                             </button>
-
                             <button
                               onClick={() => deletePhoto(img)}
                               className="bg-red-500 text-white rounded-md p-1 shadow"
@@ -193,20 +285,39 @@ export default function PortfolioGallery() {
                           </div>
                         </div>
                       </div>
+
                     )}
                   </Draggable>
+                ))}
+
+                {/* Preview tiles BEFORE upload */}
+                {previewFiles.map((file, i) => (
+                  <div
+                    key={i}
+                    className="relative rounded-xl overflow-hidden shadow-md bg-gray-200 flex flex-col"
+                  >
+                    <img
+                      src={resolveImage(file)}
+                      className="w-full h-40 object-cover opacity-90 cursor-pointer"
+                      onClick={() => setSelectedImage(file)} // Open modal on click
+                    />
+
+                    <button
+                      onClick={() => uploadPreviewFile(file)}
+                      className="mt-auto bg-[#4b1bb4] text-white py-2 text-sm font-semibold"
+                      disabled={uploadingFiles.includes(file)}
+                    >
+                      {uploadingFiles.includes(file) ? "Uploading..." : "Upload"}
+                    </button>
+
+                  </div>
                 ))}
 
                 {/* Add More Tile */}
                 <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 transition">
                   <Upload className="text-gray-500" size={24} />
                   <span className="mt-2 text-sm text-gray-600">Add More</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUpload}
-                    className="hidden"
-                  />
+                  <input type="file" accept="image/*" onChange={handleSelectFile} className="hidden" />
                 </label>
 
                 {provided.placeholder}
@@ -215,7 +326,8 @@ export default function PortfolioGallery() {
           </Droppable>
         </DragDropContext>
       </div>
-      {/* Portfolio Tips Card */}
+
+      {/* Portfolio Tips */}
       <div
         className="stat-card bg-accent/60 animate-fade-up shadow-sm p-4 rounded-2xl ml-4 mt-10"
         style={{ animationDelay: "300ms" }}
@@ -228,6 +340,36 @@ export default function PortfolioGallery() {
           <li>• Update regularly with your latest and best work</li>
         </ul>
       </div>
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          {/* Close Button */}
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 text-white text-3xl font-bold"
+          >
+            ✕
+          </button>
+
+          {/* Image */}
+          <img
+            src={resolveImage(selectedImage)}
+            className="max-h-[90vh] max-w-[95vw] object-contain rounded-xl shadow-xl"
+          />
+
+          {/* Mobile delete button */}
+          {typeof selectedImage === "string" && (
+            <button
+              onClick={() => {
+                deletePhoto(selectedImage);
+                setSelectedImage(null);
+              }}
+              className="absolute bottom-6 bg-red-600 text-white px-6 py-3 rounded-full shadow-lg text-sm font-semibold md:hidden"
+            >
+              Delete Photo
+            </button>
+          )}
+        </div>
+      )}
 
     </section>
   );

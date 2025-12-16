@@ -19,30 +19,26 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, role, authLoading } = useAppContext();
   const pathname = usePathname();
-  // local fallback state (used only if context user/role are not available)
+
   const [localUser, setLocalUser] = useState<LocalUser | null>(null);
   const [localRole, setLocalRole] = useState<string | null>(null);
 
-  // Decide profile link based on effective role (context first, then local detection)
   const effectiveRole = role || localRole || null;
 
   const profileLink =
     effectiveRole === "vendor"
       ? "/vdashboard/vendor"
       : effectiveRole === "client"
-        ? "/dashboard/client"
-        : "/profile"; // fallback
+      ? "/dashboard/client"
+      : "/profile";
 
-  // Detect user if not available in context
   useEffect(() => {
     if (user) {
-      // clear any local detection if context provides the user
       setLocalUser(null);
       setLocalRole(null);
       return;
     }
 
-    // run detection only on client and if token exists
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -51,7 +47,6 @@ export default function Navbar() {
 
     const detect = async () => {
       try {
-        // try client profile first
         const clientRes = await axios.get("/api/clients/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -64,9 +59,7 @@ export default function Navbar() {
         });
         setLocalRole("client");
         return;
-      } catch {
-        // not a client or failed; try vendor
-      }
+      } catch {}
 
       try {
         const vendorRes = await axios.get("/api/vendors/me", {
@@ -80,43 +73,21 @@ export default function Navbar() {
           phone: vendorRes.data?.phone,
         });
         setLocalRole("vendor");
-      } catch {
-        // no user detected
-      }
+      } catch {}
     };
 
     detect();
-
     return () => {
       mounted = false;
     };
   }, [user, role]);
 
-  // decide final "isLoggedIn" using context first, then local detection
   const isLoggedIn = Boolean(user || localUser);
 
-  if (authLoading) {
-    return (
-      <nav className="sticky top-0 z-50 w-full bg-white shadow-md px-6 md:px-10 py-4 flex items-center">
-        <div className="flex-shrink-0">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/assets/logo.png"
-              alt="Wedpine Logo"
-              width={120}
-              height={120}
-              className="object-contain"
-            />
-          </Link>
-        </div>
-      </nav>
-    );
-  }
-
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white shadow-md px-6 md:px-10 py-4 flex items-center">
-      {/* Left: Logo */}
-      <div className="flex-shrink-0">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
             src="/assets/logo.png"
@@ -126,146 +97,108 @@ export default function Navbar() {
             className="object-contain"
           />
         </Link>
-      </div>
 
-      {/* Center: Links (desktop only) */}
-      <div className="flex-grow hidden md:flex justify-center">
-        <ul className="flex gap-8 text-gray-700 font-medium text-sm">
-          <li>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-8">
+          {[
+            { name: "Home", href: "/" },
+            { name: "Vendors", href: "/vendors" },
+            { name: "Blog", href: "/blog" },
+            { name: "About", href: "/about" },
+            { name: "Contact", href: "/contact" },
+          ].map((item) => (
             <Link
-              href="/"
-              className={`${pathname === "/" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
+              key={item.name}
+              href={item.href}
+              className={`relative text-sm font-medium transition-colors ${
+                pathname === item.href
+                  ? "text-[#311970]"
+                  : "text-gray-600 hover:text-[#311970]"
+              }`}
             >
-              Home
+              {item.name}
+              {pathname === item.href && (
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#311970] rounded-full" />
+              )}
             </Link>
-          </li>
-          <li>
-            <Link
-              href="/vendors"
-              className={`${pathname === "/vendors" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
-            >
-              Vendors
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/blog"
-              className={`${pathname === "/blog" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
-            >
-              Blog
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/about"
-              className={`${pathname === "/about" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
-            >
-              About
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/contact"
-              className={`${pathname === "/contact" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970] transition`}
-            >
-              Contact
-            </Link>
-          </li>
-        </ul>
-      </div>
+          ))}
+        </div>
 
-      {/* Right: Login/Profile (desktop only) + Hamburger (mobile only) */}
-      <div className="ml-auto flex items-center">
-        {isLoggedIn ? (
-          <Link
-            href={profileLink}
-            className="hidden md:inline-block bg-[#311970] text-white px-5 py-2.5 rounded-lg shadow hover:bg-[#26125a] transition font-semibold"
-          >
-            Profile
-          </Link>
-        ) : (
-          <Link
-            href="/auth"
-            className="hidden md:inline-block bg-[#311970] text-white px-5 py-2.5 rounded-lg shadow hover:bg-[#26125a] transition font-semibold"
-          >
-            Login
-          </Link>
-        )}
-
-        {/* Hamburger (mobile only) */}
-        <button
-          className="ml-4 md:hidden text-gray-700"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="absolute text-sm top-full left-0 w-full bg-white shadow-md flex flex-col items-center py-6 gap-3 md:hidden">
-          <Link
-            href="/"
-            className={`${pathname === "/" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Home
-          </Link>
-
-          <Link
-            href="/vendors"
-            className={`${pathname === "/vendors" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Vendors
-          </Link>
-
-          <Link
-            href="/blog"
-            className={`${pathname === "/blog" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Blog
-          </Link>
-
-          <Link
-            href="/about"
-            className={`${pathname === "/about" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
-            onClick={() => setMenuOpen(false)}
-          >
-            About
-          </Link>
-
-          <Link
-            href="/contact"
-            className={`${pathname === "/contact" ? "text-[#311970]" : "text-gray-700"} hover:text-[#311970]`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Contact
-          </Link>
-
-
-
+        {/* Desktop CTA */}
+        <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
             <Link
               href={profileLink}
-              className="bg-[#311970] text-white px-5 py-2.5 rounded-lg shadow hover:bg-[#26125a] transition font-semibold"
-              onClick={() => setMenuOpen(false)}
+              className="bg-[#311970] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#26125a] transition"
             >
               Profile
             </Link>
           ) : (
             <Link
               href="/auth"
-              className="bg-[#311970] text-white px-5 py-2.5 rounded-lg shadow hover:bg-[#26125a] transition font-semibold"
-              onClick={() => setMenuOpen(false)}
+              className="bg-[#311970] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#26125a] transition"
             >
               Login
             </Link>
           )}
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </nav>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t shadow-lg animate-fade-in">
+          <div className="flex flex-col gap-4 px-6 py-6 text-sm">
+            {[
+              { name: "Home", href: "/" },
+              { name: "Vendors", href: "/vendors" },
+              { name: "Blog", href: "/blog" },
+              { name: "About", href: "/about" },
+              { name: "Contact", href: "/contact" },
+            ].map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className={`font-medium transition ${
+                  pathname === item.href
+                    ? "text-[#311970]"
+                    : "text-gray-600 hover:text-[#311970]"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+
+            <div className="pt-4 border-t">
+              {isLoggedIn ? (
+                <Link
+                  href={profileLink}
+                  onClick={() => setMenuOpen(false)}
+                  className="block text-center bg-[#311970] text-white py-2.5 rounded-lg font-semibold hover:bg-[#26125a] transition"
+                >
+                  Profile
+                </Link>
+              ) : (
+                <Link
+                  href="/auth"
+                  onClick={() => setMenuOpen(false)}
+                  className="block text-center bg-[#311970] text-white py-2.5 rounded-lg font-semibold hover:bg-[#26125a] transition"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
       )}
-    </nav>
+    </header>
   );
 }

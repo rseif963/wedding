@@ -8,7 +8,7 @@ import imagekit from "../config/imagekit.js";
 const router = express.Router();
 
 /**
- * ✅ Get all vendors (admin only)
+ * Get all vendors (admin only)
  */
 router.get("/", auth, permit("admin"), async (req, res) => {
   try {
@@ -23,7 +23,7 @@ router.get("/", auth, permit("admin"), async (req, res) => {
 });
 
 /**
- * ✅ Get my profile (vendor only)
+ * Get my profile (vendor only)
  */
 router.get("/me", auth, permit("vendor"), async (req, res) => {
   try {
@@ -36,7 +36,7 @@ router.get("/me", auth, permit("vendor"), async (req, res) => {
 });
 
 /**
- * ✅ Update vendor profile (logo, profilePhoto, coverPhoto)
+ * Update vendor profile (logo, profilePhoto, coverPhoto)
  */
 router.put(
   "/me",
@@ -60,7 +60,7 @@ router.put(
         return result.url;
       };
 
-      // ✅ Handle image uploads
+      // Handle image uploads
       if (req.files?.logo?.[0]) {
         updates.logo = await uploadToImageKit(req.files.logo[0]);
       }
@@ -73,7 +73,7 @@ router.put(
         updates.coverPhoto = await uploadToImageKit(req.files.coverPhoto[0]);
       }
 
-      // ✅ Parse JSON fields safely
+      // Parse JSON fields safely
       if (updates.serviceCategories) {
         updates.serviceCategories = JSON.parse(updates.serviceCategories);
       }
@@ -109,7 +109,7 @@ router.put(
 );
 
 /**
- * ✅ Get all posts for this vendor
+ * Get all posts for this vendor
  */
 router.get("/me/posts", auth, permit("vendor"), async (req, res) => {
   try {
@@ -127,7 +127,7 @@ router.get("/me/posts", auth, permit("vendor"), async (req, res) => {
 });
 
 /**
- * ✅ Public vendor profile by ID
+ * Public vendor profile by ID
  */
 router.get("/:id", async (req, res) => {
   try {
@@ -144,7 +144,7 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
- * ✅ Toggle featured (admin only) and update all posts for that vendor
+ * Toggle featured (admin only) and update all posts for that vendor
  */
 router.put("/:id/feature", auth, permit("admin"), async (req, res) => {
   try {
