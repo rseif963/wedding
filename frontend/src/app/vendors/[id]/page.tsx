@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
@@ -10,7 +11,7 @@ import ImageGallery from "react-image-gallery";
 import "react-image-gallery/styles/css/image-gallery.css";
 import { useAppContext } from "@/context/AppContext";
 import { toast } from "react-hot-toast";
-import { Smile, RefreshCcw, User, SlidersHorizontal, DollarSign } from "lucide-react";
+import { Smile, RefreshCcw, User, SlidersHorizontal, DollarSign, Calendar } from "lucide-react";
 
 type ReviewCategory = "quality" | "responsiveness" | "professionalism" | "flexibility" | "value";
 
@@ -91,10 +92,61 @@ export default function VendorProfile() {
     value: 0,
   });
 
+
+
+  const packages = [
+    {
+      name: "Essential",
+      price: "$2,500",
+      features: [
+        "6 hours coverage",
+        "1 photographer",
+        "300+ edited photos",
+        "Online gallery",
+        "Print release",
+      ],
+    },
+    {
+      name: "Premium",
+      price: "$4,000",
+      popular: true,
+      features: [
+        "8 hours coverage",
+        "2 photographers",
+        "500+ edited photos",
+        "Engagement session",
+        "Online gallery",
+        "Print release",
+        "Wedding album",
+      ],
+    },
+    {
+      name: "Luxury",
+      price: "$6,500",
+      features: [
+        "Full day coverage",
+        "2 photographers",
+        "800+ edited photos",
+        "Engagement session",
+        "Bridal session",
+        "Online gallery",
+        "Print release",
+        "2 Wedding albums",
+        "Canvas print",
+      ],
+    },
+  ];
+
+
+
+
   // Add at the top inside VendorProfile
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [bookingMessage, setBookingMessage] = useState("");
   const [bookingDate, setBookingDate] = useState("");
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupImageIndex, setPopupImageIndex] = useState(0);
+
 
   // New function to handle submission
   const handleRequestPricing = async () => {
@@ -305,102 +357,187 @@ export default function VendorProfile() {
   ];
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen mt-16">
       <Navbar />
       <div className="w-full overflow-hidden text-ellipsis">
         <Breadcrumb />
       </div>
-      <div className="lg:flex lg:flex-col-2">
+      <div className="">
         {/* Gallery section replacing Hero */}
-        <section className="w-full md:w-150 mx-auto px-2 py-6">
-          <ImageGallery
-            items={images}
-            showPlayButton={true}
-            showFullscreenButton={true}
-            showBullets={false}
-            showIndex={false}
-            slideInterval={4000}
-            autoPlay={true}
-            additionalClass="rounded-lg shadow-md"
+        <section className="relative w-full h-[420px]">
+          <Image
+            src={vendorPost.mainPhoto}
+            alt={vendor.businessName}
+            fill
+            className="object-cover"
+            priority
           />
-          {/* INFO BAR BELOW GALLERY */}
-          <div className="max-w-5xl mx-auto px-2 mt-6 p-3 rounded-lg shadow-sm bg-white flex flex-col md:flex-row md:items-center justify-between">
-
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold text-[#311970]">
-                {vendor?.businessName}
-              </h1>
-
-              {vendor?.location && (
-                <p className="text-sm text-gray-500">{vendor.location}, Kenya</p>
-              )}
-
-              <div className="flex items-center gap-2 mt-1">
-                <RatingStars rating={Math.round(averageRating)} />
-                <span className="text-gray-600 text-sm">
-                  {reviews?.length ?? 0} reviews
-                </span>
-              </div>
-            </div>
-
-            {/* RIGHT SIDE: Price + Favorite + Buttons */}
-            <div className="flex flex-col items-start md:items-end gap-3 mt-4 md:mt-0">
-
-              <div className="flex items-center gap-4">
-                <span className="text-lg font-semibold text-gray-800">
-                  Starting from Ksh {vendorPost?.priceFrom?.toLocaleString()}
-                </span>
-
-                {/* <button
-                    className="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-1 hover:bg-red-100 transition"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleLike(post._id);
-                    }}
-                  >
-                    <Heart
-                      className={`w-5 h-5 transition ${liked.includes(post._id)
-                        ? "text-red-500 fill-red-500"
-                        : "text-red-500"
-                        }`}
-                    />
-                  </button> */}
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowBookingPopup(true)}
-                  className="bg-[#311970] text-white px-5 py-2 rounded-lg shadow hover:bg-[#261457] transition"
-                >
-                  Request Pricing
-                </button>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-white" />
 
 
-                {phone && (
-                  <button
-                    onClick={() => (window.location.href = `tel:${phone}`)}
-                    className="border border-[#311970] text-[#311970] px-5 py-2 rounded-lg hover:bg-gray-100 transition"
-                  >
-                    Call Now
-                  </button>
-                )}
-              </div>
-            </div>
+          {/* Hero Content */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-6xl px-4">
+
+
           </div>
         </section>
 
-        {/* About section with request pricing button below */}
-        <section className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col lg:items-start lg:justify-between gap-8">
-            <div className="lg:w-3/4">
+
+      </div>
+
+      <section className="relative z-10 max-w-8xl mx-auto px-4 -mt-68 rounded-2xl py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+
+        {/* ================= LEFT ================= */}
+        <div className="space-y-12 rounded-2xl">
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {/* TOP SECTION */}
+            <div className="p-6 flex justify-between items-center">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-3 py-1 text-xs rounded-full bg-[#EEE9FF] text-[#311970] font-semibold">
+                    {vendor.category}
+                  </span>
+                  <span className="text-sm text-gray-500">{vendor.location}</span>
+                </div>
+
+                <h1 className="text-1xl md:text-2xl font-bold text-[#311970]">
+                  {vendor.businessName}
+                </h1>
+
+                <div className="flex items-center gap-2 mt-2">
+                  <RatingStars rating={Math.round(averageRating)} />
+                  <span className="text-sm text-gray-600">
+                    {averageRating.toFixed(1)} ({reviews?.length} reviews)
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Starting from</p>
+                <p className="text-sm font-bold text-[#311970]">
+                  Ksh {vendorPost.priceFrom?.toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            {/* DIVIDER */}
+            <div className="border-t border-gray-100" />
+
+            {/* ABOUT */}
+            <div className="p-6">
               <h2 className="text-2xl font-bold text-[#311970] mb-4">About</h2>
               <p className="text-gray-700 leading-relaxed">
-                {aboutText || "No description available."}
+                {vendor.description}
               </p>
             </div>
           </div>
-        </section>
-      </div>
+
+
+          {/* GALLERY */}
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h2 className="text-2xl font-bold text-[#311970] mb-6">Gallery</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {(galleryArray || []).map((img: string, i: number) => (
+                <img
+                  key={i}
+                  src={getFullUrl(img)}
+                  className="w-full h-56 object-cover rounded-xl cursor-pointer hover:opacity-80 transition"
+                  alt={`Gallery image ${i + 1}`}
+                  onClick={() => {
+                    setPopupImageIndex(i);
+                    setIsPopupOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+
+          </div>
+
+          {/* PACKAGES & PRICING */}
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h2 className="text-2xl font-bold text-[#311970] mb-6">
+              Packages & Pricing
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg.name}
+                  className={`relative rounded-2xl border p-6 transition ${pkg.popular
+                    ? "border-[#311970] ring-2 ring-[#311970]"
+                    : "border-gray-200"
+                    }`}
+                >
+                  {pkg.popular && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#311970] text-white text-xs font-semibold px-4 py-1 rounded-full">
+                      Most Popular
+                    </span>
+                  )}
+
+                  <h3 className="text-xl font-semibold text-[#311970] mb-2">
+                    {pkg.name}
+                  </h3>
+
+                  <p className="text-3xl font-bold text-[#311970] mb-4">
+                    {pkg.price}
+                  </p>
+
+                  <ul className="space-y-2 mb-6">
+                    {pkg.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2 text-sm text-gray-700"
+                      >
+                        <span className="text-[#311970] font-bold">✓</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    className={`w-full py-2.5 rounded-xl font-semibold transition ${pkg.popular
+                      ? "bg-[#311970] text-white hover:bg-[#261457]"
+                      : "border border-gray-300 text-gray-800 hover:bg-gray-50"
+                      }`}
+                  >
+                    Select Package
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+
+          {/* REVIEWS (UNCHANGED LOGIC, NEW LAYOUT) */}
+          {/* --- YOUR EXISTING REVIEWS JSX CAN STAY HERE --- */}
+
+        </div>
+
+        {/* ================= RIGHT ================= */}
+        <aside className="sticky top-28 h-fit bg-white rounded-2xl p-6 shadow">
+          <h3 className="text-xl font-bold text-[#311970] mb-4">Contact Vendor</h3>
+          <button
+            onClick={() => setShowBookingPopup(true)}
+            className="w-full bg-[#311970] text-white py-3 rounded-xl font-semibold mb-4"
+          >
+            Send Message
+          </button>
+          {phone && (
+            <button
+              onClick={() => (window.location.href = `tel:${phone}`)}
+              className="w-full border border-[#311970] text-[#311970] py-3 rounded-xl font-semibold hover:bg-gray-50 transition mb-4"
+            >
+              Call Now
+            </button>
+          )}
+          <button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+            <Calendar className="w-5 h-5" /> Check Availability
+          </button>
+          <p className="mt-6 text-sm text-gray-600">
+            <strong>Response time:</strong><br />Usually within 24 hours
+          </p>
+        </aside>
+      </section>
 
       {/* Contact */}
       {/*  <section className="max-w-4xl mx-auto px-6 py-12">
@@ -563,8 +700,6 @@ export default function VendorProfile() {
 
             </div>
 
-
-
             {/* COMMENT FIELD */}
             <textarea
               placeholder="Your Comments"
@@ -696,7 +831,56 @@ export default function VendorProfile() {
         </div>
       )}
 
+      {isPopupOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 bg-opacity-80 flex items-center justify-center z-50 p-4"
+          onClick={() => setIsPopupOpen(false)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()} // prevent popup close on image click
+          >
+            <img
+              src={getFullUrl(galleryArray[popupImageIndex])}
+              alt={`Popup image ${popupImageIndex + 1}`}
+              className="rounded-3xl max-w-full max-h-[90vh] object-contain"
+            />
 
+            {/* Close Button */}
+            <button
+              onClick={() => setIsPopupOpen(false)}
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
+              aria-label="Close popup"
+            >
+              ✕
+            </button>
+
+            {/* Prev Button */}
+            <button
+              onClick={() =>
+                setPopupImageIndex(
+                  (popupImageIndex - 1 + galleryArray.length) % galleryArray.length
+                )
+              }
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-3xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
+              aria-label="Previous Image"
+            >
+              ‹
+            </button>
+
+            {/* Next Button */}
+            <button
+              onClick={() =>
+                setPopupImageIndex((popupImageIndex + 1) % galleryArray.length)
+              }
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-3xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
+              aria-label="Next Image"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
       <Footer />
     </main>
   );

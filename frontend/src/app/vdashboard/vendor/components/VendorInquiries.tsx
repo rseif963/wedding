@@ -49,7 +49,7 @@ export default function VendorInquiries() {
               name: "Emily & Michael",
               msg:
                 "We’re interested in your premium package. Can y...",
-              time: "5 hours ago",
+              time: "9 hours ago",
               unread: true,
               img: 32,
             },
