@@ -616,7 +616,7 @@ const VendorsPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {currentVendors.map((post) => {
                     const v = post.vendor;
-                    const imageUrl = getFullUrl(post.mainPhoto || v?.logo);
+                    const imageUrl = getFullUrl(post.mainPhoto || v?.profilePhoto || v?.logo);
 
                     const vendorId = v?._id ? String(v._id) : "";
                     const vendorReviews = vendorId

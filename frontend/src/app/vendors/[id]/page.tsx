@@ -240,7 +240,8 @@ export default function VendorProfile() {
 
 
   const heroSrc =
-    vendorPost?.mainPhoto ||
+    vendorPost?.mainPhoto ||      // main photo of the post
+    vendor?.profilePhoto ||       // fallback to vendor profile photo
     vendorPost?.image ||
     vendor?.logo ||
     vendor?.banner ||
@@ -366,22 +367,14 @@ export default function VendorProfile() {
         {/* Gallery section replacing Hero */}
         <section className="relative w-full h-[420px]">
           <Image
-            src={vendorPost.mainPhoto}
+            src={getFullUrl(heroSrc || undefined)}
             alt={vendor.businessName}
             fill
             className="object-cover"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-white" />
-
-
-          {/* Hero Content */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-6xl px-4">
-
-
-          </div>
         </section>
-
 
       </div>
 
