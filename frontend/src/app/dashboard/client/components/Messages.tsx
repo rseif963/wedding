@@ -1,307 +1,168 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useAppContext } from "@/context/AppContext";
-import { ArrowLeft, Send, Paperclip, Search, X } from "lucide-react";
+import { useState } from "react";
+import {
+  Search,
+  MoreVertical,
+  Paperclip,
+  Send,
+  Calendar,
+} from "lucide-react";
 
-type ActiveChat = { userId: string; userName: string; role: "vendor" | "client" };
-
-export default function ClientMessages() {
-  const {
-    bookings,
-    user,
-    messages: contextMessages = [],
-    fetchMessages,
-    sendMessage,
-    fetchConversation,
-    socket,
-  } = useAppContext();
-
-  const [activeChat, setActiveChat] = useState<ActiveChat | null>(null);
-  const [chatText, setChatText] = useState("");
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
-  const [fileToSend, setFileToSend] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const STORAGE_KEY = "client_active_chat";
-
-  // Utilities
-  const extractId = (val: any) => val?._id || val?.id || val?.user?._id || null;
-  const getUserName = (val: any) =>
-    val?.businessName || val?.name || val?.email || "User";
-
-  const mergeMessages = (fresh: any[], cached: any[]) => {
-    const map = new Map();
-    [...cached, ...fresh].forEach((m) => {
-      const key = m._id ?? m.id ?? Math.random().toString();
-      map.set(key, m);
-    });
-    return Array.from(map.values()).sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
-  };
-
-  // Fetch all chats on mount
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
-
-  // Socket listener
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleMessage = (msg: any) => {
-      // If current chat is active, append
-      if (
-        activeChat &&
-        (msg.sender?.id === activeChat.userId ||
-          msg.receiver?.id === activeChat.userId)
-      ) {
-        setChatMessages((prev) => mergeMessages([msg], prev));
-      }
-    };
-
-    socket.on("receiveMessage", handleMessage);
-    return () => {
-      socket.off("receiveMessage", handleMessage);
-    };
-  }, [socket, activeChat]);
-
-  // Load messages for active chat from context + localStorage
-  useEffect(() => {
-    if (!activeChat) return;
-    const cached = localStorage.getItem(`${STORAGE_KEY}_msgs_${activeChat.userId}`);
-    const cachedMessages = cached ? JSON.parse(cached) : [];
-
-    const conv = contextMessages.filter(
-      (m: any) =>
-        m.sender?.id === activeChat.userId || m.receiver?.id === activeChat.userId
-    );
-
-    const merged = mergeMessages(conv, cachedMessages);
-    setChatMessages(merged);
-  }, [activeChat, contextMessages]);
-
-  // Scroll to bottom on new messages
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
-
-  // Open a chat
-  const openChat = async (chatUser: any) => {
-    const userId = extractId(chatUser);
-    if (!userId) return;
-
-    const role = chatUser.businessName ? "vendor" : "client";
-    const userName = getUserName(chatUser);
-
-    setActiveChat({ userId, userName, role });
-
-    // Load cached
-    const cached = localStorage.getItem(`${STORAGE_KEY}_msgs_${userId}`);
-    const cachedMessages = cached ? JSON.parse(cached) : [];
-    setChatMessages(cachedMessages);
-
-    try {
-      const fetchedMessages = await fetchConversation(userId);
-      const merged = mergeMessages(fetchedMessages, cachedMessages);
-      setChatMessages(merged);
-      localStorage.setItem(`${STORAGE_KEY}_msgs_${userId}`, JSON.stringify(merged));
-    } catch (err) {
-      console.error("Failed to fetch conversation:", err);
-    }
-  };
-
-  // Send message
-  const handleSend = async () => {
-    if (!activeChat || (!chatText.trim() && !fileToSend)) return;
-
-    try {
-      const sent = await sendMessage(activeChat.userId, chatText.trim(), fileToSend);
-      if (sent) setChatMessages((prev) => mergeMessages([sent], prev));
-
-      setChatText("");
-      setFileToSend(null);
-      setPreviewUrl(null);
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    }
-  };
-
-  const handleFileSelect = (file: File) => {
-    setFileToSend(file);
-    if (file?.type.startsWith("image/")) setPreviewUrl(URL.createObjectURL(file));
-    else setPreviewUrl(null);
-  };
+export default function VendorInquiries() {
+  const [message, setMessage] = useState("");
 
   return (
-    <div className="flex h-screen w-full bg-gray-100 text-gray-900">
-      {/* Sidebar */}
-      <div
-        className={`${
-          activeChat ? "hidden md:flex" : "flex"
-        } flex-col w-full md:w-1/3 lg:w-1/4 border-r border-gray-300 bg-white`}
-      >
-        <div className="flex items-center justify-between p-3 border-b bg-gray-100">
-          <h2 className="text-lg font-semibold">Chats</h2>
-          <Search className="text-gray-500" size={18} />
+    <div className="flex gap-6 h-[calc(100vh-120px)]">
+      {/* LEFT - INQUIRIES LIST */}
+      <div className="w-[340px] bg-white rounded-2xl p-4 flex flex-col">
+        <h2 className="font-semibold mb-3">Inquiries</h2>
+
+        {/* Search */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <input
+            placeholder="Search inquiries..."
+            className="w-full pl-9 py-2 bg-gray-100 rounded-xl text-sm outline-none"
+          />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {bookings.map((b: any) => {
-            const vendorObj = b.vendor ?? b.vendorProfile ?? b.vendorData ?? null;
-            const name = getUserName(vendorObj);
-            const userId = extractId(vendorObj);
-            if (!userId) return null;
+        {/* Filters */}
+        <div className="flex gap-2 mb-4">
+          {["All", "New", "Replied", "Archived"].map((f, i) => (
+            <button
+              key={f}
+              className={`px-3 py-1 rounded-full text-xs font-medium ${i === 0
+                  ? "bg-[#2D157A] text-white"
+                  : "bg-gray-100 text-gray-500"
+                }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
 
-            const lastMsg = mergeMessages(
-              contextMessages.filter(
-                (m: any) => m.sender?.id === userId || m.receiver?.id === userId
-              ),
-              []
-            ).slice(-1)[0];
-
-            return (
-              <div
-                key={b._id}
-                onClick={() => openChat(vendorObj)}
-                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-200 border-b border-gray-100"
-              >
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{name}</p>
-                  <p className="text-gray-500 text-xs truncate">{lastMsg?.text}</p>
+        {/* Conversations */}
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          {[
+            {
+              name: "Emily & Michael",
+              msg:
+                "We’re interested in your premium package. Can y...",
+              time: "9 hours ago",
+              unread: true,
+              img: 32,
+            },
+            {
+              name: "Jessica & Ryan",
+              msg:
+                "Thursday works perfectly! Looking forward to it.",
+              time: "1 day ago",
+              active: true,
+              img: 12,
+            },
+            {
+              name: "Amanda & Chris",
+              msg:
+                "Yes! Drone coverage is included in our Premium a...",
+              time: "3 days ago",
+              img: 47,
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className={`flex gap-3 p-3 rounded-xl cursor-pointer ${item.active ? "bg-[#FFF4F4]" : "hover:bg-gray-100"
+                }`}
+            >
+              <img
+                src={`https://i.pravatar.cc/100?img=${item.img}`}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 font-medium text-sm">
+                  {item.name}
+                  {item.unread && (
+                    <span className="w-2 h-2 bg-[#5B2DFF] rounded-full" />
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">{item.msg}</p>
+                <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                  🕒 {item.time}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Chat Area */}
-      {activeChat && (
-        <div className="flex flex-col flex-1">
-          {/* Header */}
-          <div className="flex items-center gap-3 p-3 border-b bg-gray-100">
-            <button
-              onClick={() => setActiveChat(null)}
-              className="md:hidden text-gray-700"
-            >
-              <ArrowLeft size={22} />
-            </button>
-            <h2 className="font-medium text-sm">{activeChat.userName}</h2>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-            {chatMessages.map((m) => {
-              const fromId = m.sender?.id ?? m.fromUser?._id ?? m.fromUser?.id;
-              const isFromMe = String(user?.id || user?._id) === String(fromId);
-
-              return (
-                <div
-                  key={m._id ?? Math.random()}
-                  className={`flex flex-col mb-3 ${
-                    isFromMe ? "items-end" : "items-start"
-                  }`}
-                >
-                  <div
-                    className={`rounded-lg px-3 py-2 max-w-[75%] shadow-sm ${
-                      isFromMe ? "bg-purple-600 text-white" : "bg-white text-gray-900"
-                    }`}
-                  >
-                    {m.text && <p className="text-sm">{m.text}</p>}
-                    {m.mediaUrl && m.mediaType === "image" && (
-                      <img
-                        src={m.mediaUrl}
-                        alt="sent media"
-                        className="rounded-lg mt-1 max-w-full"
-                      />
-                    )}
-                    {m.mediaUrl && m.mediaType === "video" && (
-                      <video
-                        src={m.mediaUrl}
-                        controls
-                        className="rounded-lg mt-1 max-w-full"
-                      />
-                    )}
-                    {m.mediaUrl && m.mediaType === "audio" && (
-                      <audio src={m.mediaUrl} controls className="mt-1 w-full" />
-                    )}
-                    {m.mediaUrl && m.mediaType === "file" && (
-                      <a
-                        href={m.mediaUrl}
-                        target="_blank"
-                        className="block mt-1 underline text-xs"
-                      >
-                        Download File
-                      </a>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-gray-500 mt-1">
-                    {m.createdAt
-                      ? new Date(m.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : ""}
-                  </span>
-                </div>
-              );
-            })}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Image Preview */}
-          {previewUrl && (
-            <div className="p-3 border-t bg-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-20 h-20 object-cover rounded-lg"
-                />
-                <button
-                  onClick={() => {
-                    setPreviewUrl(null);
-                    setFileToSend(null);
-                  }}
-                  className="text-gray-500 hover:text-red-500"
-                >
-                  <X size={20} />
-                </button>
+      {/* RIGHT - CHAT PANEL */}
+      <div className="flex-1 bg-white rounded-2xl flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-center border-b px-6 py-4">
+          <div className="flex items-center gap-3">
+            <img
+              src="https://i.pravatar.cc/100?img=12"
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div>
+              <div className="font-semibold text-sm">
+                Jessica & Ryan
+              </div>
+              <div className="text-xs text-gray-500">
+                jessica.ryan@email.com
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Input */}
-          <div className="flex items-center gap-2 p-3 border-t bg-gray-100">
-            <label className="cursor-pointer text-gray-600 hover:text-purple-600">
-              <Paperclip size={20} />
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) =>
-                  e.target.files && handleFileSelect(e.target.files[0])
-                }
-              />
-            </label>
-            <input
-              type="text"
-              value={chatText}
-              onChange={(e) => setChatText(e.target.value)}
-              placeholder="Type a message"
-              className="flex-1 px-3 py-2 rounded-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
-            />
-            <button
-              onClick={handleSend}
-              className="bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition"
-            >
-              <Send size={18} />
-            </button>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Wedding: May 8, 2025
+            </div>
+            <MoreVertical className="w-5 h-5" />
           </div>
         </div>
-      )}
+
+        {/* Messages */}
+        <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-[#FAFAFB]">
+          <div className="max-w-[70%] bg-gray-200 rounded-2xl px-4 py-3 text-sm">
+            Thank you for the detailed quote! We'd love to
+            schedule a call to discuss further.
+            <div className="text-xs text-gray-400 mt-1">
+              1 day ago
+            </div>
+          </div>
+
+          <div className="max-w-[70%] ml-auto bg-[#2D157A] text-white rounded-2xl px-4 py-3 text-sm">
+            Hi Jessica! I'd be happy to set up a call. How about Thursday at 3 PM?
+            <div className="text-xs text-white/70 mt-1">
+              23 hours ago
+            </div>
+          </div>
+
+          <div className="max-w-[70%] bg-gray-200 rounded-2xl px-4 py-3 text-sm">
+            Thursday works perfectly! Looking forward to it.
+            <div className="text-xs text-gray-400 mt-1">Now</div>
+          </div>
+        </div>
+
+        {/* Reply Box */}
+        <div className="border-t px-6 py-4 flex items-center gap-3 bg-white">
+          <Paperclip className="w-5 h-5 text-gray-400 cursor-pointer" />
+
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your reply..."
+            className="flex-1 bg-gray-100 rounded-xl px-4 py-2 text-sm outline-none"
+          />
+
+          <button className="bg-[#2D157A] text-white px-4 py-2 rounded-xl flex items-center gap-2">
+            <Send className="w-4 h-4" />
+            <span className="text-sm font-medium">Send</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -81,7 +81,7 @@ export default function Checklist() {
   };
 
   return (
-    <div className="bg-white p-2 rounded-xl w-full max-w-xl mx-auto">
+    <div className="bg-white p-2 rounded-xl w-full w-full mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Checklist</h2>
       </div>
@@ -94,7 +94,7 @@ export default function Checklist() {
       </button>
 
       {formVisible && (
-        <div className="grid grid-cols-1 gap-2 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
           <input
             type="text"
             placeholder="Title"

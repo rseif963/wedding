@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Users, CheckSquare, DollarSign, CalendarClock } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 export default function StatsCards() {
@@ -11,7 +12,6 @@ export default function StatsCards() {
     fetchClientAll,
   } = useAppContext();
 
-  // Fetch all client data on mount
   useEffect(() => {
     fetchClientBookings();
     fetchClientAll();
@@ -29,41 +29,56 @@ export default function StatsCards() {
     }, 0) || 0;
   const budgetTotal = clientProfile?.budget?.plannedAmount || 0;
 
-  // Guests — following your GuestList RSVP logic
+  // Guests
   const guests: any[] = Array.isArray(clientProfile?.guests)
     ? clientProfile.guests
     : [];
-
   const attendingGuests = guests.filter(
     (g) => g.rsvp?.toLowerCase() === "attending"
   ).length;
-
   const totalGuests = guests.length;
 
   const stats = [
-    { label: "Total Bookings", value: bookings?.length || 0, color: "border-blue-500" },
-    { label: "Tasks Completed", value: `${completedTasks} / ${totalTasks}`, color: "border-green-500" },
+    {
+      label: "Total Bookings",
+      value: bookings?.length || 0,
+      icon: <Users className="w-4 h-4 text-white" />,
+      color: "bg-blue-500",
+    },
+    {
+      label: "Tasks Completed",
+      value: `${completedTasks} / ${totalTasks}`,
+      icon: <CheckSquare className="w-4 h-4 text-white" />,
+      color: "bg-green-500",
+    },
     {
       label: "Budget Used",
       value: `Ksh${budgetUsed.toLocaleString()} / Ksh${budgetTotal.toLocaleString()}`,
-      color: "border-purple-500",
+      icon: <DollarSign className="w-4 h-4 text-white" />,
+      color: "bg-purple-500",
     },
     {
       label: "Guests Attending",
       value: `${attendingGuests} / ${totalGuests}`,
-      color: "border-pink-500",
+      icon: <CalendarClock className="w-4 h-4 text-white" />,
+      color: "bg-pink-500",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full mt-1">
-      {stats.map((s) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-6 w-full mt-2">
+      {stats.map((s, i) => (
         <div
           key={s.label}
-          className={`p-4 rounded-xl shadow bg-white border-t-4 ${s.color}`}
+          className={`p-5 rounded-2xl shadow-lg relative overflow-hidden bg-white flex flex-col`}
         >
-          <h3 className="text-xs font-medium text-gray-600">{s.label}</h3>
-          <p className="text-sm font-bold mt-1 text-gray-900">{s.value}</p>
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${s.color}`}>
+            {s.icon}
+          </div>
+          <span className="text-sm text-gray-500 uppercase tracking-wide mt-2">
+            {s.label}
+          </span>
+          <p className="text-sm md:text-1xl font-bold text-gray-900 mt-1">{s.value}</p>
         </div>
       ))}
     </div>

@@ -3,19 +3,19 @@
 import {
   Home,
   Calendar,
-  MessageSquare,
   Users,
   CheckSquare,
+  MessageSquare,
   CreditCard,
   LogOut,
   ArrowLeftCircle,
   X,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useAppContext } from "@/context/AppContext"; // 👈 use context
-import logo from "@/public/assets/wedpine-white-version.png";
-
+import { useAppContext } from "@/context/AppContext";
+import { useEffect, useState } from "react";
 
 export default function Sidebar({
   isOpen,
@@ -26,18 +26,16 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAppContext(); // 👈 get logout from context
+  const { logout } = useAppContext();
+  const [viewportHeight, setViewportHeight] = useState("100vh");
 
-  const handleLogout = () => {
-    logout(); // clear user/session from context
-    router.push("/"); // 👈 redirect to home
-    onClose(); // close sidebar if mobile
-  };
-
-  const handleExit = () => {
-    router.push("/vendors"); // 👈 redirect to /vendors
-    onClose(); // close sidebar if mobile
-  };
+  // Fix 100vh on mobile
+  useEffect(() => {
+    const updateHeight = () => setViewportHeight(`${window.innerHeight}px`);
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
 
   const links = [
     { name: "Dashboard", icon: <Home size={20} />, href: "/dashboard/client" },
@@ -45,6 +43,11 @@ export default function Sidebar({
       name: "Bookings",
       icon: <Calendar size={20} />,
       href: "/dashboard/client/bookings",
+    },
+    {
+      name: "Messages",
+      icon: <MessageSquare size={20} />,
+      href: "/dashboard/client/messages",
     },
     {
       name: "Guestlist",
@@ -63,29 +66,72 @@ export default function Sidebar({
     },
   ];
 
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+    onClose();
+  };
+
+  const handleExit = () => {
+    router.push("/vendors");
+    onClose();
+  };
+
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 h-screen bg-[#311970] text-white flex-col">
-        <div className="px-2 py-6 mr-18">
-          <img
-            src="/assets/wedpine-white-version.png"
-            alt="Wedpine Logo"
-            className="w-32 mx-auto"
+      {/* Overlay (mobile) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside
+        style={{ height: viewportHeight }}
+        className={`
+          fixed w-64 bg-white border border-gray-300
+          md:border-r md:border-t-0 md:border-b-0 md:border-l-0
+          flex flex-col overflow-y-auto no-scrollbar z-40
+          transition-transform duration-300
+          ${isOpen ? "translate-x-0" : "-translate-x-64 md:translate-x-0"}
+        `}
+      >
+        {/* Logo */}
+        <div className="p-4 border-b border-gray-300 sticky top-0 z-10 bg-white flex items-center justify-between">
+          <Image
+            src="/assets/logo.png"
+            width={120}
+            height={120}
+            alt="Wedpine"
+            className="select-none"
           />
+
+          {/* Close button (mobile) */}
+          <button
+            className="md:hidden text-gray-600 hover:text-black"
+            onClick={onClose}
+          >
+            <X size={26} />
+          </button>
         </div>
 
-
-        {/* Navigation Links */}
-        <nav className="flex-1 px-3 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`flex items-center gap-2 px-2 py-1 rounded-lg transition ${active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
-                  }`}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[15px] font-medium transition
+                  ${
+                    active
+                      ? "bg-[#311970] text-white"
+                      : "text-gray-700 hover:bg-[#f5eaff]"
+                  }
+                `}
               >
                 {link.icon}
                 {link.name}
@@ -95,88 +141,22 @@ export default function Sidebar({
         </nav>
 
         {/* Exit + Logout */}
-        <div className="px-1 py-3 space-y-2">
+        <div className="px-3 pb-6 space-y-2 mt-auto">
           <button
-            onClick={handleExit} // 👈 exit handler
-            className="flex items-center gap-3 px-4 rounded-lg hover:bg-[#4527a0] transition w-full"
+            onClick={handleExit}
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition text-sm w-full"
           >
-            <ArrowLeftCircle size={20} /> Exit
+            <ArrowLeftCircle size={16} /> Exit
           </button>
 
           <button
-            onClick={handleLogout} // 👈 logout handler
-            className="flex items-center gap-3 px-4 rounded-lg hover:bg-[#4527a0] transition w-full"
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-red-100 hover:text-red-600 transition text-sm w-full"
           >
-            <LogOut size={20} /> Logout
+            <LogOut size={16} /> Logout
           </button>
         </div>
       </aside>
-
-      {/* Mobile sidebar */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={onClose}
-          />
-
-          {/* Sidebar content */}
-          <aside className="relative bg-[#311970] text-white w-64 h-screen shadow-lg flex flex-col">
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-md hover:bg-[#4527a0]"
-              aria-label="Close sidebar"
-            >
-              <X size={24} />
-            </button>
-
-            <div className="px-2 py-6 mr-18">
-              <img
-                src="/assets/wedpine-white-version.png"
-                alt="Wedpine Logo"
-                className="w-30 mx-auto"
-              />
-            </div>
-
-
-            <nav className="flex-1 px-4 overflow-y-auto">
-              {links.map((link) => {
-                const active = pathname === link.href;
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    onClick={onClose} // 👈 close sidebar on link click
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${active ? "bg-[#4527a0]" : "hover:bg-[#4527a0]"
-                      }`}
-                  >
-                    {link.icon}
-                    {link.name}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="px-2 py-4 text-sm space-y-1">
-              <button
-                onClick={handleExit} // 👈 exit handler closes sidebar
-                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#4527a0] transition w-full"
-              >
-                <ArrowLeftCircle size={20} /> Exit
-              </button>
-
-              <button
-                onClick={handleLogout} // 👈 logout handler closes sidebar
-                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#4527a0] transition w-full"
-              >
-                <LogOut size={20} /> Logout
-              </button>
-            </div>
-          </aside>
-        </div>
-      )}
     </>
   );
 }

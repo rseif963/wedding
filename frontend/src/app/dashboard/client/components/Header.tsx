@@ -1,9 +1,21 @@
-// components/Header.tsx
 "use client";
 
-import { useEffect } from "react";
-import { Bell, Link, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Calendar, Menu, Bell } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+
+function getTimeLeft(targetDate: string) {
+  const now = new Date().getTime();
+  const target = new Date(targetDate).getTime();
+  const diff = Math.max(0, target - now);
+
+  return {
+    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((diff / (1000 * 60)) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
+  };
+}
 
 export default function Header({
   onOpenSidebar,
@@ -11,80 +23,75 @@ export default function Header({
   onOpenSidebar: () => void;
 }) {
   const { clientProfile, fetchClientProfile } = useAppContext();
+  const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft> | null>(null);
 
-  // Ensure profile is loaded when header mounts
   useEffect(() => {
-    if (!clientProfile) {
-      fetchClientProfile();
-    }
+    if (!clientProfile) fetchClientProfile();
   }, [clientProfile, fetchClientProfile]);
 
-  if (!clientProfile) {
-    return (
-      <header className="flex items-center justify-between bg-white px-6 py-4 shadow">
-        <h1 className="text-xl font-bold text-[#311970]">Loading…</h1>
-      </header>
-    );
-  }
+  useEffect(() => {
+    if (!clientProfile?.weddingDate) return;
 
-  // Extract details
-  const brideName = clientProfile?.brideName || "";
-  const groomName = clientProfile?.groomName || "";
-  const weddingDate = clientProfile?.weddingDate || "";
+    const update = () =>
+      setTimeLeft(getTimeLeft(weddingDate));
 
-  const brideFirst = brideName.split(" ")[0] || "";
-  const groomFirst = groomName.split(" ")[0] || "";
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [clientProfile?.weddingDate]);
 
-  // Days to go
-  let diffDays: number | null = null;
-  if (weddingDate) {
-    const wedding = new Date(weddingDate);
-    if (!isNaN(wedding.getTime())) {
-      const today = new Date();
-      const diffTime = wedding.getTime() - today.getTime();
-      diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-    }
-  }
+  if (!clientProfile) return null;
+
+  const brideFirst = clientProfile.brideName?.split(" ")[0] ?? "";
+  const groomFirst = clientProfile.groomName?.split(" ")[0] ?? "";
+  const brideInitial = brideFirst.charAt(0).toUpperCase();
+  const groomInitial = groomFirst.charAt(0).toUpperCase();
+
+
+  const weddingDate = clientProfile.weddingDate
+    ? new Date(clientProfile.weddingDate).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
+    : "";
 
   return (
-    <header className="bg-white px-6 py-4 shadow flex items-center justify-between">
-      {/* Left: Hamburger + Names */}
-      <div className="flex items-center gap-3">
-        {/* Hamburger menu (mobile only) */}
+    <header className="relative bg-gradient-to-b from-[#f4f1ff] via-[#faf9ff] to-white">
+      <div className="flex items-center justify-between px-6 py-4">
+
+        {/* Mobile Menu */}
         <button
-          className="md:hidden p-2 rounded-md hover:bg-gray-100"
           onClick={onOpenSidebar}
-          aria-label="Open sidebar"
+          className="md:hidden p-2 rounded-lg hover:bg-black/5"
         >
-          <Menu size={24} />
+          <Menu size={22} />
         </button>
 
-        <div className="flex flex-col">
-          <h1 className="text-xl font-bold text-[#311970]">
-            {brideFirst} & {groomFirst}
-          </h1>
+        {/* Spacer (keeps layout balanced) */}
+        <div />
 
-          {/* Countdown below names on small screens */}
-          {diffDays !== null && (
-            <p className="block sm:hidden text-gray-600 text-sm">
-              {diffDays} days to go 🎉
-            </p>
-          )}
+        {/* Right Side: Notifications + Initials */}
+        <div className="flex items-center gap-4">
+
+          {/* Notifications */}
+          <div className="relative">
+            <Bell size={20} className="text-gray-700" />
+            <span className="absolute -top-1 -right-1 block w-2 h-2 bg-purple-600 rounded-full" />
+          </div>
+
+          {/* Couple Initials */}
+          <div className="w-8 h-8 rounded-full bg-[#311970] flex items-center justify-center shadow-md">
+            <span className="text-white font-semibold text-sm tracking-wide">
+              {brideInitial}
+              {groomInitial}
+            </span>
+          </div>
+
         </div>
       </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-6">
-        {diffDays !== null && (
-          <p className="hidden sm:block text-gray-700 font-medium">
-            {diffDays} days to go 🎉
-          </p>
-        )}
-        {/*<button className="relative text-gray-600 hover:text-[#311970]">
-          <Bell size={22} />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>*/}
-      </div>
     </header>
+
   );
 }

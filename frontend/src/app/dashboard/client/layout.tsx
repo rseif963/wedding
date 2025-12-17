@@ -26,7 +26,6 @@ export default function VendorDashboardLayout({
           aria-label="Close sidebar"
           className="absolute top-3 right-3 md:hidden p-2 rounded-md hover:bg-gray-100 z-50"
         >
-          <X size={20} />
         </button>
 
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -36,12 +35,12 @@ export default function VendorDashboardLayout({
       {/* Main area */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header (sticky at top) */}
-        <div className="sticky top-0 z-40">
+        <div className="z-40">
           <Header onOpenSidebar={() => setIsSidebarOpen(true)} />
         </div>
 
         {/* Scrollable content */}
-        <main className="p-1 flex-1 overflow-y-auto">{children}</main>
+        <main className="p-1 flex-1">{children}</main>
       </div>
     </div>
   );

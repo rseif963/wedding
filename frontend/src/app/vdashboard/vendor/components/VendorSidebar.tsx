@@ -16,6 +16,7 @@ import {
   LogOut,
   ArrowLeftCircle,
   CreditCard,
+  CalendarCheck,
   X,
 } from "lucide-react";
 
@@ -44,6 +45,7 @@ export default function VendorSidebar({ onLinkClick, isOpen = true, closeSidebar
     { href: "/vdashboard/vendor/profile", label: "Profile", icon: <User size={20} /> },
     { href: "/vdashboard/vendor/posts", label: "Portfolio", icon: <Images size={20} /> },
     { href: "/vdashboard/vendor/inquiries", label: "Inquiries", icon: <MessageSquare size={20} /> },
+    { href: "/vdashboard/vendor/bookings", label: "Bookings", icon: <CalendarCheck size={20} /> },
     { href: "/vdashboard/vendor/calendar", label: "Calendar", icon: <Calendar size={20} /> },
     { href: "/vdashboard/vendor/reviews", label: "Reviews", icon: <Star size={20} /> },
     { href: "/vdashboard/vendor/analytics", label: "Analytics", icon: <BarChart3 size={20} /> },

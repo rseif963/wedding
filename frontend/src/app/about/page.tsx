@@ -36,7 +36,7 @@ export default function About() {
             <h1 className="text-5xl text-wite font-extrabold mb-4 tracking-tight">
               Redefining Wedding Planning
             </h1>
-            <p className="max-w-2xl mx-auto text-base opacity-90">
+            <p className="max-w-2xl px-2 mx-auto text-base opacity-90">
               Wedpine is more than a platform — it's a movement. A next-generation
               digital space built to help couples plan with confidence, connect
               with trusted vendors, and bring their vision to life effortlessly.
