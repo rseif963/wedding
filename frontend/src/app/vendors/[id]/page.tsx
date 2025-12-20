@@ -502,60 +502,7 @@ export default function VendorProfile() {
 
 
           {/* REVIEWS (UNCHANGED LOGIC, NEW LAYOUT) */}
-          {/* --- YOUR EXISTING REVIEWS JSX CAN STAY HERE --- */}
-
-        </div>
-
-        {/* ================= RIGHT ================= */}
-        <aside className="sticky top-28 h-fit bg-white rounded-2xl p-6 shadow">
-          <h3 className="text-xl font-bold text-[#311970] mb-4">Contact Vendor</h3>
-          <button
-            onClick={() => setShowBookingPopup(true)}
-            className="w-full bg-[#311970] text-white py-3 rounded-xl font-semibold mb-4"
-          >
-            Send Message
-          </button>
-          {phone && (
-            <button
-              onClick={() => (window.location.href = `tel:${phone}`)}
-              className="w-full border border-[#311970] text-[#311970] py-3 rounded-xl font-semibold hover:bg-gray-50 transition mb-4"
-            >
-              Call Now
-            </button>
-          )}
-          <button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
-            <Calendar className="w-5 h-5" /> Check Availability
-          </button>
-          <p className="mt-6 text-sm text-gray-600">
-            <strong>Response time:</strong><br />Usually within 24 hours
-          </p>
-        </aside>
-      </section>
-
-      {/* Contact */}
-      {/*  <section className="max-w-4xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-bold text-[#311970] mb-4">Contact Information</h2>
-        <ul className="space-y-2 text-gray-700">
-          {phone && <li><strong>Phone:</strong> {phone}</li>}
-          {email && <li><strong>Email:</strong> {email}</li>}
-          {whatsapp && (
-            <li>
-              <a
-                href={whatsapp}
-                target="_blank"
-                rel="noreferrer"
-                className="text-green-600 font-semibold hover:underline"
-              >
-                WhatsApp Chat
-              </a>
-            </li>
-          )}
-        </ul>
-      </section>  */}
-
-      {/* Reviews */}
-      {/* Reviews Section */}
-      <section className="w-full mx-auto px-1 py-6">
+          <section className="w-full mx-auto px-1 py-6">
 
         {/* Title */}
         <div className="flex ml-4 items-center gap-2 mb-3">
@@ -725,6 +672,60 @@ export default function VendorProfile() {
           </form>
         </div>
       </section>
+          {/* --- YOUR EXISTING REVIEWS JSX CAN STAY HERE --- */}
+
+        </div>
+
+        {/* ================= RIGHT ================= */}
+        <aside className="sticky top-28 h-fit bg-white rounded-2xl p-6 shadow">
+          <h3 className="text-xl font-bold text-[#311970] mb-4">Contact Vendor</h3>
+          <button
+            onClick={() => setShowBookingPopup(true)}
+            className="w-full bg-[#311970] text-white py-3 rounded-xl font-semibold mb-4"
+          >
+            Send Message
+          </button>
+          {phone && (
+            <button
+              onClick={() => (window.location.href = `tel:${phone}`)}
+              className="w-full border border-[#311970] text-[#311970] py-3 rounded-xl font-semibold hover:bg-gray-50 transition mb-4"
+            >
+              Call Now
+            </button>
+          )}
+          <button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+            <Calendar className="w-5 h-5" /> Check Availability
+          </button>
+          <p className="mt-6 text-sm text-gray-600">
+            <strong>Response time:</strong><br />Usually within 24 hours
+          </p>
+        </aside>
+      </section>
+
+      {/* Contact */}
+      {/*  <section className="max-w-4xl mx-auto px-6 py-12">
+        <h2 className="text-2xl font-bold text-[#311970] mb-4">Contact Information</h2>
+        <ul className="space-y-2 text-gray-700">
+          {phone && <li><strong>Phone:</strong> {phone}</li>}
+          {email && <li><strong>Email:</strong> {email}</li>}
+          {whatsapp && (
+            <li>
+              <a
+                href={whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className="text-green-600 font-semibold hover:underline"
+              >
+                WhatsApp Chat
+              </a>
+            </li>
+          )}
+        </ul>
+      </section>  */}
+
+      {/* Reviews */}
+      {/* Reviews Section */}
+      
 
       {/* ⭐ Similar Vendors Section */}
       {similarVendors.length > 0 && (

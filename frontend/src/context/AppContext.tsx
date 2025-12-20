@@ -1095,7 +1095,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         );
       }
 
-      console.log("✅ Chats fetched:", mappedChats.length);
+      console.log("Chats fetched:", mappedChats.length);
     } catch (err: any) {
       console.error(
         "Failed to fetch messages:",
