@@ -2,6 +2,7 @@ import "./globals.css";
 import { Playfair_Display, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { AppProvider } from "@/context/AppContext";
+import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script"; // ✅ add this
 
 const playfair = Playfair_Display({
@@ -45,6 +46,7 @@ export default function RootLayout({
 
         <AppProvider>
           {children}
+          <Analytics />
           <Toaster position="top-right" reverseOrder={false} />
         </AppProvider>
 
