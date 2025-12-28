@@ -84,12 +84,12 @@ export default function VendorSidebar({ onLinkClick, isOpen = true, closeSidebar
           />
 
           {/* 🔥 X button on small screens */}
-          {/*<button
+          <button
             className="md:hidden text-gray-600 hover:text-black"
             onClick={closeSidebar}
           >
             <X size={26} />
-          </button>*/}
+          </button>
         </div>
 
         {/* Navigation */}
