@@ -497,7 +497,7 @@ export default function ProfileManager({ preview = false }: Props) {
           My Profile
         </h2>
         <div>
-          <p className="text-gray-800 font-semibold text-lg">
+          <p className="text-gray-800 font-semibold text-sm">
             {vendorProfile?.businessName}
           </p>
           <p className="text-sm text-gray-500">
@@ -559,7 +559,7 @@ export default function ProfileManager({ preview = false }: Props) {
           </div>
 
           {/* PROFILE AVATAR */}
-          <div className="relative w-full px-8 py-6 flex -mt-[65px] mb-8 items-end gap-4">
+          <div className="relative w-full px-8 py-6 flex -mt-[65px] mb-8 items-end gap-2">
             <div className="relative w-[130px] h-[130px]">
 
               <div className="w-full h-full bg-[#eee] rounded-full border-4 border-white overflow-hidden shadow-lg relative">
@@ -598,7 +598,7 @@ export default function ProfileManager({ preview = false }: Props) {
             {/* BUSINESS NAME + CATEGORY + VERIFIED */}
             <div className="flex flex-1 justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-1xl font-semibold text-gray-900">
                   {vendorProfile.businessName}
                 </h2>
                 <p className="text-gray-500 text-sm">{vendorProfile.category}</p>
