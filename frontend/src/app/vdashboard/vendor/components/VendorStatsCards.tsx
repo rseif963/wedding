@@ -29,7 +29,7 @@ export default function VendorStatsCards() {
   const profileViews = vendorProfile?.profileViews || 1248;
 
   // Assuming you track new bookings count
-  const bookingsPending = bookings?.filter(booking => booking.status === "pending").length || 5;
+ const bookingsPending = bookings?.filter(booking => booking.status === "Pending").length || 5;
 
   // Assuming inquiries = messages.length
   const inquiriesCount = messages?.length || 24;
