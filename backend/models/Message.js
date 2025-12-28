@@ -1,48 +1,58 @@
 import mongoose from "mongoose";
 
-const messageSchema = new mongoose.Schema(
+const MessageSchema = new mongoose.Schema(
   {
-    // 🔹 Sender (can be either a client or a vendor)
+    conversation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
+      required: true,
+    },
+
     sender: {
-      id: { type: mongoose.Schema.Types.ObjectId, required: true },
-      role: { type: String, enum: ["client", "vendor"], required: true },
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      role: {
+        type: String,
+        enum: ["client", "vendor"],
+        required: true,
+      },
     },
 
-    // 🔹 Receiver (can be either a client or a vendor)
-    receiver: {
-      id: { type: mongoose.Schema.Types.ObjectId, required: true },
-      role: { type: String, enum: ["client", "vendor"], required: true },
-    },
-
-    // 🔹 Conversation ID (for grouping messages between one client & one vendor)
-    conversationId: {
+    content: {
       type: String,
-      index: true,
+      required: true,
+      trim: true,
     },
 
-    // 🔹 Message content
-    text: { type: String, default: "" },
-    mediaUrl: { type: String }, // optional photo/video/audio/file
-    mediaType: {
-      type: String,
-      enum: ["image", "video", "audio", "file", "none"],
-      default: "none",
-    },
+    attachments: [
+      {
+        url: String,
+        type: {
+          type: String,
+          enum: ["image", "file"],
+        },
+      },
+    ],
 
-    // 🔹 Message status
-    seen: { type: Boolean, default: false },
+    readBy: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-// 🔸 Auto-generate consistent conversationId (same for both participants)
-messageSchema.pre("save", function (next) {
-  if (!this.conversationId) {
-    const ids = [this.sender.id.toString(), this.receiver.id.toString()].sort();
-    this.conversationId = ids.join("_");
-  }
-  next();
-});
+MessageSchema.index({ conversation: 1, createdAt: -1 });
 
-const Message = mongoose.model("Message", messageSchema);
-export default Message;
+export default mongoose.model("Message", MessageSchema);

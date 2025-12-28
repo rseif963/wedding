@@ -18,7 +18,7 @@ export default function About() {
 
       {/* ================= HERO ================= */}
       <section
-        className="relative overflow-hidden text-white py-28 text-center"
+        className="relative overflow-hidden mt-16 text-white py-28 text-center"
         style={{
           backgroundImage: "url('/assets/about-header.jpg')", // <-- your image
           backgroundSize: "cover",        // makes it fill width & height

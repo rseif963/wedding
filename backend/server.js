@@ -17,6 +17,7 @@ import vendorRoutes from "./routes/vendors.js";
 import postRoutes from "./routes/posts.js";
 import bookingRoutes from "./routes/bookings.js";
 import messageRoutes from "./routes/messages.js";
+import chatRoutes from './routes/chat.js';
 import reviewRoutes from "./routes/reviews.js";
 import adminRoutes from "./routes/admin.js";
 import blogRoutes from "./routes/blogs.js";
@@ -35,6 +36,7 @@ app.use("/api/vendors", vendorRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/bookingRequests", bookingRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/chat", chatRoutes);65
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);

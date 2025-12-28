@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Briefcase, Home, Mail, Lock, Smartphone, Eye, EyeOff  } from "lucide-react";
+import { User, Briefcase, Home, Mail, Lock, Smartphone, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -105,26 +106,60 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] via-[#4527a0] to-[#6a1b9a] px-4">
-      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+    <main className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] via-[#4527a0] to-[#6a1b9a]">
+      <div className="absolute inset-0">
+        <Image
+          src="/assets/hero-wedding.jpg" // ← USE YOUR EXACT IMAGE PATH
+          alt="Wedding background"
+          fill
+          priority
+          className="object-cover"
+        />
+
+      </div>
+
+      <div className="relative z-10 w-full overflow-hidden grid grid-cols-1 md:grid-cols-2">
+
         {/* Left Panel (hidden on mobile) */}
-        <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-[#311970] to-[#6a1b9a] text-white p-12">
-          <h2 className="text-4xl font-bold mb-6">Welcome to Wedpine</h2>
-          <p className="text-lg opacity-90 mb-8 text-center">
-            The ultimate platform to connect clients and vendors for the perfect
-            wedding experience.
-          </p>
+        <div
+          className={`hidden md:flex flex-col items-start bg-black/10 text-white p-12
+        ${mode === "login" ? "md:order-2" : "md:order-1"}
+      `}
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="text-4xl font-bold mb-3"
+          >
+            {mode === "login"
+              ? "Welcome back"
+              : "Welcome to Wedpine"}
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="text-lg opacity-90 mb-8 text-start"
+          >
+            {mode === "login"
+              ? "We’re so happy to see you again. Let’s pick up where we left off."
+              : "The ultimate platform to connect clients and vendors for the perfect wedding experience."}
+          </motion.div>
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="bg-white text-[#311970] font-semibold px-6 py-3 rounded-xl shadow cursor-pointer"
             onClick={toggleMode}
           >
-            {mode === "login" ? "New here? Sign Up" : "Already have an account? Login"}
+            {mode === "login"
+              ? "New here? Sign Up"
+              : "Already have an account? Login"}
           </motion.div>
         </div>
 
         {/* Right Panel */}
-        <div className="p-6 sm:p-8 md:p-12">
+        <div
+          className={`p-6 sm:p-8 md:p-12 bg-white h-[100vh] overflow-y-auto
+    ${mode === "login" ? "md:order-1" : "md:order-2"}
+  `}
+
+        >
           {/* Back to Home */}
           <div className="flex justify-end mb-6">
             <Link
@@ -140,7 +175,9 @@ export default function AuthPage() {
             <button
               onClick={() => setRole("client")}
               disabled={submitting}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client" ? "bg-[#311970] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client"
+                ? "bg-[#311970] text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
             >
               <User size={18} /> Client
@@ -148,7 +185,9 @@ export default function AuthPage() {
             <button
               onClick={() => setRole("vendor")}
               disabled={submitting}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor" ? "bg-[#311970] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor"
+                ? "bg-[#311970] text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
             >
               <Briefcase size={18} /> Vendor
@@ -231,7 +270,6 @@ export default function AuthPage() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-
             </div>
 
             {mode === "signup" && role === "vendor" && (
@@ -261,10 +299,26 @@ export default function AuthPage() {
               {submitting ? (
                 <>
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
                   </svg>
-                  <span>{mode === "login" ? "Logging in..." : "Creating account..."}</span>
+                  <span>
+                    {mode === "login"
+                      ? "Logging in..."
+                      : "Creating account..."}
+                  </span>
                 </>
               ) : (
                 <>{mode === "login" ? "Login" : "Create Account"}</>
@@ -291,19 +345,21 @@ export default function AuthPage() {
               disabled={submitting}
               className="text-sm font-medium text-[#311970] hover:underline"
             >
-              {mode === "login" ? "New here? Sign up" : "Already have an account? Login"}
+              {mode === "login"
+                ? "New here? Sign up"
+                : "Already have an account? Login"}
             </button>
           </div>
 
           {/* Divider */}
-          <div className="flex items-center my-6">
+          {/*<div className="flex items-center my-6">
             <hr className="flex-1 border-gray-300" />
             <span className="mx-3 text-sm text-gray-400">OR</span>
             <hr className="flex-1 border-gray-300" />
-          </div>
+          </div>*/}
 
           {/* Social Logins */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/*<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => toast.error("Google login not implemented yet")}
@@ -330,9 +386,10 @@ export default function AuthPage() {
               />
               Facebook
             </button>
-          </div>
+          </div>*/}
         </div>
       </div>
     </main>
+
   );
 }

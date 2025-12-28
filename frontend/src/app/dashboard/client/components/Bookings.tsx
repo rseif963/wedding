@@ -1,106 +1,145 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
-import { MessageCircle, Eye, Camera, Flower2, Utensils, Music } from "lucide-react";
+import {
+  MessageCircle,
+  Camera,
+  Building2,
+  Flower2,
+  Utensils,
+  Heart,
+  Shirt,
+  Car,
+  Cake,
+  Scissors,
+  Music,
+} from "lucide-react";
 
 const categoryIcons: Record<string, React.ReactNode> = {
   Photography: <Camera className="w-6 h-6 text-wedpine-purple" />,
-  Venue: <Flower2 className="w-6 h-6 text-wedpine-purple" />,
+  Venue: <Building2 className="w-6 h-6 text-wedpine-purple" />,
   Catering: <Utensils className="w-6 h-6 text-wedpine-purple" />,
   Entertainment: <Music className="w-6 h-6 text-wedpine-purple" />,
+  Tailor: <Scissors className="w-6 h-6 text-wedpine-purple" />,
+  Cake: <Cake className="w-6 h-6 text-wedpine-purple" />,
+  Cars: <Car className="w-6 h-6 text-wedpine-purple" />,
+  Dresses: <Shirt className="w-6 h-6 text-wedpine-purple" />,
+  Makeup: <Heart className="w-6 h-6 text-wedpine-purple" />,
+  Decoration: <Flower2 className="w-6 h-6 text-wedpine-purple" />,
 };
 
-
 export default function Bookings() {
-  const { bookings, fetchClientBookings } = useAppContext();
+  const {
+    bookings,
+    fetchClientBookings,
+    getOrCreateConversation,
+  } = useAppContext();
+
+  const router = useRouter();
   const [visibleCount, setVisibleCount] = useState(6);
 
   useEffect(() => {
     fetchClientBookings();
   }, [fetchClientBookings]);
 
-  const handleChat = (phone: string) => {
-    if (!phone) return;
-    const cleanedPhone = phone.replace(/[^0-9]/g, "");
-    window.open(`https://wa.me/${cleanedPhone}`, "_blank");
+  const handleChat = (vendor: any, bookingId: string) => {
+    if (!vendor?._id) return;
+
+    // Pass bookingId as query parameter
+    router.push(`/dashboard/client/messages?bookingId=${bookingId}`);
   };
 
-  return (
-    <div className="bg-white w-full h-full p-6 rounded-xl shadow-md space-y-6">
-      <h2 className="font-display text-2xl font-semibold text-[#311970]">Recent Bookings</h2>
 
-      {bookings && bookings.length > 0 ? (
+  /* ---------------- SORT BOOKINGS (LATEST FIRST) ---------------- */
+
+  const sortedBookings = useMemo(() => {
+    return [...(bookings || [])].sort((a: any, b: any) => {
+      const aLatest =
+        a.messages?.[a.messages.length - 1]?.createdAt ||
+        a.createdAt;
+
+      const bLatest =
+        b.messages?.[b.messages.length - 1]?.createdAt ||
+        b.createdAt;
+
+      return new Date(bLatest).getTime() - new Date(aLatest).getTime();
+    });
+  }, [bookings]);
+
+  /* ---------------- UI ---------------- */
+
+  return (
+    <div className="bg-white w-full h-full p-4 rounded-xl shadow-md space-y-6">
+      <h2 className="font-display text-2xl font-semibold text-[#311970]">
+        Recent Bookings
+      </h2>
+
+      {sortedBookings.length > 0 ? (
         <>
           <div className="space-y-3">
-            {bookings.slice(0, visibleCount).map((b) => {
+            {sortedBookings.slice(0, visibleCount).map((b: any) => {
+              const vendor =
+                typeof b.vendor === "object" ? b.vendor : null;
+
               const vendorName =
-                typeof b.vendor === "object"
-                  ? b.vendor.businessName || b.vendor.email || "Unknown"
-                  : b.vendor || "Unknown";
+                vendor?.businessName || vendor?.email || "Unknown";
 
               const vendorCategory =
-                typeof b.vendor === "object"
-                  ? b.vendor.category || "Unknown"
-                  : "Unknown";
-
-              const vendorPhone =
-                typeof b.vendor === "object" && b.vendor.phone
-                  ? b.vendor.phone
-                  : null;
-
-              const statusColors = {
-                Accepted: "bg-green-100 text-green-600",
-                Pending: "bg-yellow-100 text-yellow-600",
-                Rejected: "bg-red-100 text-red-600",
-              };
+                vendor?.category || "Unknown";
 
               return (
                 <div
                   key={b._id}
-                  className="flex items-center justify-between bg-[#f8f8fc] rounded-xl p-4 shadow-sm"
+                  className="flex flex-col md:flex-row w-full items-center justify-between bg-[#f8f8fc] rounded-xl p-2 shadow-sm"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex gap-4">
                     <div className="w-16 h-16 rounded-xl bg-[#ebe9f7] flex items-center justify-center shrink-0">
-                      {categoryIcons[vendorCategory] || <Flower2 className="w-6 h-6 text-wedpine-purple" />}
+                      {categoryIcons[vendorCategory] || (
+                        <Flower2 className="w-6 h-6 text-wedpine-purple" />
+                      )}
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="font-medium text-[#311970] truncate">{vendorName}</h3>
-                      <p className="text-sm text-muted-foreground truncate">{vendorCategory}</p>
-
+                      <h3 className="font-medium text-[#311970] truncate">
+                        {vendorName}
+                      </h3>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {vendorCategory}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <span
-                      className={`px-3 py-1 text-xs rounded-full ${
-                        b.status === "Accepted"
-                          ? "bg-green-100 text-green-600"
-                          : b.status === "Pending"
+                      className={`px-3 py-1 text-xs rounded-full ${b.status === "Accepted"
+                        ? "bg-green-100 text-green-600"
+                        : b.status === "Pending"
                           ? "bg-yellow-100 text-yellow-600"
                           : "bg-red-100 text-red-600"
-                      }`}
+                        }`}
                     >
                       {b.status}
                     </span>
 
-                    {b.status === "Accepted" && vendorPhone && (
+                    {b.status === "Accepted" && vendor && (
                       <button
-                        onClick={() => handleChat(vendorPhone)}
+                        onClick={() => handleChat(vendor, b._id)}
                         className="bg-[#ebe9f7] rounded-lg p-2 hover:bg-[#d4d1f4] transition"
-                        title="Chat on WhatsApp"
+                        title="Chat with vendor"
                       >
-                        <MessageCircle className="w-5 h-5 text-green-600" />
+                        <MessageCircle className="w-5 h-5 text-[#2D157A]" />
                       </button>
                     )}
+
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {bookings.length > visibleCount && (
+          {sortedBookings.length > visibleCount && (
             <div className="text-center mt-4">
               <button
                 onClick={() => setVisibleCount((prev) => prev + 6)}
@@ -112,7 +151,9 @@ export default function Bookings() {
           )}
         </>
       ) : (
-        <p className="text-center text-gray-500 py-6">No bookings yet</p>
+        <p className="text-center text-gray-500 py-6">
+          No bookings yet
+        </p>
       )}
     </div>
   );

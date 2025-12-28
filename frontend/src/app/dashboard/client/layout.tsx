@@ -16,7 +16,7 @@ export default function VendorDashboardLayout({
     <div className="flex min-h-screen bg-gray-100 relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:sticky inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform
+        className={`fixed md:sticky inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transformq1
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 transition-transform duration-300 ease-in-out h-screen`}
       >
@@ -35,7 +35,7 @@ export default function VendorDashboardLayout({
       {/* Main area */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header (sticky at top) */}
-        <div className="z-40">
+        <div className="sticky top-0 z-40">
           <Header onOpenSidebar={() => setIsSidebarOpen(true)} />
         </div>
 

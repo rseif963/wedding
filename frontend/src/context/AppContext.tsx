@@ -108,26 +108,25 @@ interface VendorPost {
   [k: string]: any;
 }
 
+interface Message {
+  _id: string;
+  sender: "Client" | "Vendor";
+  content: string;
+  createdAt: string;
+}
+
 interface BookingRequest {
-  _id?: string;
+  _id: string; // ✅ REQUIRED
   client?: any;
   vendor?: any;
   service?: string;
   date?: string;
-  status?: string;
-  message?: string; // client initial message
-  reply?: string;   // vendor reply
+  status?: "Accepted" | "Pending" | "Declined";
+  messages?: Message[]; // ✅ THIS FIXES MOST RED LINES
 }
 
 // types/inquiries.ts
 
-export interface Message {
-  _id?: string; // MongoDB ID
-  sender: "Client" | "Vendor";
-  content: string;
-  replyTo?: string | null; // optional message reference
-  createdAt?: string; // ISO date string
-}
 
 export interface Inquiry {
   _id: string;
@@ -156,6 +155,32 @@ interface MessageItem {
   read?: boolean;
   createdAt?: string;
 }
+
+
+export interface ChatParticipant {
+  user: string;
+  role: "client" | "vendor";
+}
+
+export interface Conversation {
+  _id: string;
+  participants: ChatParticipant[];
+  lastMessage?: ChatMessage;
+  unreadCounts?: Record<string, number>;
+  updatedAt?: string;
+}
+
+export interface ChatMessage {
+  _id: string;
+  conversation: string;
+  sender: {
+    user: string;
+    role: "client" | "vendor";
+  };
+  content: string;
+  createdAt?: string;
+}
+
 
 interface ReviewItem {
   _id?: string;
@@ -241,6 +266,22 @@ interface AppContextType {
   deleteTask: (taskId: string) => Promise<TaskItem[] | null>;
   toggleChecklist: (show: boolean) => Promise<boolean>;
 
+  // CHAT
+  conversations: Conversation[];
+  activeConversation: Conversation | null;
+  chatMessages: ChatMessage[];
+
+  getOrCreateConversation: (
+    otherUserId: string,
+    otherRole: "client" | "vendor"
+  ) => Promise<Conversation | null>;
+
+  fetchConversations: () => Promise<void>;
+  fetchChatMessages: (conversationId: string) => Promise<void>;
+  sendChatMessage: (conversationId: string, content: string) => Promise<ChatMessage | null>;
+  markConversationRead: (conversationId: string) => Promise<void>;
+
+
 
   login: (email: string, password: string) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<boolean>;
@@ -276,7 +317,7 @@ interface AppContextType {
     value?: number;
   }) => Promise<ReviewItem | null>;
   replyToReview: (reviewId: string, text: string) => Promise<ReviewItem | null>;
-  
+
 
 
   fetchReviewsForVendor: (vendorId: string) => Promise<void>;
@@ -313,6 +354,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [clients, setClients] = useState<ClientProfile[]>([]);
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -515,6 +559,109 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setVendors([]);
     }
   };
+
+
+  const getOrCreateConversation = useCallback(
+    async (otherUserId: string, otherRole: "client" | "vendor") => {
+      if (!user?.id || !role) return null;
+
+      try {
+        const payload =
+          role === "client"
+            ? { clientUserId: user.id, vendorUserId: otherUserId }
+            : { clientUserId: otherUserId, vendorUserId: user.id };
+
+        const res = await axios.post("/api/chat/conversation", payload);
+
+        setActiveConversation(res.data);
+        return res.data;
+      } catch (err: any) {
+        toast.error("Failed to start conversation");
+        return null;
+      }
+    },
+    [user?.id, role]
+  );
+
+
+  const fetchConversations = useCallback(async () => {
+  if (!user?.id) return;
+
+  const res = await axios.get(`/api/chat/conversations/${user.id}`);
+  setConversations(res.data || []);
+}, [user?.id]);
+
+
+  const fetchChatMessages = useCallback(async (conversationId: string) => {
+    try {
+      const res = await axios.get(`/api/chat/messages/${conversationId}`);
+      setChatMessages(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch messages", err);
+    }
+  }, []);
+
+  const sendChatMessage = useCallback(
+    async (conversationId: string, content: string) => {
+      if (!user?.id || !role) return null;
+
+      try {
+        const res = await axios.post("/api/chat/message", {
+          conversationId,
+          senderId: user.id,
+          senderRole: role,
+          content,
+        });
+
+        setChatMessages((prev) => [...prev, res.data]);
+
+        // Emit socket event (real-time)
+        socket?.emit("sendMessage", res.data);
+
+        return res.data;
+      } catch (err) {
+        toast.error("Failed to send message");
+        return null;
+      }
+    },
+    [user?.id, role, socket]
+  );
+
+
+  const markConversationRead = useCallback(
+    async (conversationId: string) => {
+      if (!user?.id) return;
+
+      try {
+        await axios.post("/api/chat/conversation/read", {
+          conversationId,
+          userId: user.id,
+        });
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c._id === conversationId
+              ? {
+                ...c,
+                unreadCounts: {
+                  ...c.unreadCounts,
+                  [user.id!]: 0,
+                },
+              }
+              : c
+          )
+        );
+      } catch (err) {
+        console.error("Failed to mark conversation read");
+      }
+    },
+    [user?.id]
+  );
+
+
+
+
+
 
 
 
@@ -1346,6 +1493,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         socket,
         tasks,
         showChecklist,
+
+        conversations,
+        activeConversation,
+        chatMessages,
+
+        getOrCreateConversation,
+        fetchConversations,
+        fetchChatMessages,
+        sendChatMessage,
+        markConversationRead,
 
 
 

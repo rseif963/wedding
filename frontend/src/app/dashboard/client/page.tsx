@@ -57,8 +57,8 @@ export default function ClientDashboard() {
 
 
   return (
-    <div className="min-h-screen absolute inset-0 bg-gradient-to-b from-[#f4f1ff] via-[#faf9ff] to-white">
-      <div className="relative px-6 pt-6 pb-14 mt-20 text-center">
+    <div className="bg-[#eee] p-2 gap-6">
+      <div className="relative px-6 pb-14 mt-20 text-center">
         {/* Mobile menu */}
         
         {/* Welcome */}
@@ -103,9 +103,11 @@ export default function ClientDashboard() {
         )}
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 overflow-y-auto">
-          <StatsCards />
+      <div className="flex-1 flex flex-col gap-4">
+        <main className="flex-1 gap-4 overflow-y-auto">
+          <div className="w-full mb-8">
+            <StatsCards />
+          </div>
           <div className="w-full">
             <GuestList />
           </div>

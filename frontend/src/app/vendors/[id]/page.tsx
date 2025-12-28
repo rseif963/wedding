@@ -94,55 +94,23 @@ export default function VendorProfile() {
 
 
 
-  const packages = [
-    {
-      name: "Essential",
-      price: "$2,500",
-      features: [
-        "6 hours coverage",
-        "1 photographer",
-        "300+ edited photos",
-        "Online gallery",
-        "Print release",
-      ],
-    },
-    {
-      name: "Premium",
-      price: "$4,000",
-      popular: true,
-      features: [
-        "8 hours coverage",
-        "2 photographers",
-        "500+ edited photos",
-        "Engagement session",
-        "Online gallery",
-        "Print release",
-        "Wedding album",
-      ],
-    },
-    {
-      name: "Luxury",
-      price: "$6,500",
-      features: [
-        "Full day coverage",
-        "2 photographers",
-        "800+ edited photos",
-        "Engagement session",
-        "Bridal session",
-        "Online gallery",
-        "Print release",
-        "2 Wedding albums",
-        "Canvas print",
-      ],
-    },
-  ];
-
+  const packages =
+    Array.isArray(vendorPost?.vendor?.pricingPackages)
+      ? vendorPost.vendor.pricingPackages.map((pkg: NonNullable<typeof vendorPost.vendor.pricingPackages>[number]) => ({
+        name: pkg.name || "",
+        price: `${pkg.currency || "Ksh"} ${pkg.price?.toLocaleString() || ""}`,
+        features: pkg.features || [],
+        popular: pkg.name?.toLowerCase().includes("premium") || false,
+      }))
+      : [];
 
 
 
   // Add at the top inside VendorProfile
   const [showBookingPopup, setShowBookingPopup] = useState(false);
-  const [bookingMessage, setBookingMessage] = useState("");
+  const [bookingMessage, setBookingMessage] = useState(
+    "We are currently planning our wedding and would like to learn more about your business. Could you send us some additional information? Thank you!"
+  );
   const [bookingDate, setBookingDate] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImageIndex, setPopupImageIndex] = useState(0);
@@ -377,7 +345,6 @@ export default function VendorProfile() {
         </section>
 
       </div>
-
       <section className="relative z-10 max-w-8xl mx-auto px-4 -mt-60 rounded-2xl py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
 
         {/* ================= LEFT ================= */}
@@ -453,225 +420,262 @@ export default function VendorProfile() {
             </h2>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {packages.map((pkg) => (
-                <div
-                  key={pkg.name}
-                  className={`relative rounded-2xl border p-6 transition ${pkg.popular
-                    ? "border-[#311970] ring-2 ring-[#311970]"
-                    : "border-gray-200"
-                    }`}
-                >
-                  {pkg.popular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#311970] text-white text-xs font-semibold px-4 py-1 rounded-full">
-                      Most Popular
-                    </span>
-                  )}
-
-                  <h3 className="text-xl font-semibold text-[#311970] mb-2">
-                    {pkg.name}
-                  </h3>
-
-                  <p className="text-3xl font-bold text-[#311970] mb-4">
-                    {pkg.price}
-                  </p>
-
-                  <ul className="space-y-2 mb-6">
-                    {pkg.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm text-gray-700"
-                      >
-                        <span className="text-[#311970] font-bold">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    className={`w-full py-2.5 rounded-xl font-semibold transition ${pkg.popular
-                      ? "bg-[#311970] text-white hover:bg-[#261457]"
-                      : "border border-gray-300 text-gray-800 hover:bg-gray-50"
+              {packages.map(
+                (pkg: {
+                  name: string;
+                  price: string;
+                  features: string[];
+                  popular: boolean;
+                }) => (
+                  <div
+                    key={pkg.name}
+                    className={`relative rounded-2xl border p-6 transition ${pkg.popular
+                      ? "border-[#311970] ring-2 ring-[#311970]"
+                      : "border-gray-200"
                       }`}
                   >
-                    Select Package
-                  </button>
-                </div>
-              ))}
+                    {pkg.popular && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#311970] text-white text-xs font-semibold px-4 py-1 rounded-full">
+                        Most Popular
+                      </span>
+                    )}
+
+                    <h3 className="text-xl font-semibold text-[#311970] mb-2">
+                      {pkg.name}
+                    </h3>
+
+                    <p className="text-3xl font-bold text-[#311970] mb-4">
+                      {pkg.price}
+                    </p>
+
+                    <ul className="space-y-2 mb-6">
+                      {pkg.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-sm text-gray-700"
+                        >
+                          <span className="text-[#311970] font-bold">✓</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      onClick={() => {
+                        setBookingMessage(`Hi there! I'm interested in your ${pkg.name} package and would love to get more details about what's included, pricing, and availability. Looking forward to your response!`);
+                        setShowBookingPopup(true);
+                      }}
+                      className={`w-full py-2.5 rounded-xl font-semibold transition ${pkg.popular
+                        ? "bg-[#311970] text-white hover:bg-[#261457]"
+                        : "border border-gray-300 text-gray-800 hover:bg-gray-50"
+                        }`}
+                    >
+                      Select Package
+                    </button>
+
+                  </div>
+                ))}
             </div>
           </div>
+
+          {/* SERVICE AREAS */}
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h2 className="text-2xl font-bold text-[#311970] mb-6">
+              Service Areas
+            </h2>
+
+            {Array.isArray(vendorPost?.vendor?.serviceAreas) &&
+              vendorPost.vendor.serviceAreas.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {vendorPost.vendor.serviceAreas.map((area: string) => (
+                  <span
+                    key={area}
+                    className="px-4 py-2 rounded-full bg-[#EEE9FF] text-[#311970] text-sm font-medium"
+                  >
+                    {area}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">
+                Service areas not specified by this vendor.
+              </p>
+            )}
+          </div>
+
 
 
           {/* REVIEWS (UNCHANGED LOGIC, NEW LAYOUT) */}
           <section className="w-full mx-auto px-1 py-6">
 
-        {/* Title */}
-        <div className="flex ml-4 items-center gap-2 mb-3">
-          <Star className="text-[#311970]" />
-          <h2 className="text-2xl font-bold text-[#311970]">Reviews</h2>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-3">
-
-          {/* TOP SUMMARY SECTION */}
-          <div className="flex flex-col md:flex-row gap-10">
-
-            {/* Left: Overall Rating Box */}
-            <div className="w-full md:w-1/4 flex flex-col items-center justify-center bg-green-100 rounded-xl py-6">
-              <span className="text-4xl font-bold text-green-700">
-                {averageRating.toFixed(1)}
-              </span>
-              <p className="text-gray-700 mb-2">out of 5.0</p>
-              <RatingStars rating={Math.round(averageRating)} />
+            {/* Title */}
+            <div className="flex ml-4 items-center gap-2 mb-3">
+              <Star className="text-[#311970]" />
+              <h2 className="text-2xl font-bold text-[#311970]">Reviews</h2>
             </div>
 
-            {/* Right: Category Ratings */}
-            <div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow-sm p-3">
 
-              {[
-                { key: "quality", label: "Quality of Service", icon: <Smile className="w-5 h-5 text-[#311970]" /> },
-                { key: "responsiveness", label: "Responsiveness", icon: <RefreshCcw className="w-5 h-5 text-[#311970]" /> },
-                { key: "professionalism", label: "Professionalism", icon: <User className="w-5 h-5 text-[#311970]" /> },
-                { key: "flexibility", label: "Flexibility", icon: <SlidersHorizontal className="w-5 h-5 text-[#311970]" /> },
-                { key: "value", label: "Value for Money", icon: <DollarSign className="w-5 h-5 text-[#311970]" /> },
-              ].map((cat) => {
-                const catAvg =
-                  reviews && reviews.length > 0
-                    ? reviews.reduce((sum, r: any) => sum + (r[cat.key] ?? 0), 0) / reviews.length
-                    : 0;
+              {/* TOP SUMMARY SECTION */}
+              <div className="flex flex-col md:flex-row gap-10">
 
-                return (
-                  <div key={cat.key}>
-                    <p className="font-medium text-gray-700 flex items-center gap-2">
-                      {cat.icon} {cat.label}
-                    </p>
-                    <div className="h-2 bg-gray-200 rounded mt-1">
-                      <div
-                        className="h-2 bg-orange-400 rounded"
-                        style={{ width: `${(catAvg / 5) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-
-            </div>
-          </div>
-
-          {/* Review Count */}
-          <p className="mt-8 text-gray-700 font-medium">
-            {reviews?.length} Reviews for {vendor?.businessName}
-          </p>
-
-          {/* LIST OF REVIEWS */}
-          <div className="mt-6 flex flex-col gap-6">
-            {(reviews || []).map((review: any, index: number) => (
-              <div
-                key={review._id || index}
-                className="border border-gray-200 rounded-lg p-2 shadow-sm bg-white"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-800">
-                    {getReviewerName(review)}
-                  </h3>
-                  <RatingStars rating={Number(review.rating ?? 0)} />
+                {/* Left: Overall Rating Box */}
+                <div className="w-full md:w-1/4 flex flex-col items-center justify-center bg-green-100 rounded-xl py-6">
+                  <span className="text-4xl font-bold text-green-700">
+                    {averageRating.toFixed(1)}
+                  </span>
+                  <p className="text-gray-700 mb-2">out of 5.0</p>
+                  <RatingStars rating={Math.round(averageRating)} />
                 </div>
 
-                <p className="text-gray-600 mb-3">{review.text}</p>
+                {/* Right: Category Ratings */}
+                <div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-                {(review.reply ?? (review as any).reply) && (
-                  <div className="ml-4 mt-3 border-l-4 border-[#311970] pl-4 bg-gray-50 rounded">
-                    <p className="text-sm text-gray-700">
-                      <strong>Vendor Reply:</strong>{" "}
-                      {review.reply ?? (review as any).reply}
-                    </p>
-                  </div>
-                )}
+                  {[
+                    { key: "quality", label: "Quality of Service", icon: <Smile className="w-5 h-5 text-[#311970]" /> },
+                    { key: "responsiveness", label: "Responsiveness", icon: <RefreshCcw className="w-5 h-5 text-[#311970]" /> },
+                    { key: "professionalism", label: "Professionalism", icon: <User className="w-5 h-5 text-[#311970]" /> },
+                    { key: "flexibility", label: "Flexibility", icon: <SlidersHorizontal className="w-5 h-5 text-[#311970]" /> },
+                    { key: "value", label: "Value for Money", icon: <DollarSign className="w-5 h-5 text-[#311970]" /> },
+                  ].map((cat) => {
+                    const catAvg =
+                      reviews && reviews.length > 0
+                        ? reviews.reduce((sum, r: any) => sum + (r[cat.key] ?? 0), 0) / reviews.length
+                        : 0;
+
+                    return (
+                      <div key={cat.key}>
+                        <p className="font-medium text-gray-700 flex items-center gap-2">
+                          {cat.icon} {cat.label}
+                        </p>
+                        <div className="h-2 bg-gray-200 rounded mt-1">
+                          <div
+                            className="h-2 bg-orange-400 rounded"
+                            style={{ width: `${(catAvg / 5) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                </div>
               </div>
-            ))}
-          </div>
 
-          {/* WRITE REVIEW FORM */}
-          <form
-            onSubmit={handleReviewSubmit}
-            className="mt-10 border border-gray-200 rounded-lg p-2 shadow-md"
-          >
-            <h3 className="text-2xl font-bold text-[#311970] mb-6 flex items-center gap-2">
-              <Star className="text-[#311970] w-6 h-6" />
-              Write a Review
-            </h3>
+              {/* Review Count */}
+              <p className="mt-8 text-gray-700 font-medium">
+                {reviews?.length} Reviews for {vendor?.businessName}
+              </p>
 
-            {/* FIVE RATING CATEGORIES */}
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
-
-              {/* CATEGORY COMPONENT */}
-
-              {[
-                { label: "Quality of Service", icon: <Smile className="w-6 h-6 text-[#311970]" />, field: "quality" as ReviewCategory },
-                { label: "Responsiveness", icon: <RefreshCcw className="w-6 h-6 text-[#311970]" />, field: "responsiveness" as ReviewCategory },
-                { label: "Professionalism", icon: <User className="w-6 h-6 text-[#311970]" />, field: "professionalism" as ReviewCategory },
-                { label: "Flexibility", icon: <SlidersHorizontal className="w-6 h-6 text-[#311970]" />, field: "flexibility" as ReviewCategory },
-                { label: "Value for Money", icon: <DollarSign className="w-6 h-6 text-[#311970]" />, field: "value" as ReviewCategory }
-              ]
-                .map((item) => (
-                  <div key={item.field}>
-                    <p className="font-semibold text-gray-700 flex items-center gap-2 mb-1">
-                      {item.icon} {item.label}
-                    </p>
-
-                    {/* STAR SELECTOR */}
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() =>
-                            setNewReview((prev: any) => ({ ...prev, [item.field]: star }))
-                          }
-                          className="text-2xl"
-                        >
-                          <span className={newReview[item.field] >= star ? "text-yellow-400" : "text-gray-300"}>
-                            ★
-                          </span>
-                        </button>
-                      ))}
+              {/* LIST OF REVIEWS */}
+              <div className="mt-6 flex flex-col gap-6">
+                {(reviews || []).map((review: any, index: number) => (
+                  <div
+                    key={review._id || index}
+                    className="border border-gray-200 rounded-lg p-2 shadow-sm bg-white"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-800">
+                        {getReviewerName(review)}
+                      </h3>
+                      <RatingStars rating={Number(review.rating ?? 0)} />
                     </div>
+
+                    <p className="text-gray-600 mb-3">{review.text}</p>
+
+                    {(review.reply ?? (review as any).reply) && (
+                      <div className="ml-4 mt-3 border-l-4 border-[#311970] pl-4 bg-gray-50 rounded">
+                        <p className="text-sm text-gray-700">
+                          <strong>Vendor Reply:</strong>{" "}
+                          {review.reply ?? (review as any).reply}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
+              </div>
 
+              {/* WRITE REVIEW FORM */}
+              <form
+                onSubmit={handleReviewSubmit}
+                className="mt-10 border border-gray-200 rounded-lg p-2 shadow-md"
+              >
+                <h3 className="text-2xl font-bold text-[#311970] mb-6 flex items-center gap-2">
+                  <Star className="text-[#311970] w-6 h-6" />
+                  Write a Review
+                </h3>
+
+                {/* FIVE RATING CATEGORIES */}
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+
+                  {/* CATEGORY COMPONENT */}
+
+                  {[
+                    { label: "Quality of Service", icon: <Smile className="w-6 h-6 text-[#311970]" />, field: "quality" as ReviewCategory },
+                    { label: "Responsiveness", icon: <RefreshCcw className="w-6 h-6 text-[#311970]" />, field: "responsiveness" as ReviewCategory },
+                    { label: "Professionalism", icon: <User className="w-6 h-6 text-[#311970]" />, field: "professionalism" as ReviewCategory },
+                    { label: "Flexibility", icon: <SlidersHorizontal className="w-6 h-6 text-[#311970]" />, field: "flexibility" as ReviewCategory },
+                    { label: "Value for Money", icon: <DollarSign className="w-6 h-6 text-[#311970]" />, field: "value" as ReviewCategory }
+                  ]
+                    .map((item) => (
+                      <div key={item.field}>
+                        <p className="font-semibold text-gray-700 flex items-center gap-2 mb-1">
+                          {item.icon} {item.label}
+                        </p>
+
+                        {/* STAR SELECTOR */}
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() =>
+                                setNewReview((prev: any) => ({ ...prev, [item.field]: star }))
+                              }
+                              className="text-2xl"
+                            >
+                              <span className={newReview[item.field] >= star ? "text-yellow-400" : "text-gray-300"}>
+                                ★
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                </div>
+
+                {/* COMMENT FIELD */}
+                <textarea
+                  placeholder="Your Comments"
+                  className="w-full border rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                  rows={6}
+                  value={newReview.text}
+                  onChange={(e) =>
+                    setNewReview((prev: any) => ({ ...prev, text: e.target.value }))
+                  }
+                />
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className={`bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold flex items-center justify-center gap-2 ${submittingReview ? "cursor-not-allowed opacity-70" : ""}`}
+                >
+                  {submittingReview ? (
+                    <span className="flex gap-1">
+                      <span className="animate-bounce">.</span>
+                      <span className="animate-bounce animation-delay-150">.</span>
+                      <span className="animate-bounce animation-delay-300">.</span>
+                      Submitting
+                    </span>
+                  ) : (
+                    "Submit Review"
+                  )}
+                </button>
+
+
+              </form>
             </div>
-
-            {/* COMMENT FIELD */}
-            <textarea
-              placeholder="Your Comments"
-              className="w-full border rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-[#311970]"
-              rows={6}
-              value={newReview.text}
-              onChange={(e) =>
-                setNewReview((prev: any) => ({ ...prev, text: e.target.value }))
-              }
-            />
-
-            <button
-              type="submit"
-              disabled={submittingReview}
-              className={`bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold flex items-center justify-center gap-2 ${submittingReview ? "cursor-not-allowed opacity-70" : ""}`}
-            >
-              {submittingReview ? (
-                <span className="flex gap-1">
-                  <span className="animate-bounce">.</span>
-                  <span className="animate-bounce animation-delay-150">.</span>
-                  <span className="animate-bounce animation-delay-300">.</span>
-                  Submitting
-                </span>
-              ) : (
-                "Submit Review"
-              )}
-            </button>
-
-
-          </form>
-        </div>
-      </section>
+          </section>
           {/* --- YOUR EXISTING REVIEWS JSX CAN STAY HERE --- */}
 
         </div>
@@ -693,14 +697,16 @@ export default function VendorProfile() {
               Call Now
             </button>
           )}
-          <button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+          {/*<button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
             <Calendar className="w-5 h-5" /> Check Availability
-          </button>
+          </button>*/}
           <p className="mt-6 text-sm text-gray-600">
             <strong>Response time:</strong><br />Usually within 24 hours
           </p>
         </aside>
       </section>
+
+
 
       {/* Contact */}
       {/*  <section className="max-w-4xl mx-auto px-6 py-12">
@@ -725,157 +731,163 @@ export default function VendorProfile() {
 
       {/* Reviews */}
       {/* Reviews Section */}
-      
+
 
       {/* ⭐ Similar Vendors Section */}
-      {similarVendors.length > 0 && (
-        <section className="w-full mx-auto px-2 py-10">
-          <h2 className="text-2xl font-bold text-[#311970] mb-6">
-            Similar Vendors
-          </h2>
-
-          <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {similarVendors.map((post: any) => {
-              const v = post.vendor;
-              const image =
-                post.mainPhoto ||
-                v?.logo ||
-                v?.photo ||
-                "/assets/vendor-placeholder.jpg";
-
-              return (
-                <a
-                  key={post._id}
-                  href={`/vendors/${post._id}`}
-                  className="bg-white rounded-xl shadow hover:shadow-lg transition block overflow-hidden"
-                >
-                  <img
-                    src={image}
-                    className="w-full h-48 object-cover"
-                    alt={v?.businessName}
-                  />
-
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg text-[#311970] truncate">
-                      {v?.businessName}
-                    </h3>
-
-                    <p className="text-sm text-gray-500">
-                      {v?.category}
-                    </p>
-
-                    <p className="text-sm text-gray-600 mt-1">
-                      {v?.location ? `${v.location}, Kenya` : "Kenya"}
-                    </p>
-
-                    <p className="mt-2 text-sm">
-                      Starting from{" "}
-                      <span className="font-semibold">
-                        Ksh {post.priceFrom?.toLocaleString()}
-                      </span>
-                    </p>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Booking Popup */}
-      {showBookingPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 bg-opacity-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowBookingPopup(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl font-bold"
-            >
-              ×
-            </button>
-
-            <h2 className="text-2xl font-bold text-[#311970] mb-4">
-              Request Pricing
+      {
+        similarVendors.length > 0 && (
+          <section className="w-full mx-auto px-2 py-10">
+            <h2 className="text-2xl font-bold text-[#311970] mb-6">
+              Similar Vendors
             </h2>
 
-            <label className="block mb-2 font-semibold text-gray-700">Booking Date</label>
-            <input
-              type="date"
-              value={bookingDate}
-              onChange={(e) => setBookingDate(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
-            />
+            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {similarVendors.map((post: any) => {
+                const v = post.vendor;
+                const image =
+                  post.mainPhoto ||
+                  v?.logo ||
+                  v?.photo ||
+                  "/assets/vendor-placeholder.jpg";
 
-            <label className="block mb-2 font-semibold text-gray-700">Message</label>
-            <textarea
-              value={bookingMessage}
-              onChange={(e) => setBookingMessage(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
-              rows={4}
-              placeholder="Enter your message..."
-            />
+                return (
+                  <a
+                    key={post._id}
+                    href={`/vendors/${post._id}`}
+                    className="bg-white rounded-xl shadow hover:shadow-lg transition block overflow-hidden"
+                  >
+                    <img
+                      src={image}
+                      className="w-full h-48 object-cover"
+                      alt={v?.businessName}
+                    />
 
-            <button
-              onClick={handleRequestPricing}
-              className="w-full bg-[#311970] text-white py-2 rounded-lg shadow hover:bg-[#261457] transition font-semibold"
-            >
-              Send Request
-            </button>
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg text-[#311970] truncate">
+                        {v?.businessName}
+                      </h3>
+
+                      <p className="text-sm text-gray-500">
+                        {v?.category}
+                      </p>
+
+                      <p className="text-sm text-gray-600 mt-1">
+                        {v?.location ? `${v.location}, Kenya` : "Kenya"}
+                      </p>
+
+                      <p className="mt-2 text-sm">
+                        Starting from{" "}
+                        <span className="font-semibold">
+                          Ksh {post.priceFrom?.toLocaleString()}
+                        </span>
+                      </p>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        )
+      }
+
+      {/* Booking Popup */}
+      {
+        showBookingPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 bg-opacity-50 p-4">
+            <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowBookingPopup(false)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl font-bold"
+              >
+                ×
+              </button>
+
+              <h2 className="text-2xl font-bold text-[#311970] mb-4">
+                Request Pricing
+              </h2>
+
+              <label className="block mb-2 font-semibold text-gray-700">Booking Date</label>
+              <input
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+              />
+
+              <label className="block mb-2 font-semibold text-gray-700">Message</label>
+              <textarea
+                value={bookingMessage}
+                onChange={(e) => setBookingMessage(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                rows={4}
+                placeholder="Enter your message..."
+              />
+
+              <button
+                onClick={handleRequestPricing}
+                className="w-full bg-[#311970] text-white py-2 rounded-lg shadow hover:bg-[#261457] transition font-semibold"
+              >
+                Send Request
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {isPopupOpen && (
-        <div
-          className="fixed inset-0 bg-black/80 bg-opacity-80 flex items-center justify-center z-50 p-4"
-          onClick={() => setIsPopupOpen(false)}
-        >
+      {
+        isPopupOpen && (
           <div
-            className="relative max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()} // prevent popup close on image click
+            className="fixed inset-0 bg-black/80 bg-opacity-80 flex items-center justify-center z-50 p-4"
+            onClick={() => setIsPopupOpen(false)}
           >
-            <img
-              src={getFullUrl(galleryArray[popupImageIndex])}
-              alt={`Popup image ${popupImageIndex + 1}`}
-              className="rounded-3xl max-w-full max-h-[90vh] object-contain"
-            />
-
-            {/* Close Button */}
-            <button
-              onClick={() => setIsPopupOpen(false)}
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
-              aria-label="Close popup"
+            <div
+              className="relative max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()} // prevent popup close on image click
             >
-              ✕
-            </button>
+              <img
+                src={getFullUrl(galleryArray[popupImageIndex])}
+                alt={`Popup image ${popupImageIndex + 1}`}
+                className="rounded-3xl max-w-full max-h-[90vh] object-contain"
+              />
 
-            {/* Prev Button */}
-            <button
-              onClick={() =>
-                setPopupImageIndex(
-                  (popupImageIndex - 1 + galleryArray.length) % galleryArray.length
-                )
-              }
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-3xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
-              aria-label="Previous Image"
-            >
-              ‹
-            </button>
+              {/* Close Button */}
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
+                aria-label="Close popup"
+              >
+                ✕
+              </button>
 
-            {/* Next Button */}
-            <button
-              onClick={() =>
-                setPopupImageIndex((popupImageIndex + 1) % galleryArray.length)
-              }
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-3xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
-              aria-label="Next Image"
-            >
-              ›
-            </button>
+              {/* Prev Button */}
+              <button
+                onClick={() =>
+                  setPopupImageIndex(
+                    (popupImageIndex - 1 + galleryArray.length) % galleryArray.length
+                  )
+                }
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-3xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
+                aria-label="Previous Image"
+              >
+                ‹
+              </button>
+
+              {/* Next Button */}
+              <button
+                onClick={() =>
+                  setPopupImageIndex((popupImageIndex + 1) % galleryArray.length)
+                }
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-3xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition"
+                aria-label="Next Image"
+              >
+                ›
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
       <Footer />
-    </main>
+    </main >
   );
 }
