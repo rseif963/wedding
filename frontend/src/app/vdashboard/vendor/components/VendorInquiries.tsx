@@ -151,7 +151,7 @@ export default function VendorBookings() {
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
         <aside
-          className={`w-full md:w-1/3 p-4 overflow-y-auto rounded-2xl bg-white
+          className={`w-[100vh] md:w-1/3 p-4 overflow-y-auto rounded-2xl bg-white
             ${view === "details" ? "hidden md:block" : "block"}`}
         >
           <div className="flex items-center justify-between  border-b mb-4 pb-2">
@@ -195,7 +195,7 @@ export default function VendorBookings() {
                         <p className="font-medium text-gray-700">
                           {getClientName(b)}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="text-xs text-gray-500 truncate md:truncate sm:truncate">
                           {latestMessage?.content ||
                             "No messages yet"}
                         </p>

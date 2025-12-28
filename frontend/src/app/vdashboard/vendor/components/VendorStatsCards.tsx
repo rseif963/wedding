@@ -26,13 +26,13 @@ export default function VendorStatsCards() {
   }, [vendorProfile?._id]);
 
   // Assuming you track profile views somewhere - add it here, else hardcoded for example
-  const profileViews = vendorProfile?.profileViews || 1248;
+  const profileViews = vendorProfile?.profileViews || 0;
 
   // Assuming you track new bookings count
- const bookingsPending = bookings?.filter(booking => booking.status === "Pending").length || 5;
+ const bookingsPending = bookings?.filter(booking => booking.status === "Pending").length || 0;
 
   // Assuming inquiries = messages.length
-  const inquiriesCount = messages?.length || 24;
+  const inquiriesCount = messages?.length || 0;
 
   const stats = [
     {
