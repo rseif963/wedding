@@ -24,6 +24,14 @@ export default function PortfolioGallery() {
   const [selectedImage, setSelectedImage] = useState<string | File | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
+  const [priceFrom, setPriceFrom] = useState<string>("");
+  const [editingPrice, setEditingPrice] = useState(false);
+
+  const formatPrice = (value: string | number) => {
+    const num = Number(value);
+    if (Number.isNaN(num)) return "";
+    return num.toLocaleString("en-US");
+  };
 
 
   const getFullUrl = (path?: string) => {
@@ -48,7 +56,9 @@ export default function PortfolioGallery() {
     const p = ctxPosts[0];
     setPostId(p._id);
     setGallery(p.galleryImages || []);
+    setPriceFrom(p.priceFrom?.toString() ?? "");
   }, [ctxPosts]);
+
 
   // PREVIEW – not uploading yet
   // Store file previews before upload
@@ -81,6 +91,24 @@ export default function PortfolioGallery() {
     setPostId(created._id);
     return created._id;
   };
+
+  const handlePriceFromSave = async () => {
+    if (!postId) return;
+
+    const form = new FormData();
+    form.append("priceFrom", priceFrom || "0");
+
+    setLoading(true);
+    try {
+      await updatePost(postId, form);
+      await fetchVendorPosts();
+      setEditingPrice(false); // ✅ switch to display mode
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
 
   const uploadPreviewFile = async (file: File) => {
@@ -163,6 +191,50 @@ export default function PortfolioGallery() {
           Showcase your best work by uploading high-quality images.
         </p>
       </div>
+
+      {/* Price From */}
+      <div className="w-full max-w-4xl mx-auto mb-8">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Starting Price
+        </label>
+
+        {!editingPrice ? (
+          <div className="flex items-center justify-between border border-gray-300 rounded-xl px-4 py-3">
+            <span className="text-gray-900 font-medium">
+              {priceFrom ? `KES ${formatPrice(priceFrom)}` : "Not set"}
+            </span>
+
+            <button
+              onClick={() => setEditingPrice(true)}
+              className="text-[#4b1bb4] font-medium hover:underline"
+            >
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-3">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formatPrice(priceFrom)}
+              onChange={(e) =>
+                setPriceFrom(e.target.value.replace(/,/g, ""))
+              }
+              placeholder="e.g. 50,000"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b1bb4]"
+            />
+
+            <button
+              onClick={handlePriceFromSave}
+              disabled={loading}
+              className="bg-[#4b1bb4] text-white px-6 rounded-xl font-medium hover:bg-[#3a1591] transition"
+            >
+              {loading ? "Saving..." : "Save"}
+            </button>
+          </div>
+        )}
+      </div>
+
 
       {/* Upload Area */}
       {/* Upload Area */}

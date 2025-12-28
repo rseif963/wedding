@@ -598,7 +598,7 @@ export default function ProfileManager({ preview = false }: Props) {
             {/* BUSINESS NAME + CATEGORY + VERIFIED */}
             <div className="flex flex-1 justify-between items-center">
               <div>
-                <h2 className="text-1xl font-semibold text-gray-900">
+                <h2 className="text-1xl md:text-2xl lg:text-3xl font-semibold text-gray-900">
                   {vendorProfile.businessName}
                 </h2>
                 <p className="text-gray-500 text-sm">{vendorProfile.category}</p>

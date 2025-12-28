@@ -47,12 +47,11 @@ export default function VendorHeader({
         </div>
 
         {/* MOBILE AVATAR ONLY */}
-        <div className="w-8 h-8 rounded-full overflow-hidden md:hidden">
+        <div className="w-8 h-8 mr-2 rounded-full overflow-hidden relative md:hidden">
           <Image
             src={profilePhoto}
             alt="Profile photo"
-            width={28}
-            height={28}
+            fill
             className="object-cover"
           />
         </div>
@@ -68,15 +67,15 @@ export default function VendorHeader({
             </p>
           </div>
 
-          <div className="w-8 h-8 rounded-full overflow-hidden">
+          <div className="w-8 h-8 rounded-full overflow-hidden relative">
             <Image
               src={profilePhoto}
               alt="Profile photo"
-              width={28}
-              height={28}
+              fill
               className="object-cover"
             />
           </div>
+
         </div>
       </div>
     </header>

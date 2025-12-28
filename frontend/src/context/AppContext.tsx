@@ -585,11 +585,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 
   const fetchConversations = useCallback(async () => {
-  if (!user?.id) return;
+    if (!user?.id) return;
 
-  const res = await axios.get(`/api/chat/conversations/${user.id}`);
-  setConversations(res.data || []);
-}, [user?.id]);
+    const res = await axios.get(`/api/chat/conversations/${user.id}`);
+    setConversations(res.data || []);
+  }, [user?.id]);
 
 
   const fetchChatMessages = useCallback(async (conversationId: string) => {
@@ -1085,14 +1085,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchVendorPosts = async () => {
     if (!vendorProfile?._id) return;
+
     try {
-      const { data } = await axios.get(`/api/posts?vendor=${vendorProfile._id}`);
-      setPosts(data || []);
+      const { data } = await axios.get(
+        `/api/posts?vendor=${vendorProfile._id}`
+      );
+
+      // ✅ Only keep posts that belong to this vendor
+      const safePosts = Array.isArray(data)
+        ? data.filter(
+          (p: any) =>
+            p?.vendor === vendorProfile._id ||
+            p?.vendor?._id === vendorProfile._id
+        )
+        : [];
+
+      setPosts(safePosts);
     } catch (err) {
       console.error("Failed to fetch vendor posts:", err);
       setPosts([]);
     }
   };
+
 
   const fetchPostById = async (id: string) => {
     try {
