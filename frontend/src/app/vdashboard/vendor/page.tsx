@@ -11,30 +11,34 @@ import VendorInquiries from "./components/VendorInquiries";
 export default function DashboardPage() {
   const { vendorProfile } = useAppContext();
   return (
-    <div className="bg-[#eee] p-6"> {/* Background matches header */}
+    <div className="bg-[#eee] w-full"> {/* Background matches header */}
       {/* Welcome Header */}
-      <h1 className="font-serif font-bold text-2xl text-gray-900">
-        Welcome back, {vendorProfile?.businessName || "Business Name"}! ✨
-      </h1>
+      <div className="p-4">
+        <h1 className="font-serif font-bold text-2xl text-gray-900">
+          Welcome back, {vendorProfile?.businessName || "Business Name"}! ✨
+        </h1>
 
-      {/* Subtitle */}
-      <p className="text-base text-gray-600 mt-1">
-        Here's what's happening with your business today.
-      </p>
+        {/* Subtitle */}
+        <p className="text-base text-gray-600 mt-1">
+          Here's what's happening with your business today.
+        </p>
+
+        {/* Existing content inside white background */}
+        <VendorStatsCards />
+      </div>
+
 
       {/* The rest of your dashboard content */}
       <div className="bg-[#eee] mt-6 rounded-lg">
-        {/* Existing content inside white background */}
-        <VendorStatsCards />
         <div className="grid grid-cols-1 lg:grid-cols-3 mt-1">
           <div className="lg:col-span-3 space-y-0">
             <div className="w-full">
               <ProfileManager />
               <Subscriptions />
             </div>
-          </div>     
+          </div>
         </div>
       </div>
     </div>
-  );
+  );
 }

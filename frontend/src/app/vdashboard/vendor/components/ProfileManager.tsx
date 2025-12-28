@@ -492,7 +492,7 @@ export default function ProfileManager({ preview = false }: Props) {
 
   if (preview) {
     return (
-      <section className="bg-white shadow-sm rounded-2xl p-4">
+      <section className="bg-white shadow-sm rounded-2xl p-2">
         <h2 className="text-2xl font-semibold text-center text-[#311970] mb-4">
           My Profile
         </h2>
@@ -510,17 +510,17 @@ export default function ProfileManager({ preview = false }: Props) {
 
   if (!isEditing && vendorProfile) {
     return (
-      <div className="p-8">
+      <div className="p-2">
 
         {fileInputs}
         {previewModal}
 
         {/* PAGE HEADER */}
         <div className="mb-6">
-          <h1 className="text-3xl font-extrabold text-gray-900">
+          <h1 className="text-3xl ml-4 font-extrabold text-gray-900">
             Profile Settings
           </h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <p className="text-gray-600 mt-1 ml-4 text-sm">
             Manage your business information and preferences
           </p>
         </div>
@@ -596,7 +596,7 @@ export default function ProfileManager({ preview = false }: Props) {
             </div>
 
             {/* BUSINESS NAME + CATEGORY + VERIFIED */}
-            <div className="flex flex-1 justify-between items-start">
+            <div className="flex flex-1 justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
                   {vendorProfile.businessName}
@@ -1271,7 +1271,7 @@ export default function ProfileManager({ preview = false }: Props) {
           </div>
         </div>
 
-        <button
+        {/*<button
           className="btn-primary flex items-center gap-2 bg-[#4b1bb4] hover:bg-[#3a1591] text-white px-5 py-2.5 rounded-xl shadow transition"
         >
           <svg
@@ -1291,7 +1291,7 @@ export default function ProfileManager({ preview = false }: Props) {
             <path d="M7 3v4a1 1 0 0 0 1 1h7"></path>
           </svg>
           Save Changes
-        </button>
+        </button>*/}
       </div>
     );
   }
