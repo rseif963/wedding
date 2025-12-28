@@ -96,6 +96,26 @@ export default function ProfileManager({ preview = false }: Props) {
   };
 
 
+  const VENDOR_CATEGORIES = [
+    "Photography",
+    "Catering",
+    "Venue",
+    "Entertainment",
+    "Decoration",
+    "Makeup Artist",
+    "Dresses",
+    "Groom Wear",
+    "Wedding Planner",
+    "Florist",
+    "Cars",
+    "Cake",
+    "Tailor",
+    "Makeup & Beauty",
+    "MC / Host",
+    "Other",
+  ];
+
+
   /** -------------------------- */
 
   useEffect(() => {
@@ -1296,56 +1316,121 @@ export default function ProfileManager({ preview = false }: Props) {
     );
   }
 
-  // EDIT MODE REMAINS EXACTLY AS YOUR ORIGINAL
-  return (
-    <div className="bg-white rounded-2xl shadow p-10">
-      <h2 className="text-2xl font-bold text-[#311970] mb-8">Edit Profile</h2>
+  // EDIT MODE (Category as dropdown)
+return (
+  <div className="bg-white rounded-2xl shadow p-10">
+    <h2 className="text-2xl font-bold text-[#311970] mb-8">Edit Profile</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {[
-          ["Business Name", "businessName"],
-          ["Category", "category"],
-          ["Location", "location"],
-          ["Website", "website"],
-          ["Phone Number", "phone"],
-          ["Email", "email"],
-        ].map(([label, name]) => (
-          <div key={name}>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
-              {label}
-            </label>
-            <input
-              name={name}
-              value={(formData as any)[name]}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
-            />
-          </div>
-        ))}
+    <form
+      onSubmit={handleSubmit}
+      className="grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
+      {/* Business Name */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Business Name
+        </label>
+        <input
+          name="businessName"
+          value={formData.businessName}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
+        />
+      </div>
 
-        <div className="md:col-span-2">
-          <label className="text-sm font-semibold text-gray-700 mb-2 block">
-            Business Description
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full min-h-[140px] px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
-          ></textarea>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="md:col-span-2 bg-[#311970] text-white py-3 rounded-xl shadow hover:bg-[#261457]"
+      {/* Category (DROPDOWN) */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Category
+        </label>
+        <select
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970] bg-white"
         >
-          {loading ? "Saving..." : "Save Profile"}
-        </button>
-      </form>
-    </div>
-  );
+          <option value="">Select a category</option>
+          {VENDOR_CATEGORIES.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Location */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Location
+        </label>
+        <input
+          name="location"
+          value={formData.location}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
+        />
+      </div>
+
+      {/* Website */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Website
+        </label>
+        <input
+          name="website"
+          value={formData.website}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
+        />
+      </div>
+
+      {/* Phone */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Phone Number
+        </label>
+        <input
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
+        />
+      </div>
+
+      {/* Email */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Email
+        </label>
+        <input
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
+        />
+      </div>
+
+      {/* Description */}
+      <div className="md:col-span-2">
+        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          Business Description
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          className="w-full min-h-[140px] px-4 py-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#311970]"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="md:col-span-2 bg-[#311970] text-white py-3 rounded-xl shadow hover:bg-[#261457]"
+      >
+        {loading ? "Saving..." : "Save Profile"}
+      </button>
+    </form>
+  </div>
+);
 }
