@@ -20,7 +20,7 @@ export default function Hero() {
       </div>
 
       <div className="container relative z-10 mx-auto px-6 py-20 text-center">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto mt-18">
           <h1 className="font-display text-4xl md:text-7xl font-bold text-foreground mb-6 animate-fade-up">
             Everything You Need To Plan Your
             <span className="text-gradient block mt-2">Wedding Day.</span>
