@@ -345,7 +345,7 @@ export default function VendorProfile() {
         </section>
 
       </div>
-      <section className="relative z-10 max-w-8xl mx-auto px-4 -mt-60 rounded-2xl py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+      <section className="relative z-10 max-w-8xl mx-auto px-1 md:px-3 lg:px-4 -mt-60 rounded-2xl py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
 
         {/* ================= LEFT ================= */}
         <div className="space-y-12 rounded-2xl">
