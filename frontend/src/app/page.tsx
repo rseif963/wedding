@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import TopListingVendors from "@/components/TopListingVendors";
 
 export default function Home() {
-  const [loading, setLoading] = useState(true);
+  {/*const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate loading time or wait for actual data
@@ -26,7 +26,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <Loader />;
+  if (loading) return <Loader />;*/}
 
   return (
     <main className="flex flex-col min-h-screen bg-white">
