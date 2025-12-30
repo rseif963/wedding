@@ -162,6 +162,9 @@ export default function ProfileManager({ preview = false }: Props) {
     "Tana River",
   ];
 
+  const PACKAGE_NAMES = ["Essential", "Premium", "Luxury"];
+
+
 
 
   /** -------------------------- */
@@ -1024,14 +1027,19 @@ export default function ProfileManager({ preview = false }: Props) {
                 <h4 className="mb-4 text-lg font-semibold">Add Pricing Package</h4>
 
                 {/* Name, Price, Currency */}
-                <input
-                  type="text"
-                  placeholder="Name"
+                <select
                   value={newPackage.name}
                   onChange={(e) => setNewPackage({ ...newPackage, name: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-                  autoFocus
-                />
+                  className="w-full border border-gray-300 rounded px-3 py-2 mb-2 bg-white"
+                >
+                  <option value="">Select Package Type</option>
+                  {PACKAGE_NAMES.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+
                 <input
                   type="number"
                   placeholder="Price"

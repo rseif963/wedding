@@ -478,6 +478,33 @@ export default function VendorProfile() {
             </div>
           </div>
 
+          {/* SERVICE CATEGORIES */}
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h2 className="text-2xl font-bold text-[#311970] mb-6">
+              Services Offered
+            </h2>
+
+            {Array.isArray(vendorPost?.vendor?.serviceCategories) &&
+              vendorPost.vendor.serviceCategories.length > 0 ? (
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {vendorPost.vendor.serviceCategories.map((service: string) => (
+                  <div
+                    key={service}
+                    className="flex items-center gap-3 p-4 rounded-xl border border-[#EEE9FF] bg-[#FAF8FF]"
+                  >
+                    <span className="text-[#311970] font-bold text-lg">✓</span>
+                    <span className="text-gray-800 font-medium">{service}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">
+                This vendor has not listed their services yet.
+              </p>
+            )}
+          </div>
+
+
           {/* SERVICE AREAS */}
           <div className="bg-white rounded-2xl p-6 shadow">
             <h2 className="text-2xl font-bold text-[#311970] mb-6">
