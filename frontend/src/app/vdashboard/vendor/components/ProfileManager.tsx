@@ -561,7 +561,7 @@ export default function ProfileManager({ preview = false }: Props) {
 
   /** -------------------------- */
 
-  if (preview) {
+ {/* if (preview) {
     return (
       <section className="bg-white shadow-sm rounded-2xl p-2">
         <h2 className="text-2xl font-semibold text-center text-[#311970] mb-4">
@@ -577,7 +577,7 @@ export default function ProfileManager({ preview = false }: Props) {
         </div>
       </section>
     );
-  }
+  }*/}
 
   if (!isEditing && vendorProfile) {
     return (

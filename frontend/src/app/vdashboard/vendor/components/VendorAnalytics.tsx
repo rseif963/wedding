@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 
 
 type AnalyticsRow = {
-    month: string;        // YYYY-MM
+    day: string;        // YYYY-MM-DD
     profileViews: number;
 };
 
@@ -108,11 +108,17 @@ export default function VendorAnalytics() {
     }, [fetchVendorBookings]);
 
 
+    const profileViewsData = analytics.map((a) => {
+        const date = new Date(a.day + "-01");
+        if (isNaN(date.getTime())) {
+            return { name: a.day, views: a.profileViews || 0 }; // fallback to raw string
+        }
+        return {
+            name: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            views: a.profileViews || 0,
+        };
+    });
 
-    const profileViewsData = analytics.map((a) => ({
-        name: new Date(a.month + "-01").toLocaleString("default", { month: "short" }),
-        views: a.profileViews || 0,
-    }));
 
     // Optionally add a “latest month” bar for live bookings
     const latestMonth = new Date().toLocaleString("default", { month: "short" });
@@ -167,18 +173,18 @@ export default function VendorAnalytics() {
 
 
     return (
-        <div className="w-full px-6 py-6 bg-gray-50 font-inter">
+        <div className="w-full px-2 md:px-4 lg:px-6 py-6 bg-gray-50 font-inter">
             {/* HEADER SECTION */}
-            <div className="mb-4">
+            <div className="mb-4 mr-3">
                 <h1
                     className="font-serif font-bold"
-                    style={{ fontSize: "32px", color: "#1E1E1E" }}
+                    style={{ fontSize: "28px", color: "#1E1E1E" }}
                 >
                     Analytics & Insights
                 </h1>
 
                 <p
-                    className="mt-1"
+                    className=""
                     style={{
                         fontSize: "15px",
                         color: "#6B7280",

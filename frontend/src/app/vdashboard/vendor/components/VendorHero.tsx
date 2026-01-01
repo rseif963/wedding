@@ -1,14 +1,8 @@
 "use client";
-
-import VendorStatsCards from "./components/VendorStatsCards";
-import ProfileManager from "./components/ProfileManager";
-import PostsManager from "./components/PostsManager";
-import Subscriptions from "./components/Subscriptions";
 import { useAppContext } from "@/context/AppContext";
-import VendorInquiries from "./components/VendorInquiries";
 
 
-export default function DashboardPage() {
+export default function VendorHeroPage() {
   const { vendorProfile } = useAppContext();
   return (
     <div className="w-full"> {/* Background matches header */}
@@ -22,15 +16,8 @@ export default function DashboardPage() {
         <p className="text-base text-gray-600 mt-1">
           Here's what's happening with your business today.
         </p>
-
-        {/* Existing content inside white background */}
-        <VendorStatsCards />
       </div>
-
-      <div className="w-full rounded-2xl">
-        <ProfileManager />
-        <Subscriptions />
-      </div>
+      
     </div>
   );
 }
