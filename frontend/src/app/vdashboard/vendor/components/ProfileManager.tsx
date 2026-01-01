@@ -669,12 +669,12 @@ export default function ProfileManager({ preview = false }: Props) {
             {/* BUSINESS NAME + CATEGORY + VERIFIED */}
             <div className="flex flex-1 justify-between items-center">
               <div>
-                <h2 className="text-1xl md:text-2xl lg:text-3xl font-semibold text-gray-900">
+                <h6 className="text-1xl md:text-2xl lg:text-3xl font-semibold text-gray-900">
                   {vendorProfile.businessName}
-                </h2>
+                </h6>
                 <p className="text-gray-500 text-sm">{vendorProfile.category}</p>
               </div>
-              <div className="inline-flex rounded-full bg-green-100 px-2 py-1 text-green-700 font-medium text-xs h-6 items-center gap-1">
+              {/*<div className="inline-flex rounded-full bg-green-100 px-2 py-1 text-green-700 font-medium text-xs h-6 items-center gap-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="12"
@@ -691,7 +691,7 @@ export default function ProfileManager({ preview = false }: Props) {
                   <path d="m9 11 3 3L22 4"></path>
                 </svg>
                 <span>Verified</span>
-              </div>
+              </div>*/}
             </div>
           </div>
         </div>
