@@ -1,9 +1,9 @@
 // app/auth/page.tsx
-import dynamic from "next/dynamic";
+"use client";
 
-// Dynamically import your AuthPage, client-only
-const AuthPage = dynamic(() => import("./AuthPage"), { ssr: false });
+import AuthPage from "./AuthPage"; // now this is just a normal import
 
 export default function Page() {
   return <AuthPage />;
 }
+
