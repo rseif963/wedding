@@ -151,10 +151,10 @@ export default function VendorBookings() {
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
         <aside
-          className={`w-[100vh] md:w-1/3 p-4 overflow-y-auto rounded-2xl bg-white
+          className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-none md:rounded-2xl bg-white
             ${view === "details" ? "hidden md:block" : "block"}`}
         >
-          <div className="flex items-center justify-between  border-b mb-4 pb-2">
+          <div className="flex items-center justify-between border-b mb-4 pb-2">
             <h2 className="font-semibold mb-3">Inquiries & Accepted Bookings</h2>
 
             {totalUnreadBookings > 0 && (
@@ -289,8 +289,8 @@ export default function VendorBookings() {
                           : "bg-gray-200"
                         }`}
                     >
-                      <p>{m.content}</p>
-                      <span className="absolute bottom-1 right-2 text-xs text-gray-400">
+                      <p className="pb-2">{m.content}</p>
+                      <span className="absolute bottom-1 right-2 text-xs text-gray-400 pt-2">
                         {time}
                       </span>
                     </div>

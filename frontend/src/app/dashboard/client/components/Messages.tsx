@@ -142,10 +142,10 @@ export default function Bookings() {
 
   return (
     <section className="bg-gray-200 w-full h-screen rounded-xl overflow-hidden">
-      <div className="flex  h-full gap-3">
+      <div className="flex h-full gap-3">
         {/* LEFT */}
         <aside
-          className={`bg-white w-full md:w-1/3 p-4 overflow-y-auto rounded-2xl
+          className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-2xl
           ${view === "details" ? "hidden md:block" : "block"}`}
         >
           <div className="flex justify-between border-b mb-4 pb-2">
@@ -248,7 +248,7 @@ export default function Bookings() {
                           : "bg-gray-200"
                         }`}
                     >
-                      <p>{m.content}</p>
+                      <p className="pb-2">{m.content}</p>
                       <span className="absolute bottom-1 right-2 text-xs text-gray-400">
                         {time}
                       </span>
