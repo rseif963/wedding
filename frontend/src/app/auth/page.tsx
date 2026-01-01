@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { data } from "framer-motion/client";
+
 
 export default function AuthPage() {
   const router = useRouter();

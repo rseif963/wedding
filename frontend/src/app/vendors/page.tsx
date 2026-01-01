@@ -254,6 +254,11 @@ const VendorsPage = () => {
     if (qLocation) setCounty(qLocation);
   }, [searchParams]);
 
+  const fuse = new Fuse(posts, {
+    keys: ["vendor.businessName", "vendor.description", "vendor.category"],
+    threshold: 0.4, // lower = stricter match, higher = more fuzzy
+  });
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
