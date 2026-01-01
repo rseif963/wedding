@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -121,253 +122,254 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] via-[#4527a0] to-[#6a1b9a]">
-      <div className="absolute inset-0">
-        <Image
-          src="/assets/hero-wedding.jpg" // ← USE YOUR EXACT IMAGE PATH
-          alt="Wedding background"
-          fill
-          priority
-          className="object-cover"
-        />
+    <Suspense fallback={<div>Loading...</div>}>
+      <main className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] via-[#4527a0] to-[#6a1b9a]">
+        <div className="absolute inset-0">
+          <Image
+            src="/assets/hero-wedding.jpg" // ← USE YOUR EXACT IMAGE PATH
+            alt="Wedding background"
+            fill
+            priority
+            className="object-cover"
+          />
 
-      </div>
-
-      <div className="relative z-10 w-full overflow-hidden grid grid-cols-1 md:grid-cols-2">
-
-        {/* Left Panel (hidden on mobile) */}
-        <div
-          className={`hidden md:flex flex-col items-start bg-black/10 text-white p-12
-        ${mode === "login" ? "md:order-2" : "md:order-1"}
-      `}
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="text-4xl font-bold mb-3"
-          >
-            {mode === "login"
-              ? "Welcome back"
-              : "Welcome to Wedpine"}
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="text-lg opacity-90 mb-8 text-start"
-          >
-            {mode === "login"
-              ? "We’re so happy to see you again. Let’s pick up where we left off."
-              : "The ultimate platform to connect clients and vendors for the perfect wedding experience."}
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="bg-white text-[#311970] font-semibold px-6 py-3 rounded-xl shadow cursor-pointer"
-            onClick={toggleMode}
-          >
-            {mode === "login"
-              ? "New here? Sign Up"
-              : "Already have an account? Login"}
-          </motion.div>
         </div>
 
-        {/* Right Panel */}
-        <div
-          className={`p-6 sm:p-8 md:p-12 bg-white h-[100vh] overflow-y-auto
+        <div className="relative z-10 w-full overflow-hidden grid grid-cols-1 md:grid-cols-2">
+
+          {/* Left Panel (hidden on mobile) */}
+          <div
+            className={`hidden md:flex flex-col items-start bg-black/10 text-white p-12
+        ${mode === "login" ? "md:order-2" : "md:order-1"}
+      `}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="text-4xl font-bold mb-3"
+            >
+              {mode === "login"
+                ? "Welcome back"
+                : "Welcome to Wedpine"}
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="text-lg opacity-90 mb-8 text-start"
+            >
+              {mode === "login"
+                ? "We’re so happy to see you again. Let’s pick up where we left off."
+                : "The ultimate platform to connect clients and vendors for the perfect wedding experience."}
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white text-[#311970] font-semibold px-6 py-3 rounded-xl shadow cursor-pointer"
+              onClick={toggleMode}
+            >
+              {mode === "login"
+                ? "New here? Sign Up"
+                : "Already have an account? Login"}
+            </motion.div>
+          </div>
+
+          {/* Right Panel */}
+          <div
+            className={`p-6 sm:p-8 md:p-12 bg-white h-[100vh] overflow-y-auto
     ${mode === "login" ? "md:order-1" : "md:order-2"}
   `}
 
-        >
-          {/* Back to Home */}
-          <div className="flex justify-end mb-6">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-sm font-medium text-[#311970] hover:underline"
-            >
-              <Home size={16} /> Back to Home
-            </Link>
-          </div>
+          >
+            {/* Back to Home */}
+            <div className="flex justify-end mb-6">
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-sm font-medium text-[#311970] hover:underline"
+              >
+                <Home size={16} /> Back to Home
+              </Link>
+            </div>
 
-          {/* Role Tabs */}
-          <div className="flex flex-col sm:flex-row justify-center gap-3 mb-8">
-            <button
-              onClick={() => setRole("client")}
-              disabled={submitting}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client"
-                ? "bg-[#311970] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-            >
-              <Heart size={18} /> Weds
-            </button>
-            <button
-              onClick={() => setRole("vendor")}
-              disabled={submitting}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor"
-                ? "bg-[#311970] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-            >
-              <Briefcase size={18} /> Vendor
-            </button>
-          </div>
+            {/* Role Tabs */}
+            <div className="flex flex-col sm:flex-row justify-center gap-3 mb-8">
+              <button
+                onClick={() => setRole("client")}
+                disabled={submitting}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "client"
+                  ? "bg-[#311970] text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+              >
+                <Heart size={18} /> Weds
+              </button>
+              <button
+                onClick={() => setRole("vendor")}
+                disabled={submitting}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition w-full sm:w-auto ${role === "vendor"
+                  ? "bg-[#311970] text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+              >
+                <Briefcase size={18} /> Vendor
+              </button>
+            </div>
 
-          {/* Heading */}
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-            {mode === "login"
-              ? `${role === "client" ? "Client" : "Vendor"} Login`
-              : `${role === "client" ? "Client" : "Vendor"} Signup`}
-          </h2>
+            {/* Heading */}
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+              {mode === "login"
+                ? `${role === "client" ? "Client" : "Vendor"} Login`
+                : `${role === "client" ? "Client" : "Vendor"} Signup`}
+            </h2>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === "signup" && (
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <Smartphone
+                      className="absolute left-3 top-3 text-gray-400"
+                      size={18}
+                    />
+                    <input
+                      type="number"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+254 xxx xxx xxx"
+                      disabled={submitting}
+                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Phone Number
+                  Email Address
                 </label>
                 <div className="relative">
-                  <Smartphone
+                  <Mail
                     className="absolute left-3 top-3 text-gray-400"
                     size={18}
                   />
                   <input
-                    type="number"
+                    type="email"
                     required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+254 xxx xxx xxx"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
                     disabled={submitting}
                     className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
                   />
                 </div>
               </div>
-            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={18}
-                />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  disabled={submitting}
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  disabled={submitting}
-                  className="w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-[#311970] transition"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {mode === "signup" && role === "vendor" && (
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Business Name
+                  Password
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Your Wedding Business"
-                  disabled={submitting}
-                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    disabled={submitting}
+                    className="w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-[#311970] transition"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {mode === "signup" && role === "vendor" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Business Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="Your Wedding Business"
+                    disabled={submitting}
+                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                  />
+                </div>
+              )}
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-[#311970] text-white py-3 rounded-lg font-semibold shadow hover:bg-[#261457] transition disabled:opacity-70 flex items-center justify-center gap-3"
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    <span>
+                      {mode === "login"
+                        ? "Logging in..."
+                        : "Creating account..."}
+                    </span>
+                  </>
+                ) : (
+                  <>{mode === "login" ? "Login" : "Create Account"}</>
+                )}
+              </motion.button>
+            </form>
+
+            {/* Extra Links */}
+            {mode === "login" && (
+              <div className="flex flex-col sm:flex-row justify-between mt-4 text-sm text-gray-500 gap-2">
+                <Link href="#" className="hover:text-[#311970]">
+                  Forgot Password?
+                </Link>
+                <Link href="#" className="hover:text-[#311970]">
+                  Need help?
+                </Link>
               </div>
             )}
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-[#311970] text-white py-3 rounded-lg font-semibold shadow hover:bg-[#261457] transition disabled:opacity-70 flex items-center justify-center gap-3"
-            >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
-                  </svg>
-                  <span>
-                    {mode === "login"
-                      ? "Logging in..."
-                      : "Creating account..."}
-                  </span>
-                </>
-              ) : (
-                <>{mode === "login" ? "Login" : "Create Account"}</>
-              )}
-            </motion.button>
-          </form>
-
-          {/* Extra Links */}
-          {mode === "login" && (
-            <div className="flex flex-col sm:flex-row justify-between mt-4 text-sm text-gray-500 gap-2">
-              <Link href="#" className="hover:text-[#311970]">
-                Forgot Password?
-              </Link>
-              <Link href="#" className="hover:text-[#311970]">
-                Need help?
-              </Link>
+            {/* Mobile Toggle (hidden on md+) */}
+            <div className="mt-6 text-center md:hidden">
+              <button
+                onClick={toggleMode}
+                disabled={submitting}
+                className="text-sm font-medium text-[#311970] hover:underline"
+              >
+                {mode === "login"
+                  ? "New here? Sign up"
+                  : "Already have an account? Login"}
+              </button>
             </div>
-          )}
-
-          {/* Mobile Toggle (hidden on md+) */}
-          <div className="mt-6 text-center md:hidden">
-            <button
-              onClick={toggleMode}
-              disabled={submitting}
-              className="text-sm font-medium text-[#311970] hover:underline"
-            >
-              {mode === "login"
-                ? "New here? Sign up"
-                : "Already have an account? Login"}
-            </button>
           </div>
         </div>
-      </div>
-    </main>
-
+      </main>
+    </Suspense>
   );
 }
