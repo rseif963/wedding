@@ -1,6 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
-import { Suspense } from "react";
 import Fuse from "fuse.js";
 import { useSearchParams } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
@@ -417,7 +415,6 @@ const VendorsPage = () => {
 
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
       <main className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
         <Navbar />
         {/* Header */}
@@ -793,7 +790,6 @@ const VendorsPage = () => {
 
         <Footer />
       </main>
-    </Suspense >
 
   );
 };
