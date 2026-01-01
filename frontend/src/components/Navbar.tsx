@@ -29,8 +29,8 @@ export default function Navbar() {
     effectiveRole === "vendor"
       ? "/vdashboard/vendor"
       : effectiveRole === "client"
-      ? "/dashboard/client"
-      : "/profile";
+        ? "/dashboard/client"
+        : "/profile";
 
   useEffect(() => {
     if (user) {
@@ -59,7 +59,7 @@ export default function Navbar() {
         });
         setLocalRole("client");
         return;
-      } catch {}
+      } catch { }
 
       try {
         const vendorRes = await axios.get("/api/vendors/me", {
@@ -73,7 +73,7 @@ export default function Navbar() {
           phone: vendorRes.data?.phone,
         });
         setLocalRole("vendor");
-      } catch {}
+      } catch { }
     };
 
     detect();
@@ -110,11 +110,10 @@ export default function Navbar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`relative text-sm font-medium transition-colors ${
-                pathname === item.href
-                  ? "text-[#311970]"
-                  : "text-gray-600 hover:text-[#311970]"
-              }`}
+              className={`relative text-sm font-medium transition-colors ${pathname === item.href
+                ? "text-[#311970]"
+                : "text-gray-600 hover:text-[#311970]"
+                }`}
             >
               {item.name}
               {pathname === item.href && (
@@ -125,6 +124,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop CTA */}
+        {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
             <Link
@@ -134,12 +134,23 @@ export default function Navbar() {
               Profile
             </Link>
           ) : (
-            <Link
-              href="/auth"
-              className="bg-[#311970] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#26125a] transition"
-            >
-              Login
-            </Link>
+            <>
+              {/* Login Button */}
+              <Link
+                href="/auth?mode=login"
+                className="bg-[#311970] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#26125a] transition"
+              >
+                Login
+              </Link>
+
+              {/* Get Started Button */}
+              <Link
+                href="/auth?mode=signup&role=client"
+                className="bg-white border border-[#311970] text-[#311970] px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#f9f7ff] transition"
+              >
+                Get Started
+              </Link>
+            </>
           )}
         </div>
 
@@ -167,17 +178,16 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className={`font-medium transition ${
-                  pathname === item.href
-                    ? "text-[#311970]"
-                    : "text-gray-600 hover:text-[#311970]"
-                }`}
+                className={`font-medium transition ${pathname === item.href
+                  ? "text-[#311970]"
+                  : "text-gray-600 hover:text-[#311970]"
+                  }`}
               >
                 {item.name}
               </Link>
             ))}
 
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t flex flex-col gap-2">
               {isLoggedIn ? (
                 <Link
                   href={profileLink}
@@ -187,13 +197,22 @@ export default function Navbar() {
                   Profile
                 </Link>
               ) : (
-                <Link
-                  href="/auth"
-                  onClick={() => setMenuOpen(false)}
-                  className="block text-center bg-[#311970] text-white py-2.5 rounded-lg font-semibold hover:bg-[#26125a] transition"
-                >
-                  Login
-                </Link>
+                <>
+                  <Link
+                    href="/auth?mode=login"
+                    onClick={() => setMenuOpen(false)}
+                    className="block text-center bg-[#311970] text-white py-2.5 rounded-lg font-semibold hover:bg-[#26125a] transition"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth?mode=signup&role=client"
+                    onClick={() => setMenuOpen(false)}
+                    className="block text-center bg-white border border-[#311970] text-[#311970] py-2.5 rounded-lg font-semibold hover:bg-[#f9f7ff] transition"
+                  >
+                    Get Started
+                  </Link>
+                </>
               )}
             </div>
           </div>

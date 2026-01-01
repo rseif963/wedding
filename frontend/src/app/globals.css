@@ -38,6 +38,12 @@ h1, h2, h3, h4 {
   display: none; /* Chrome, Safari */
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
 /* === Optional: Keep Tailwind colors consistent === */
 .bg-white {
   background-color: var(--background) !important;

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Briefcase, Home, Mail, Lock, Smartphone, Eye, EyeOff } from "lucide-react";
+import { User, Briefcase, Home, Mail, Lock, Smartphone, Eye, EyeOff, Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
@@ -14,7 +15,7 @@ import { data } from "framer-motion/client";
 export default function AuthPage() {
   const router = useRouter();
   const { login, register } = useAppContext();
-
+  const searchParams = useSearchParams();
   const [role, setRole] = useState<"client" | "vendor">("client");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +30,20 @@ export default function AuthPage() {
   const toggleMode = () => {
     setMode(mode === "login" ? "signup" : "login");
   };
+
+
+  useEffect(() => {
+    const paramMode = searchParams.get("mode"); // "signup" or "login"
+    const paramRole = searchParams.get("role"); // "vendor" or "client"
+
+    if (paramMode === "signup" || paramMode === "login") {
+      setMode(paramMode);
+    }
+
+    if (paramRole === "vendor" || paramRole === "client") {
+      setRole(paramRole);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +195,7 @@ export default function AuthPage() {
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
             >
-              <User size={18} /> Client
+              <Heart size={18} /> Weds
             </button>
             <button
               onClick={() => setRole("vendor")}
@@ -350,43 +365,6 @@ export default function AuthPage() {
                 : "Already have an account? Login"}
             </button>
           </div>
-
-          {/* Divider */}
-          {/*<div className="flex items-center my-6">
-            <hr className="flex-1 border-gray-300" />
-            <span className="mx-3 text-sm text-gray-400">OR</span>
-            <hr className="flex-1 border-gray-300" />
-          </div>*/}
-
-          {/* Social Logins */}
-          {/*<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => toast.error("Google login not implemented yet")}
-              disabled={submitting}
-              className="w-full py-2 border rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
-            >
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                alt="Google"
-                className="w-5 h-5"
-              />
-              Google
-            </button>
-            <button
-              type="button"
-              onClick={() => toast.error("Facebook login not implemented yet")}
-              disabled={submitting}
-              className="w-full py-2 border rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
-            >
-              <img
-                src="https://www.svgrepo.com/show/475647/facebook-color.svg"
-                alt="Facebook"
-                className="w-5 h-5"
-              />
-              Facebook
-            </button>
-          </div>*/}
         </div>
       </div>
     </main>

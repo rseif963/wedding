@@ -1,6 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
+import Fuse from "fuse.js";
+import { useSearchParams } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -220,6 +222,7 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 const VendorsPage = () => {
   const { posts, fetchPosts } = useAppContext();
   const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
   const [county, setCounty] = useState("All"); // ✅ new county filter
@@ -241,6 +244,15 @@ const VendorsPage = () => {
     if (path.startsWith("http")) return path;
     return `${API_URL}${path}`;
   };
+
+  // On mount, read query params from URL
+  useEffect(() => {
+    const qSearch = searchParams.get("search") || "";
+    const qLocation = searchParams.get("location") || "";
+
+    if (qSearch) setSearch(qSearch);
+    if (qLocation) setCounty(qLocation);
+  }, [searchParams]);
 
 
   useEffect(() => {
@@ -603,7 +615,7 @@ const VendorsPage = () => {
             <div className="flex-1">
 
               {/* RESULTS HEADER */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center md:text-1xl lg:text-1xl text-sm justify-between mb-6">
                 <p className="text-gray-500">
                   Showing{" "}
                   <span className="font-semibold text-gray-900">
@@ -612,7 +624,7 @@ const VendorsPage = () => {
                   vendors
                 </p>
 
-                <select
+                {/*<select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                   className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#311970]"
@@ -620,7 +632,7 @@ const VendorsPage = () => {
                   <option value="rating">Sort by Rating</option>
                   <option value="price_low">Price: Low to High</option>
                   <option value="price_high">Price: High to Low</option>
-                </select>
+                </select>*/}
               </div>
 
               {/* VENDOR GRID */}

@@ -3,14 +3,29 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Search, MapPin, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [location, setLocation] = useState("");
+
+  const handleSearch = () => {
+    // Navigate to /vendors with search and location as query params
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    if (location.trim()) params.set("location", location.trim());
+
+    router.push(`/vendors?${params.toString()}`);
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/assets/hero-wedding.jpg" // ← USE YOUR EXACT IMAGE PATH
+          src="/assets/hero-wedding.jpg"
           alt="Wedding background"
           fill
           priority
@@ -38,6 +53,8 @@ export default function Hero() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   placeholder="What are you looking for?"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 py-3 border-0 bg-muted/50 rounded-xl focus:outline-none"
                 />
               </div>
@@ -46,11 +63,16 @@ export default function Hero() {
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   placeholder="Location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
                   className="w-full pl-12 py-3 border-0 bg-muted/50 rounded-xl focus:outline-none"
                 />
               </div>
 
-              <button className="bg-[#311970] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#26125a] transition md:w-auto">
+              <button
+                onClick={handleSearch}
+                className="bg-[#311970] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#26125a] transition md:w-auto"
+              >
                 Search
               </button>
             </div>
@@ -67,7 +89,7 @@ export default function Hero() {
             </Link>
 
             <Link
-              href="/vendor-signup"
+              href="/auth?mode=signup&role=vendor"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition"
             >
               List Your Business
