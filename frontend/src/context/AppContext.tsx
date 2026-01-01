@@ -162,6 +162,13 @@ export interface ChatParticipant {
   role: "client" | "vendor";
 }
 
+export type AnalyticsRow = {
+  month: string;        // YYYY-MM
+  profileViews: number;
+};
+
+
+
 export interface Conversation {
   _id: string;
   participants: ChatParticipant[];
@@ -227,6 +234,11 @@ interface AppContextType {
   messages: MessageItem[];
   reviews: ReviewItem[];
   blogs: BlogPost[];
+  analytics: AnalyticsRow[];
+  fetchVendorAnalytics: (vendorId: string) => Promise<void>;
+  countProfileView: (vendorId: string) => Promise<void>;
+
+
   socket: any;
   authLoading: boolean;
   updatePlannedBudget: (amount: number) => Promise<Budget | null>;
@@ -359,6 +371,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [authLoading, setAuthLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<AnalyticsRow[]>([]);
 
   // --- SOCKET.IO SETUP ---
   const [socket, setSocket] = useState<any>(null);
@@ -422,6 +435,39 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
   };
+
+  const countProfileView = useCallback(async (vendorId: string) => {
+    if (!vendorId) return;
+
+    try {
+      await axios.post("/api/analytics/profile-view", {
+        vendorId,
+      });
+    } catch (err) {
+      // Silent fail — analytics should NEVER break UX
+      console.error("Profile view tracking failed:", err);
+    }
+  }, []);
+
+
+  const fetchVendorAnalytics = async (vendorId: string) => {
+    if (!vendorId) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/analytics/vendor/${vendorId}`
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch analytics");
+
+      const data: AnalyticsRow[] = await res.json();
+      setAnalytics(data || [])
+    } catch (err) {
+      console.error("Error fetching vendor analytics:", err);
+      setAnalytics([]);
+    }
+  };
+
 
   const fetchAllDataAfterLogin = async (userRole?: Role) => {
     try {
@@ -1494,6 +1540,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         token,
         user,
         role,
+        analytics,
         clientProfile,
         vendorProfile,
         posts,
@@ -1515,6 +1562,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         getOrCreateConversation,
         fetchConversations,
         fetchChatMessages,
+        fetchVendorAnalytics,
+        countProfileView,
         sendChatMessage,
         markConversationRead,
 
@@ -1546,6 +1595,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         // auth & profile
         login,
+
         register,
         logout,
         fetchUser,

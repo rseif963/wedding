@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { useEffect, useState } from "react";
 import { Heart, Star } from "lucide-react";
@@ -8,9 +9,10 @@ import Link from "next/link";
 import axios from "axios";
 
 export default function TopListingVendors() {
-  const { posts, fetchPosts } = useAppContext();
+  const { posts, fetchPosts, countProfileView } = useAppContext();
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
+  const router = useRouter();
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -111,14 +113,34 @@ export default function TopListingVendors() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {topListings.map((post) => {
               const v = post.vendor;
+              const vendorId = v?._id ? String(v._id) : "";
               const imageUrl = getFullUrl(post.mainPhoto || v?.profilePhoto || v?.logo);
 
+              const handlePostClick = (vendorId: string, postId: string) => async (e: React.MouseEvent) => {
+                e.preventDefault(); // Prevent immediate navigation
+                if (!vendorId) return;
+
+                try {
+                  // 1️⃣ Count the profile view
+                  await axios.post("/api/analytics/profile-view", { vendorId });
+
+                  // 2️⃣ Navigate after counting
+                  router.push(`/vendors/${postId}`);
+                } catch (err) {
+                  console.error("Profile view tracking failed:", err);
+                  router.push(`/vendors/${postId}`); // still navigate even if fails
+                }
+              };
+
+
               return (
-                <Link
+                <a
                   key={post._id}
                   href={`/vendors/${post._id}`}
                   className="group block"
+                  onClick={handlePostClick(vendorId, post._id)}
                 >
+
                   <div className="bg-white rounded-2xl overflow-hidden shadow-elevated hover:shadow-card transition">
                     {/* IMAGE */}
                     <div className="relative aspect-[4/3]">
@@ -197,7 +219,7 @@ export default function TopListingVendors() {
                       </p>
                     </div>
                   </div>
-                </Link>
+                </a>
               );
             })}
           </div>

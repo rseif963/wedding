@@ -1,6 +1,7 @@
 "use client";
 
 import { useAppContext } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Heart, Star } from "lucide-react";
 import Image from "next/image";
@@ -11,9 +12,9 @@ export default function FeaturedVendors() {
   const { posts, fetchPosts } = useAppContext();
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
+  const router = useRouter();
 
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
   const getFullUrl = (path?: string) => {
     if (!path) return "/assets/vendor-placeholder.jpg";
@@ -78,10 +79,22 @@ export default function FeaturedVendors() {
     );
   };
 
-  // Only featured vendors (max 12)
-  const featuredPosts = (posts || [])
-    .filter((post) => post.vendor?.featured === true)
-    .slice(0, 12);
+  const featuredPosts = (posts || []).filter((post) => post.vendor?.featured).slice(0, 12);
+
+  // ✅ New handler for click
+  const handleVendorClick = (vendorId: string, postId: string) => async () => {
+    if (!vendorId) return;
+
+    try {
+      // Count profile view
+      await axios.post("/api/analytics/profile-view", { vendorId });
+      // Navigate after counting
+      router.push(`/vendors/${postId}`);
+    } catch (err) {
+      console.error("Profile view tracking failed:", err);
+      router.push(`/vendors/${postId}`); // navigate anyway
+    }
+  };
 
   return (
     <section className="py-24 bg-gradient-to-b from-[#faf8ff] via-[#f5f3ff] to-white">
@@ -113,15 +126,19 @@ export default function FeaturedVendors() {
               const avgRating =
                 vendorReviews.length > 0
                   ? vendorReviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-                    vendorReviews.length
+                  vendorReviews.length
                   : 0;
 
+
+
+
               return (
-                <Link
+                <div
                   key={post._id}
-                  href={`/vendors/${post._id}`}
-                  className="group block"
+                  className="group block cursor-pointer"
+                  onClick={handleVendorClick(vendorId, post._id)}
                 >
+
                   <div className="bg-white rounded-2xl overflow-hidden shadow-elevated hover:shadow-card transition">
                     {/* IMAGE */}
                     <div className="relative aspect-[4/3]">
@@ -141,11 +158,10 @@ export default function FeaturedVendors() {
                         className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
                       >
                         <Heart
-                          className={`h-5 w-5 ${
-                            liked.includes(post._id)
-                              ? "text-red-500 fill-red-500"
-                              : "text-red-500"
-                          }`}
+                          className={`h-5 w-5 ${liked.includes(post._id)
+                            ? "text-red-500 fill-red-500"
+                            : "text-red-500"
+                            }`}
                         />
                       </button>
 
@@ -180,11 +196,10 @@ export default function FeaturedVendors() {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.round(avgRating)
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            }`}
+                            className={`w-4 h-4 ${i < Math.round(avgRating)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
+                              }`}
                           />
                         ))}
                         <span className="text-sm text-gray-600 ml-2">
@@ -202,7 +217,7 @@ export default function FeaturedVendors() {
                       </p>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

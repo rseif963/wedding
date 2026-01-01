@@ -3,6 +3,7 @@ import { auth, permit } from "../middleware/auth.js";
 import BookingRequest from "../models/BookingRequest.js";
 import ClientProfile from "../models/ClientProfile.js";
 import VendorProfile from "../models/VendorProfile.js";
+import VendorAnalytics from "../models/VendorAnalytics.js";
 
 const router = express.Router();
 
@@ -28,6 +29,15 @@ router.post("/", auth, permit("client"), async (req, res) => {
       date,
       messages: message ? [{ sender: "Client", content: message }] : [],
     });
+
+    // ✅ ANALYTICS: COUNT MONTHLY BOOKINGS / INQUIRIES
+    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+    await VendorAnalytics.findOneAndUpdate(
+      { vendorId: vendor._id, month },
+      { $inc: { bookings: 1 } },
+      { upsert: true }
+    );
 
     res.json(booking);
   } catch (err) {

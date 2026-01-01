@@ -21,6 +21,8 @@ import chatRoutes from './routes/chat.js';
 import reviewRoutes from "./routes/reviews.js";
 import adminRoutes from "./routes/admin.js";
 import blogRoutes from "./routes/blogs.js";
+import analyticsRoutes from "./routes/analytics.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +42,8 @@ app.use("/api/chat", chatRoutes);65
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
 
 // Health check route
 app.get("/", (req, res) => {

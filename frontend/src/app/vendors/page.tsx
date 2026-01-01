@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Heart, Star, Search, MapPin, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
@@ -128,8 +129,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-3 font-semibold border-b-2 transition ${activeTab === tab
-                    ? "border-[#311970] text-[#311970]"
-                    : "border-transparent text-gray-600"
+                  ? "border-[#311970] text-[#311970]"
+                  : "border-transparent text-gray-600"
                   }`}
               >
                 {tab}
@@ -146,8 +147,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
                     key={cat}
                     onClick={() => handleSelect(setFilter, cat)}
                     className={`text-left px-3 py-2 rounded-lg text-sm transition ${filter === cat
-                        ? "bg-[#311970] text-white"
-                        : "hover:bg-gray-100"
+                      ? "bg-[#311970] text-white"
+                      : "hover:bg-gray-100"
                       }`}
                   >
                     {cat}
@@ -163,8 +164,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
                     key={price}
                     onClick={() => handleSelect(setSelectedPrice, price)}
                     className={`px-3 py-2 rounded-lg text-sm border hover:border-[#311970] hover:bg-[#f5f3fa] transition ${selectedPrice === price
-                        ? "bg-[#311970] text-white border-[#311970]"
-                        : ""
+                      ? "bg-[#311970] text-white border-[#311970]"
+                      : ""
                       }`}
                   >
                     {price}
@@ -180,8 +181,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
                     key={rating}
                     onClick={() => handleSelect(setSelectedRating, rating)}
                     className={`text-left px-3 py-2 rounded-lg text-sm transition flex items-center gap-2 ${selectedRating === rating
-                        ? "bg-[#311970] text-white"
-                        : "hover:bg-gray-100"
+                      ? "bg-[#311970] text-white"
+                      : "hover:bg-gray-100"
                       }`}
                   >
                     {rating !== "Any" && (
@@ -223,6 +224,7 @@ const VendorsPage = () => {
   const [filter, setFilter] = useState("All");
   const [county, setCounty] = useState("All"); // ✅ new county filter
   const [sort, setSort] = useState("rating");
+  const router = useRouter();
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -298,6 +300,7 @@ const VendorsPage = () => {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
+
 
   // ✅ Filter + Sort (includes county filter)
   const filteredVendors = (posts || [])
@@ -380,6 +383,19 @@ const VendorsPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleVendorClick = (vendorId: string, postId: string) => async () => {
+    if (!vendorId) return;
+
+    try {
+      // Count profile view
+      await axios.post("/api/analytics/profile-view", { vendorId });
+      // Navigate after counting
+      router.push(`/vendors/${postId}`);
+    } catch (err) {
+      console.error("Profile view tracking failed:", err);
+      router.push(`/vendors/${postId}`); // navigate anyway
+    }
+  };
 
 
 
@@ -618,6 +634,7 @@ const VendorsPage = () => {
                     const v = post.vendor;
                     const imageUrl = getFullUrl(post.mainPhoto || v?.profilePhoto || v?.logo);
 
+
                     const vendorId = v?._id ? String(v._id) : "";
                     const vendorReviews = vendorId
                       ? vendorReviewsMap[vendorId] || []
@@ -630,11 +647,12 @@ const VendorsPage = () => {
                         : 0;
 
                     return (
-                      <Link
+                      <div
                         key={post._id}
-                        href={`/vendors/${post._id}`}
-                        className="group block"
+                        className="group block cursor-pointer"
+                        onClick={handleVendorClick(vendorId, post._id)}
                       >
+
                         <div className="bg-white rounded-2xl overflow-hidden shadow-elevated hover:shadow-card transition">
                           {/* IMAGE */}
                           <div className="relative aspect-[4/3]">
@@ -708,7 +726,7 @@ const VendorsPage = () => {
                             </p>
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>

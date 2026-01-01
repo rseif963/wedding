@@ -1,61 +1,175 @@
 import {
-    FiEye,
-    FiMessageSquare,
-    FiTrendingUp,
-    FiCalendar,
+    FiEye, FiMessageSquare, FiTrendingUp, FiCalendar,
 } from "react-icons/fi";
+import React from "react";
+import { useEffect, useState } from "react";
+import { useAppContext } from "@/context/AppContext";
+import toast from "react-hot-toast";
+
+
+type AnalyticsRow = {
+    month: string;        // YYYY-MM
+    profileViews: number;
+};
+
+
 
 import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    CartesianGrid,
-    BarChart,
-    Bar,
-    PieChart,
-    Pie,
-    Cell,
+    LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell,
 } from "recharts";
 
 // -----------------------
 // CHART DATA
 // -----------------------
 
-const profileViewsData = [
-    { name: "Jan", views: 400 },
-    { name: "Feb", views: 650 },
-    { name: "Mar", views: 700 },
-    { name: "Apr", views: 850 },
-    { name: "May", views: 1100 },
-    { name: "Jun", views: 900 },
-];
 
-const inquiriesData = [
-    { name: "Jan", value: 4 },
-    { name: "Feb", value: 6 },
-    { name: "Mar", value: 5 },
-    { name: "Apr", value: 10 },
-    { name: "May", value: 12 },
-    { name: "Jun", value: 8 },
-];
-
-const trafficData = [
-    { name: "Search", value: 45 },
-    { name: "Direct", value: 25 },
-    { name: "Social", value: 20 },
-    { name: "Referral", value: 10 },
-];
 
 const TRAFFIC_COLORS = ["#3b2e86", "#dd5a6f", "#62b48a", "#e6b85c"];
 
 export default function VendorAnalytics() {
+
+    const { bookings, vendorProfile, fetchVendorAnalytics, fetchVendorBookings, fetchVendorMe } = useAppContext();
+    const [analytics, setAnalytics] = useState<AnalyticsRow[]>([]);
+
+    const totalBookings = bookings?.length || 0;
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const vendorId = vendorProfile?._id || null;
+    const [formData, setFormData] = useState({
+        businessName: "",
+        category: "",
+        location: "",
+        website: "",
+        description: "",
+        phone: "",
+        email: "",
+        profilePhoto: null as File | string | null,
+        coverPhoto: null as File | string | null,
+    });
+
+    useEffect(() => {
+        if (!vendorId) return;
+
+        const fetchAnalytics = async () => {
+            try {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/analytics/vendor/${vendorId}`,
+                    { cache: "no-store" }
+                );
+                const data = await res.json();
+                setAnalytics(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error("Failed to fetch vendor analytics:", err);
+            }
+        };
+
+        fetchAnalytics();
+    }, [fetchVendorAnalytics]);
+
+    useEffect(() => {
+        fetchVendorMe();
+    }, []);
+
+    useEffect(() => {
+        if (vendorProfile && !isEditing) {
+            setFormData(prev => ({
+                ...prev,
+                businessName: vendorProfile.businessName || "",
+                category: vendorProfile.category || "",
+                location: vendorProfile.location || "",
+                website: vendorProfile.website || "",
+                description: vendorProfile.description || "",
+                phone: vendorProfile.phone || "",
+                email: vendorProfile.email || "",
+            }));
+        }
+    }, [vendorProfile, isEditing]);
+
+    useEffect(() => {
+        let timeout: NodeJS.Timeout;
+
+        const loadBookings = async () => {
+            try {
+                setLoading(true);
+                await fetchVendorBookings();
+            } catch (err) {
+                console.error("Failed to fetch bookings:", err);
+                toast.error("Failed to load bookings");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        timeout = setTimeout(() => {
+            loadBookings();
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [fetchVendorBookings]);
+
+
+
+    const profileViewsData = analytics.map((a) => ({
+        name: new Date(a.month + "-01").toLocaleString("default", { month: "short" }),
+        views: a.profileViews || 0,
+    }));
+
+    // Optionally add a “latest month” bar for live bookings
+    const latestMonth = new Date().toLocaleString("default", { month: "short" });
+    const bookingsThisMonth = bookings?.filter((b: any) => {
+        const d = new Date(b.date);
+        return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+    }).length || 0;
+
+
+    const monthlyBookingsData = React.useMemo(() => {
+        const map: Record<string, number> = {};
+
+        bookings?.forEach((b: any) => {
+            if (!b.date) return;
+
+            const d = new Date(b.date);
+            if (isNaN(d.getTime())) return;
+
+            const month = d.toLocaleString("en-US", { month: "short" });
+
+            map[month] = (map[month] || 0) + 1;
+        });
+
+        return Object.entries(map).map(([name, value]) => ({
+            name,
+            value,
+        }));
+    }, [bookings]);
+
+
+    const totalViews = analytics.reduce((s, a) => s + a.profileViews, 0) || 1;
+
+    const trafficData = [
+        { name: "Search", value: Math.round((totalViews * 0.45) / totalViews * 100) },
+        { name: "Direct", value: Math.round((totalViews * 0.25) / totalViews * 100) },
+        { name: "Social", value: Math.round((totalViews * 0.20) / totalViews * 100) },
+        { name: "Referral", value: Math.round((totalViews * 0.10) / totalViews * 100) },
+    ];
+
+    // Sum analytics profileViews + total bookings
+    const totalProfileViews =
+        analytics?.reduce((sum, a) => sum + (a.profileViews || 0), 0) || 0;
+
+
+
+
+    const conversionRate =
+        totalProfileViews > 0
+            ? ((totalBookings / totalProfileViews) * 100).toFixed(1)
+            : "0.0";
+
+
+
     return (
-        <div className="w-full px-6 py-8 bg-gray-50 font-inter">
+        <div className="w-full px-6 py-6 bg-gray-50 font-inter">
             {/* HEADER SECTION */}
-            <div className="mb-10">
+            <div className="mb-4">
                 <h1
                     className="font-serif font-bold"
                     style={{ fontSize: "32px", color: "#1E1E1E" }}
@@ -75,39 +189,33 @@ export default function VendorAnalytics() {
             </div>
 
             {/* TOP METRIC CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
                 <MetricCard
                     icon={<FiEye size={22} />}
                     label="Profile Views"
-                    value="1,248"
-                    change="+12%"
-                    changeColor="text-green-600"
-                />
-
-                <MetricCard
-                    icon={<FiMessageSquare size={22} />}
-                    label="Inquiries"
-                    value="24"
-                    change="+8%"
-                    changeColor="text-green-600"
-                />
-
-                <MetricCard
-                    icon={<FiTrendingUp size={22} />}
-                    label="Conversion Rate"
-                    value="18.5%"
-                    change="+3.2%"
+                    value={totalProfileViews.toLocaleString()}
+                    change="+"
                     changeColor="text-green-600"
                 />
 
                 <MetricCard
                     icon={<FiCalendar size={22} />}
                     label="Bookings"
-                    value="5"
-                    change="-2"
-                    changeColor="text-red-500"
+                    value={String(totalBookings)}
+                    change=""
+                    changeColor="text-gray-500"
                 />
+
+
+                <MetricCard
+                    icon={<FiTrendingUp size={22} />}
+                    label="Conversion Rate"
+                    value={`${conversionRate}%`}
+                    change="+"
+                    changeColor="text-green-600"
+                />
+
 
             </div>
 
@@ -143,7 +251,7 @@ export default function VendorAnalytics() {
 
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={inquiriesData}>
+                            <BarChart data={monthlyBookingsData}>
                                 <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
                                 <XAxis dataKey="name" stroke="#666" />
                                 <YAxis stroke="#666" />
