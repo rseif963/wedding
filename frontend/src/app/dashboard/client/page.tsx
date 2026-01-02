@@ -58,7 +58,7 @@ export default function ClientDashboard() {
 
   return (
     <div className="bg-[#eee] p-2 gap-6">
-      <div className="relative px-6 pb-14 mt-20 text-center">
+      <div className="relative px-2 pb-14 mt-20 text-center">
         {/* Mobile menu */}
         
         {/* Welcome */}
