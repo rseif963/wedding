@@ -215,8 +215,8 @@ export default function AuthPage() {
             {/* Heading */}
             <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
               {mode === "login"
-                ? `${role === "client" ? "Client" : "Vendor"} Login`
-                : `${role === "client" ? "Client" : "Vendor"} Signup`}
+                ? `${role === "client" ? "Weds" : "Vendor"} Login`
+                : `${role === "client" ? "Weds" : "Vendor"} Signup`}
             </h2>
 
             {/* Form */}
