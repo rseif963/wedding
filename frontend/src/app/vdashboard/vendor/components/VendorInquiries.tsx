@@ -147,7 +147,7 @@ export default function VendorBookings() {
 
   /* ---------------- UI ---------------- */
   return (
-    <section className="bg-gray-200 w-full h-screen rounded-xl overflow-hidden">
+    <section className="bg-gray-200 w-full h-[84vh] rounded-xl overflow-hidden">
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
         <aside
@@ -216,9 +216,11 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col bg-white rounded-2xl
-            ${view === "list" ? "hidden md:flex" : "flex"}`}
+          className={`flex-1 flex flex-col h-full overflow-hidden bg-white rounded-2xl
+           ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
+
+
           {!selectedBooking ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">
               Select a booking to view details
@@ -273,7 +275,7 @@ export default function VendorBookings() {
               </div>
 
               {/* MESSAGES */}
-              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto overflow-hidden bg-gray-50 p-4 space-y-3">
                 {selectedBooking?.messages?.map((m: any) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -284,7 +286,7 @@ export default function VendorBookings() {
                     <div
                       key={m._id}
                       className={`max-w-[70%] p-3 rounded-lg text-sm relative
-          ${m.sender === "Vendor"
+                            ${m.sender === "Vendor"
                           ? "ml-auto bg-[#311970] text-white"
                           : "bg-gray-200"
                         }`}
@@ -301,7 +303,7 @@ export default function VendorBookings() {
               {/* REPLY */}
               {/* INPUT */}
               {selectedBooking.status === "Accepted" && (
-                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
+                <div className="bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
                   <Paperclip />
                   <textarea
                     value={replyMessage}
