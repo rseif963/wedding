@@ -76,10 +76,10 @@ export default function Header({
         <div className="flex items-center gap-4">
 
           {/* Notifications */}
-          <div className="relative">
+          {/*<div className="relative">
             <Bell size={20} className="text-gray-700" />
             <span className="absolute -top-1 -right-1 block w-2 h-2 bg-purple-600 rounded-full" />
-          </div>
+          </div>*/}
 
           {/* Couple Initials */}
           <div className="w-8 h-8 rounded-full bg-[#311970] flex items-center justify-center shadow-md">

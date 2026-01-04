@@ -8,7 +8,7 @@ const VendorAnalyticsSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    day: {
+    day: {  
       type: String, // YYYY-MM-DD
       required: true,
       index: true,

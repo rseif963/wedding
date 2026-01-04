@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Calendar() {
-  const { bookings } = useAppContext();
+  const { bookings, fetchVendorBookings, vendorProfile, } = useAppContext();
+
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -18,6 +19,16 @@ export default function Calendar() {
   const firstDayIndex = date.getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const monthName = date.toLocaleString("default", { month: "long" });
+
+
+  useEffect(() => {
+    fetchVendorBookings();
+
+    const interval = setInterval(fetchVendorBookings, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+
 
   const handlePrev = () => {
     setCurrentMonth((prev) => (prev === 0 ? 11 : prev - 1));

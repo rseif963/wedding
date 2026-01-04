@@ -147,7 +147,7 @@ export default function VendorBookings() {
 
   /* ---------------- UI ---------------- */
   return (
-    <section className="bg-gray-200 w-full h-[84vh] rounded-xl overflow-hidden">
+    <section className="bg-gray-200 w-full h-[80vh] md:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
         <aside

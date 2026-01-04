@@ -141,11 +141,11 @@ export default function Bookings() {
   /* ---------------- UI ---------------- */
 
   return (
-    <section className="bg-gray-200 w-full h-screen rounded-xl overflow-hidden">
+    <section className="bg-gray-200 w-full h-[80vh] md:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex h-full gap-3">
         {/* LEFT */}
         <aside
-          className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-2xl
+          className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-2xl bg-white
           ${view === "details" ? "hidden md:block" : "block"}`}
         >
           <div className="flex justify-between border-b mb-4 pb-2">

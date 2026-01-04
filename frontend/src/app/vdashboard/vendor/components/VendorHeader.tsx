@@ -28,23 +28,23 @@ export default function VendorHeader({
         </button>
 
         {/* Desktop search bar */}
-        <div className="hidden md:flex items-center w-72 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-gray-600">
+        {/*<div className="hidden md:flex items-center w-72 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-gray-600">
           <Search size={18} className="mr-2" />
           <input
             type="text"
             placeholder="Search inquiries, bookings..."
             className="bg-transparent outline-none text-sm w-full"
           />
-        </div>
+        </div>*/}
       </div>
 
       {/* Right Section */}
       <div className="flex items-center gap-4">
         {/* Notifications */}
-        <div className="relative">
+        {/*<div className="relative">
           <Bell size={20} className="text-gray-700" />
           <span className="absolute top-0 right-0 block w-2 h-2 bg-purple-600 rounded-full"></span>
-        </div>
+        </div>*/}
 
         {/* MOBILE AVATAR ONLY */}
         <div className="w-8 h-8 mr-2 rounded-full overflow-hidden relative md:hidden">

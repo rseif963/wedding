@@ -9,6 +9,21 @@ import {
   ThumbsUp,
 } from "lucide-react";
 
+
+function getReviewerName(review: any) {
+  const client = review?.client ?? {};
+
+  const getFirst = (str?: string) => (str ? str.split(" ")[0] : "");
+
+  if (client.brideName && client.groomName) {
+    return `${getFirst(client.brideName)} & ${getFirst(client.groomName)}`;
+  }
+
+  if (client.name) return getFirst(client.name);
+
+  return "Anonymous";
+}
+
 export default function Reviews({ vendorId }: { vendorId?: string }) {
   const {
     reviews = [],
@@ -16,6 +31,7 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
     vendorProfile,
     fetchVendorMe,
     replyToReview,
+    clientProfile,
   } = useAppContext();
 
   const [loading, setLoading] = useState(true);
@@ -24,6 +40,27 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
 
   const resolvedVendorId = vendorId || vendorProfile?._id;
+
+  function getInitials(review: any) {
+    const client = review?.client ?? {};
+
+    const firstInitial = (name?: string) =>
+      name?.trim()?.charAt(0)?.toUpperCase() ?? "";
+
+    if (client.brideName && client.groomName) {
+      return (
+        firstInitial(client.brideName) +
+        firstInitial(client.groomName)
+      );
+    }
+
+    if (client.name) {
+      return firstInitial(client.name);
+    }
+
+    return "A"; // fallback
+  }
+
 
   useEffect(() => {
     fetchVendorMe();
@@ -90,7 +127,7 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
 
       {/* TOP CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-10">
-        
+
         {/* AVG RATING CARD */}
         <div
           className="bg-white rounded-3xl shadow"
@@ -178,13 +215,14 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
               {/* HEADER ROW */}
               <div className="flex justify-between">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={rev.client?.photo || "/default-avatar.png"}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
+                  <div className="w-8 h-8 rounded-full bg-[#311970] flex items-center justify-center shadow-md">
+                    <span className="text-white font-semibold text-sm tracking-wide">
+                      {getInitials(rev)}
+                    </span>
+                  </div>
                   <div>
                     <p className="font-semibold text-gray-800 text-[15px]">
-                      {rev.client?.name || "Client"}
+                      {getReviewerName(rev)}
                     </p>
                     <p className="text-gray-500 text-xs">
                       {new Date(rev.createdAt).toLocaleString("en-US", {

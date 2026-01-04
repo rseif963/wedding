@@ -481,8 +481,19 @@ export default function ProfileManager({ preview = false }: Props) {
 
     const fd = new FormData();
 
-    Object.keys(formData).forEach(key => {
-      fd.append(key, formData[key as keyof typeof formData] as any);
+    Object.entries(formData).forEach(([key, value]) => {
+      // ❌ Skip image fields unless user selected a file
+      if (
+        (key === "profilePhoto" || key === "coverPhoto") &&
+        !(value instanceof File)
+      ) {
+        return;
+      }
+
+      // ❌ Skip null / empty values
+      if (value === null || value === "") return;
+
+      fd.append(key, value as any);
     });
 
     const updated = await updateVendorProfile(fd);
@@ -490,6 +501,7 @@ export default function ProfileManager({ preview = false }: Props) {
     if (updated) setIsEditing(false);
     setLoading(false);
   };
+
 
   const profilePhoto = vendorProfile?.profilePhoto || "/assets/avatar.png";
   const coverPhoto = vendorProfile?.coverPhoto || "/assets/cover-placeholder.jpg";
@@ -561,7 +573,7 @@ export default function ProfileManager({ preview = false }: Props) {
 
   /** -------------------------- */
 
- {/* if (preview) {
+  {/* if (preview) {
     return (
       <section className="bg-white shadow-sm rounded-2xl p-2">
         <h2 className="text-2xl font-semibold text-center text-[#311970] mb-4">
