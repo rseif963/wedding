@@ -4,6 +4,7 @@ import Fuse from "fuse.js";
 import { useSearchParams } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
+import type { Metadata } from "next";
 import { useEffect, useState, useRef } from "react";
 import { Heart, Star, Search, MapPin, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
@@ -216,6 +217,13 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
       )}
     </div>
   );
+};
+
+
+export const metadata: Metadata = {
+  title: "Wedding Vendors",
+  description:
+    "Browse verified wedding vendors including photographers, venues, catering, and more.",
 };
 
 const VendorsPage = () => {

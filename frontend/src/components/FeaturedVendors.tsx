@@ -101,12 +101,12 @@ export default function FeaturedVendors() {
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-14">
-          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Featured Vendors
-          </h2>
-          <p className="text-muted-foreground text-lg">
+          </h1>
+          <h2 className="text-muted-foreground text-lg">
             Handpicked professionals loved by couples
-          </p>
+          </h2>
         </div>
 
         {/* Empty state */}

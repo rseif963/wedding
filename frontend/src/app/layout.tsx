@@ -2,6 +2,7 @@ import "./globals.css";
 import { Playfair_Display, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { AppProvider } from "@/context/AppContext";
+import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script"; // ✅ add this
 
@@ -16,10 +17,41 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export const metadata = {
-  title: "Wedpine",
-  description: "Find your perfect wedding vendors",
+export const metadata: Metadata = {
+  title: {
+    default: "Wedpine – Wedding Vendors & Planning Platform",
+    template: "%s | Wedpine",
+  },
+  description:
+    "Find trusted wedding vendors, venues, photographers, caterers and planners on Wedpine.",
+  keywords: [
+    "wedding vendors",
+    "wedding planning",
+    "wedding photographers",
+    "wedding venues",
+    "wedding catering",
+  ],
+  metadataBase: new URL("https://www.wedpine.com"),
+  openGraph: {
+    title: "Wedpine",
+    description:
+      "Discover and book the best wedding vendors in one place.",
+    url: "https://www.wedpine.com",
+    siteName: "Wedpine",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
+
 
 export default function RootLayout({
   children,

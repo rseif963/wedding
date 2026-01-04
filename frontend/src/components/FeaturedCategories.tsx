@@ -31,9 +31,9 @@ export default function CategoriesSection() {
   return (
     <section className="bg-white py-12">
       <div className="text-center mb-16">
-        <h2 className="font-display text-4xl md:text-5xl font-bold mb-2">
+        <h1 className="font-display text-4xl md:text-5xl font-bold mb-2">
           Explore Categories
-        </h2>
+        </h1>
         <p className="text-muted-foreground text-md max-w-2xl px-2 mx-auto">
           Find the perfect match for every part of your wedding
         </p>
