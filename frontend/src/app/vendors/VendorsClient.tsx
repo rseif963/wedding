@@ -695,14 +695,14 @@ const VendorsPage = () => {
                             </button>
 
                             {v?.featured && (
-                              <div className="absolute top-4 left-4 bg-yellow-100 text-yellow-800 px-2 py-1 text-xs font-semibold rounded z-20">
-                                ⭐ Featured
+                              <div className="absolute top-4 left-4 bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded z-20">
+                                Featured
                               </div>
                             )}
 
                             {avgRating >= 5 && (
                               <div className="absolute top-4 left-28 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20">
-                                🔥 Top Rated
+                                Top Rated
                               </div>
                             )}
                           </div>
