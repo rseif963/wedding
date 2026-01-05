@@ -38,7 +38,7 @@ export default function Hero() {
         <div className="max-w-4xl mx-auto mt-18">
           <h1 className="font-display text-4xl md:text-7xl font-bold text-foreground mb-6 animate-fade-up">
             Everything You Need To Plan Your
-            <span className="text-gradient block mt-2">Wedding Day.</span>
+            <span className="text-gradient text-purple-900 block mt-2">Wedding Day.</span>
           </h1>
 
           <p className="text-md md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-up delay-100">
