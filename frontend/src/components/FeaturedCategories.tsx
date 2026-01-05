@@ -60,7 +60,7 @@ export default function CategoriesSection() {
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
                   <Icon
-                    className="h-7 w-7 mb-3 text-purple-600 group-hover:text-purple-700 transition-colors"
+                    className="h-7 w-7 mb-3 text-[#311970] group-hover:text-purple-700 transition-colors"
                   />
                   <span className="text-sm font-medium text-gray-800 leading-tight">
                     {category.name}

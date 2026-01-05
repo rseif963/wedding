@@ -1,10 +1,12 @@
-import { FaFacebook, FaInstagram, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin, FaWhatsapp, FaTiktok } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
+import { FaXTwitter } from "react-icons/fa6";
+
 
 export default function Footer() {
   return (
     <footer className="w-full bg-gray-900 text-gray-300 py-10 mt-20">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Brand + Contact */}
         <div>
           <h2 className="text-lg font-semibold text-white">Wedpine</h2>
@@ -41,45 +43,20 @@ export default function Footer() {
 
           {/* Social Media */}
           <div className="flex gap-4 mt-4">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-[#311970]"
-            >
+            <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-[#311970]">
               <FaFacebook size={20} />
             </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-[#311970]"
-            >
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-[#311970]">
               <FaInstagram size={20} />
             </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-[#311970]"
-            >
-              <FaTwitter size={20} />
+            <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-[#311970]">
+              <FaXTwitter size={20} />
             </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-[#311970]"
-            >
-              <FaLinkedin size={20} />
+            <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#311970]">
+              <FaTiktok size={20} />
             </a>
-            <a
-              href="https://wa.me/254704228615"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-green-500"
-            >
-              <MessageCircle size={20} />
+            <a href="https://wa.me/254704228615" target="_blank" rel="noreferrer" className="hover:text-green-500">
+              <FaWhatsapp size={20} />
             </a>
           </div>
         </div>
@@ -93,6 +70,23 @@ export default function Footer() {
             <li><a href="/blog" className="hover:text-[#311970]">Blog</a></li>
             <li><a href="/about" className="hover:text-[#311970]">About</a></li>
             <li><a href="/contact" className="hover:text-[#311970]">Contact</a></li>
+          </ul>
+        </div>
+
+        {/* Legal & Help */}
+        <div>
+          <h3 className="text-white font-medium mb-2">Legal & Help</h3>
+          <ul className="space-y-1 text-sm">
+            <li>
+              <a href="/privacy" className="hover:text-[#311970]">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="/faqs" className="hover:text-[#311970]">
+                FAQs
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -117,5 +111,5 @@ export default function Footer() {
         © {new Date().getFullYear()} Wedpine. All rights reserved.
       </div>
     </footer>
-  );
+  );
 }

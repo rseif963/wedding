@@ -468,9 +468,6 @@ export default function ProfileManager({ preview = false }: Props) {
     }
   };
 
-
-
-
   const handleChange = (e: any) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -482,7 +479,7 @@ export default function ProfileManager({ preview = false }: Props) {
     const fd = new FormData();
 
     Object.entries(formData).forEach(([key, value]) => {
-      // ❌ Skip image fields unless user selected a file
+      // Skip image fields unless user selected a file
       if (
         (key === "profilePhoto" || key === "coverPhoto") &&
         !(value instanceof File)
@@ -490,7 +487,7 @@ export default function ProfileManager({ preview = false }: Props) {
         return;
       }
 
-      // ❌ Skip null / empty values
+      //Skip null / empty values
       if (value === null || value === "") return;
 
       fd.append(key, value as any);

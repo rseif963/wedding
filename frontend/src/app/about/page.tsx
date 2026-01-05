@@ -116,7 +116,7 @@ export default function About() {
       </section>
 
       {/* ================= VALUES ================= */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
+      {/*<section className="max-w-6xl mx-auto px-6 py-20">
         <motion.h2
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -156,10 +156,10 @@ export default function About() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section>*/}
 
       {/* ================= TEAM SECTION ================= */}
-      <section className="bg-gray-100 py-20">
+      {/*<section className="bg-gray-100 py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-[#311970] mb-10">Our Team</h2>
           <p className="text-gray-600 mb-12 text-sm">
@@ -183,7 +183,7 @@ export default function About() {
             ))}
           </div>
         </div>
-      </section>
+      </section>*/}
 
       {/* CTA */}
       <section className="bg-[#311970] text-white text-center py-20 px-4">

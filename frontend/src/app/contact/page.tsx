@@ -11,7 +11,7 @@ export default function Contact() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-[#311970] text-white py-20 text-center">
+      <section className="bg-[#311970] text-white py-20 mt-18 text-center">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

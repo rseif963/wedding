@@ -577,7 +577,7 @@ export default function VendorProfile() {
                         </p>
                         <div className="h-2 bg-gray-200 rounded mt-1">
                           <div
-                            className="h-2 bg-orange-400 rounded"
+                            className="h-2 bg-[#311970] rounded"
                             style={{ width: `${(catAvg / 5) * 100}%` }}
                           />
                         </div>

@@ -29,7 +29,6 @@ export default function DashboardPage() {
 
       <div className="w-full rounded-2xl">
         <ProfileManager />
-        <Subscriptions />
       </div>
     </div>
   );

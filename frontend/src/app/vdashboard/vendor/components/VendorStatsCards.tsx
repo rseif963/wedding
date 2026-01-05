@@ -28,7 +28,6 @@ export default function VendorStatsCards() {
     fetchVendorBookings();
     fetchReviewsForVendor(vendorProfile._id);
 
-    // Fetch analytics
     fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/analytics/vendor/${vendorProfile._id}`,
       { cache: "no-store" }
@@ -47,73 +46,83 @@ export default function VendorStatsCards() {
     return diff >= 0 && diff < days;
   };
 
-  /* ---------------- PROFILE VIEWS ---------------- */
+  const capPercent = (value: number) => {
+    if (value > 100) return 100;
+    if (value < -100) return -100;
+    return value;
+  };
+
+  /* ---------------- PROFILE VIEWS (DAILY) ---------------- */
   const totalProfileViews = analytics.reduce(
     (sum, a) => sum + (a.profileViews || 0),
     0
   );
 
-  const viewsLast7Days = analytics
-    .filter((a) => isWithinDays(a.day, 7))
-    .reduce((s, a) => s + a.profileViews, 0);
+  // YYYY-MM-DD strings
+  const todayStr = new Date().toISOString().slice(0, 10);
 
-  const viewsPrev7Days = analytics
-    .filter(
-      (a) => isWithinDays(a.day, 14) && !isWithinDays(a.day, 7)
-    )
-    .reduce((s, a) => s + a.profileViews, 0);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
-  const viewsChange =
-    viewsPrev7Days > 0
-      ? Math.round(((viewsLast7Days - viewsPrev7Days) / viewsPrev7Days) * 100)
-      : viewsLast7Days > 0
+  const todayViews =
+    analytics.find((a) => a.day === todayStr)?.profileViews || 0;
+
+  const yesterdayViews =
+    analytics.find((a) => a.day === yesterdayStr)?.profileViews || 0;
+
+  const viewsChange = capPercent(
+    yesterdayViews > 0
+      ? Math.round(((todayViews - yesterdayViews) / yesterdayViews) * 100)
+      : todayViews > 0
         ? 100
-        : 0;
+        : 0
+  );
 
-  /* ---------------- INQUIRIES (UNREAD) ---------------- */
-  const unreadInquiries = bookings?.filter((b: any) =>
-    (b.messages || []).some((m: any) => m.sender === "Client" && !m.read)
-  ).length || 0;
+  /* ---------------- INQUIRIES ---------------- */
+  const unreadInquiries =
+    bookings?.filter((b: any) =>
+      (b.messages || []).some(
+        (m: any) => m.sender === "Client" && !m.read
+      )
+    ).length || 0;
 
-  const unreadThisWeek = bookings?.filter((b: any) =>
-    (b.messages || []).some(
-      (m: any) =>
-        m.sender === "Client" &&
-        !m.read &&
-        isWithinDays(m.createdAt, 7)
-    )
-  ).length || 0;
+  const unreadThisWeek =
+    bookings?.filter((b: any) =>
+      (b.messages || []).some(
+        (m: any) =>
+          m.sender === "Client" &&
+          !m.read &&
+          isWithinDays(m.createdAt, 7)
+      )
+    ).length || 0;
 
-  const unreadLastWeek = bookings?.filter((b: any) =>
-    (b.messages || []).some(
-      (m: any) =>
-        m.sender === "Client" &&
-        !m.read &&
-        isWithinDays(m.createdAt, 14) &&
-        !isWithinDays(m.createdAt, 7)
-    )
-  ).length || 0;
+  const unreadLastWeek =
+    bookings?.filter((b: any) =>
+      (b.messages || []).some(
+        (m: any) =>
+          m.sender === "Client" &&
+          !m.read &&
+          isWithinDays(m.createdAt, 14) &&
+          !isWithinDays(m.createdAt, 7)
+      )
+    ).length || 0;
 
-  const inquiriesChange =
+  const inquiriesChange = capPercent(
     unreadLastWeek > 0
-      ? Math.round(((unreadThisWeek - unreadLastWeek) / unreadLastWeek) * 100)
+      ? Math.round(
+        ((unreadThisWeek - unreadLastWeek) / unreadLastWeek) * 100
+      )
       : unreadThisWeek > 0
         ? 100
-        : 0;
+        : 0
+  );
 
   /* ---------------- BOOKINGS ---------------- */
-  const bookingsPending =
-    bookings?.filter((b: any) => b.status === "Pending").length || 0;
-
-  const allBookingsCount = bookings?.length || 0;
-
   const pendingBookings =
     bookings?.filter((b: any) => b.status === "Pending") || [];
 
   const pendingCount = pendingBookings.length;
-
-
-
 
   /* ---------------- RATINGS ---------------- */
   const rating =
@@ -130,8 +139,6 @@ export default function VendorStatsCards() {
       label: "Profile Views",
       value: totalProfileViews,
       icon: Eye,
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-500",
       badge: `${viewsChange >= 0 ? "+" : ""}${viewsChange}%`,
       badgeColor:
         viewsChange >= 0
@@ -143,8 +150,6 @@ export default function VendorStatsCards() {
       label: "Inquiries",
       value: unreadInquiries,
       icon: MessageSquare,
-      bgColor: "bg-purple-100",
-      iconColor: "text-purple-500",
       badge: `${inquiriesChange >= 0 ? "+" : ""}${inquiriesChange}%`,
       badgeColor:
         inquiriesChange >= 0
@@ -156,8 +161,6 @@ export default function VendorStatsCards() {
       label: "Bookings Pending",
       value: pendingCount,
       icon: CalendarCheck,
-      bgColor: "bg-yellow-100",
-      iconColor: "text-yellow-500",
       badge: pendingCount > 0 ? ` new` : "",
       badgeColor: "bg-yellow-200 text-yellow-700",
       href: "/vdashboard/vendor/bookings",
@@ -166,8 +169,6 @@ export default function VendorStatsCards() {
       label: "Rating",
       value: rating,
       icon: Star,
-      bgColor: "bg-yellow-100",
-      iconColor: "text-yellow-500",
       badge: `${reviews?.length || 0} reviews`,
       badgeColor: "bg-gray-200 text-gray-600",
       href: "/vdashboard/vendor/reviews",
@@ -177,16 +178,14 @@ export default function VendorStatsCards() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
       {stats.map(
-        ({ label, value, icon: Icon, bgColor, iconColor, badge, badgeColor, href }) => (
+        ({ label, value, icon: Icon, badge, badgeColor, href }) => (
           <Link
             key={label}
             href={href}
             className="bg-white p-5 rounded-xl shadow hover:shadow-md transition relative flex flex-col"
           >
-            <div
-              className={`w-10 h-10 rounded-md flex items-center justify-center ${bgColor} mb-4`}
-            >
-              <Icon className={`w-6 h-6 ${iconColor}`} />
+            <div className="w-10 h-10 rounded-md flex items-center justify-center bg-[#311970] mb-4">
+              <Icon className="w-5 h-5 text-white" />
             </div>
 
             <h3 className="text-sm font-semibold text-gray-700 mb-1">

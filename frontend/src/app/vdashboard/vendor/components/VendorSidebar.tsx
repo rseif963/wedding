@@ -123,7 +123,7 @@ export default function VendorSidebar({ onLinkClick, isOpen = true, closeSidebar
             Unlock all features and boost your visibility
           </p>
           <button className="w-full bg-[#311970] text-white py-2 rounded-lg text-sm font-medium">
-            Upgrade Now
+            Coming Soon
           </button>
         </div>
 
