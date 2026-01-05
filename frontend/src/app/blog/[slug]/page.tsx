@@ -6,6 +6,10 @@ import Breadcrumb from "../../../components/Breadcrumb";
 import Image from "next/image";
 import { useAppContext } from "../../../context/AppContext";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import rehypeRaw from "rehype-raw";
+
 
 type BlogProps = {
   params: { slug: string };
@@ -14,6 +18,24 @@ type BlogProps = {
 export default function BlogPost({ params }: BlogProps) {
   const { blogs, fetchBlogs } = useAppContext();
   const [post, setPost] = useState<any>(null);
+
+  // Helper to convert numbered lines into markdown list
+  const formatNumberedList = (text: string) => {
+    // Match lines starting with a number followed by dot (and optional spaces)
+    return text.replace(/^(\d+)\.(\s?)/gm, '$1. ');
+  };
+
+  const formatContent = (content: string) => {
+    // Ensure a blank line before numbered lists
+    return content.replace(/^(\d+)\.\s(.*)$/gm, '\n$1. $2');
+  };
+
+  const formatMarkdownForLists = (text: string) => {
+    // Add a blank line before any line that starts with a number + dot
+    return text.replace(/^(\d+)\.\s?/gm, '\n$1. ');
+  };
+
+
 
   // Fetch blogs if not already loaded
   useEffect(() => {
@@ -86,9 +108,14 @@ export default function BlogPost({ params }: BlogProps) {
           className="w-full h-80 object-cover rounded-lg mb-8"
         />
 
-        <div className="prose prose-lg max-w-none text-gray-700">
-          <ReactMarkdown>{post.content || post.description}</ReactMarkdown>
+        <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+          >
+            {post.content || post.description}
+          </ReactMarkdown>
         </div>
+
       </article>
 
       <Footer />
