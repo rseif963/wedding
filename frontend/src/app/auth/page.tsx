@@ -3,7 +3,7 @@ import AuthClient from "./AuthClient";
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div></div>}>
       <AuthClient />
     </Suspense>
   );

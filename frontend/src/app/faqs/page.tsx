@@ -7,7 +7,7 @@ export default function FAQsPage() {
   return (
     <main className="bg-gray-50 min-h-screen ">
         <Navbar />
-      <div className="w-full md:max-w-5xl mt-20 py-16 mx-auto px-6">
+      <div className="w-full md:max-w-5xl mt-18 py-16 mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900">Frequently Asked Questions</h1>

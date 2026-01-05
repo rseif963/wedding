@@ -991,7 +991,7 @@ export default function ProfileManager({ preview = false }: Props) {
             {vendorProfile?.pricingPackages && vendorProfile.pricingPackages.length > 0 ? (
               vendorProfile.pricingPackages.map((pkg, idx) => {
                 const name = pkg.name || "Unnamed Package";
-                const price = pkg.price ?? 0; // fallback to 0
+                const price = pkg.price ?? "0"; // fallback to 0
                 const currency = pkg.currency || "Ksh ";
                 const features = pkg.features || [];
 
@@ -1050,12 +1050,33 @@ export default function ProfileManager({ preview = false }: Props) {
                 </select>
 
                 <input
-                  type="number"
+                  type="text"
                   placeholder="Price"
-                  value={newPackage.price}
-                  onChange={(e) => setNewPackage({ ...newPackage, price: Number(e.target.value) })}
+                  value={
+                    newPackage.price
+                      ? newPackage.price.toLocaleString("en-US")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/,/g, "");
+
+                    // Allow empty input
+                    if (rawValue === "") {
+                      setNewPackage({ ...newPackage, price: "" as any });
+                      return;
+                    }
+
+                    // Only numbers
+                    if (!/^\d+$/.test(rawValue)) return;
+
+                    setNewPackage({
+                      ...newPackage,
+                      price: Number(rawValue),
+                    });
+                  }}
                   className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
                 />
+
                 <input
                   type="text"
                   placeholder="Currency"

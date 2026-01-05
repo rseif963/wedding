@@ -24,6 +24,28 @@ export default function VendorBookings() {
   const [openedBookings, setOpenedBookings] = useState<Set<string>>(new Set());
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+
+  const [lastSeenMap, setLastSeenMap] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    return JSON.parse(localStorage.getItem("lastSeenBookings") || "{}");
+  });
+
+  useEffect(() => {
+    localStorage.setItem("lastSeenBookings", JSON.stringify(lastSeenMap));
+  }, [lastSeenMap]);
+
+  const selectedBooking = bookings.find(
+    (b: any) => b._id === selectedBookingId
+  );
+
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [selectedBooking?.messages]);
+
+
 
   /* ---------------- FETCH + POLLING ---------------- */
   useEffect(() => {
@@ -45,10 +67,6 @@ export default function VendorBookings() {
     };
   }, [fetchVendorBookings]);
 
-
-  const selectedBooking = bookings.find(
-    (b: any) => b._id === selectedBookingId
-  );
 
   const booking = selectedBooking!;
 
@@ -72,12 +90,16 @@ export default function VendorBookings() {
 
   // ✅ UNREAD = client messages AND booking not opened
   const getUnreadCount = (booking: any) => {
-    if (openedBookings.has(booking._id)) return 0;
+    const lastSeen = lastSeenMap[booking._id];
+    const messages = booking.messages || [];
 
-    return (booking.messages || []).filter(
-      (m: any) => m.sender === "Client"
+    return messages.filter(
+      (m: any) =>
+        m.sender === "Client" &&
+        (!lastSeen || new Date(m.createdAt) > new Date(lastSeen))
     ).length;
   };
+
 
   const sortedBookings = [...bookings].sort((a: any, b: any) => {
     const aUnread = getUnreadCount(a) > 0 ? 1 : 0;
@@ -179,9 +201,18 @@ export default function VendorBookings() {
                     key={b._id}
                     onClick={() => {
                       setSelectedBookingId(b._id);
-                      setOpenedBookings((prev) =>
-                        new Set(prev).add(b._id)
-                      );
+                      const latestMessage = getLatestMessage(b);
+
+                      if (latestMessage) {
+                        setLastSeenMap((prev) => ({
+                          ...prev,
+                          [b._id]: latestMessage.createdAt,
+                        }));
+                      }
+
+                      setSelectedBookingId(b._id);
+                      setView("details");
+
                       setView("details");
                     }}
                     className={`cursor-pointer rounded-lg p-3 transition
@@ -275,7 +306,7 @@ export default function VendorBookings() {
               </div>
 
               {/* MESSAGES */}
-              <div className="flex-1 overflow-y-auto overflow-hidden bg-gray-50 p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
                 {selectedBooking?.messages?.map((m: any) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -286,19 +317,23 @@ export default function VendorBookings() {
                     <div
                       key={m._id}
                       className={`max-w-[70%] p-3 rounded-lg text-sm relative
-                            ${m.sender === "Vendor"
+          ${m.sender === "Vendor"
                           ? "ml-auto bg-[#311970] text-white"
                           : "bg-gray-200"
                         }`}
                     >
                       <p className="pb-2">{m.content}</p>
-                      <span className="absolute bottom-1 right-2 text-xs text-gray-400 pt-2">
+                      <span className="absolute bottom-1 right-2 text-xs text-gray-400">
                         {time}
                       </span>
                     </div>
                   );
                 })}
+
+                {/* 👇 Scroll target */}
+                <div ref={messagesEndRef} />
               </div>
+
 
               {/* REPLY */}
               {/* INPUT */}

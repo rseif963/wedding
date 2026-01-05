@@ -5,7 +5,7 @@ import VendorsClient from "./VendorsClient";
 
 export default function VendorsPage() {
   return (
-    <Suspense fallback={<div>Loading vendors...</div>}>
+    <Suspense fallback={<div></div>}>
       <VendorsClient />
     </Suspense>
   );
