@@ -416,7 +416,7 @@ const VendorsPage = () => {
 
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div></div>}>
       <main className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
         <Navbar />
         {/* Header */}
@@ -693,18 +693,19 @@ const VendorsPage = () => {
                                   }`}
                               />
                             </button>
+                            <div className="absolute top-4 left-4 flex gap-2 z-20">
+                              {v?.featured && (
+                                <span className="bg-[#311970] text-white px-3 py-1 text-xs font-semibold rounded-full">
+                                  Featured
+                                </span>
+                              )}
 
-                            {v?.featured && (
-                              <div className="absolute top-4 left-4 bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded z-20">
-                                Featured
-                              </div>
-                            )}
-
-                            {avgRating >= 5 && (
-                              <div className="absolute top-4 left-28 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20">
-                                Top Rated
-                              </div>
-                            )}
+                              {avgRating >= 5 && (
+                                <span className="bg-green-100 text-green-800 px-3 py-1 text-xs font-semibold rounded-full">
+                                  Top Rated
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           <div className="p-5">

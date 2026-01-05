@@ -123,7 +123,7 @@ export default function AuthPage() {
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div></div>}>
       <main className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] via-[#4527a0] to-[#6a1b9a]">
         <div className="absolute inset-0">
           <Image

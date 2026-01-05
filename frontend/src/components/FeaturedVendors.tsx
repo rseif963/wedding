@@ -167,14 +167,14 @@ export default function FeaturedVendors() {
 
                       {/* Featured Badge */}
                       {v?.featured && (
-                        <div className="absolute top-4 left-4 bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
+                        <div className="absolute top-4 left-4 bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded  rounded-full z-20 flex items-center gap-1">
                           Featured
                         </div>
                       )}
 
                       {/*Top Rated Badge */}
                       {avgRating >= 5 && (
-                        <div className="absolute top-4 left-22 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded z-20 flex items-center gap-1">
+                        <div className="absolute top-4 left-22 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded-full z-20 flex items-center gap-1">
                           Top Rated
                         </div>
                       )}

@@ -169,12 +169,12 @@ export default function TopListingVendors() {
 
                       {/* BADGES – SAME LAYOUT AS FEATURED */}
                       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-                        <div className="bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded flex items-center gap-1">
+                        <div className="bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1">
                           Top Listing
                         </div>
 
                         {post.avgRating >= 5 && (
-                          <div className="bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded flex items-center gap-1">
+                          <div className="bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1">
                              Top Rated
                           </div>
                         )}
