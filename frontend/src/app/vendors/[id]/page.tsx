@@ -331,256 +331,119 @@ export default function VendorProfile() {
       <div className="w-full overflow-hidden text-ellipsis">
         <Breadcrumb />
       </div>
-      <div className="">
-        {/* Gallery section replacing Hero */}
-        <section className="relative w-full h-[420px]">
-          <Image
-            src={getFullUrl(heroSrc || undefined)}
-            alt={vendor.businessName}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-white" />
-        </section>
+      <section className="z-10 w-full mx-auto px-1 md:px-3 flex-none lg:flex lg:px-4 rounded-2xl py-3 gap-8">
+        <div className="w-full lg:max-w-6xl">
 
-      </div>
-      <section className="relative z-10 max-w-8xl mx-auto px-1 md:px-3 lg:px-4 -mt-60 rounded-2xl py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+          {/* ================= LEFT ================= */}
+          <div className="space-y- rounded-2xl">
+            <div className="bg-white rounded-2xl">
 
-        {/* ================= LEFT ================= */}
-        <div className="space-y-12 rounded-2xl">
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* TOP SECTION */}
-            <div className="p-6 flex justify-between items-center">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="px-3 py-1 text-xs rounded-full bg-[#EEE9FF] text-[#311970] font-semibold">
-                    {vendor.category}
-                  </span>
-                  <span className="text-sm text-gray-500">{vendor.location}</span>
+              {/* TOP SECTION */}
+              <div className="mb-4 px-2 flex justify-between items-center">
+                <div >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-3 py-1 text-xs rounded-full bg-[#EEE9FF] text-[#311970] font-semibold">
+                      {vendor.category}
+                    </span>
+                    <span className="text-sm text-gray-500">{vendor.location}</span>
+                  </div>
+
+                  <h1 className="text-1xl md:text-2xl font-bold text-[#311970]">
+                    {vendor.businessName}
+                  </h1>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <RatingStars rating={Math.round(averageRating)} />
+                    <span className="text-sm text-gray-600">
+                      {averageRating.toFixed(1)} ({reviews?.length} reviews)
+                    </span>
+                  </div>
                 </div>
 
-                <h1 className="text-1xl md:text-2xl font-bold text-[#311970]">
-                  {vendor.businessName}
-                </h1>
-
-                <div className="flex items-center gap-2 mt-2">
-                  <RatingStars rating={Math.round(averageRating)} />
-                  <span className="text-sm text-gray-600">
-                    {averageRating.toFixed(1)} ({reviews?.length} reviews)
-                  </span>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Starting from</p>
+                  <p className="text-sm font-bold text-[#311970]">
+                    Ksh {vendorPost.priceFrom?.toLocaleString()}
+                  </p>
                 </div>
               </div>
 
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Starting from</p>
-                <p className="text-sm font-bold text-[#311970]">
-                  Ksh {vendorPost.priceFrom?.toLocaleString()}
-                </p>
-              </div>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4 mb-10">
 
-            {/* DIVIDER */}
-            <div className="border-t border-gray-100" />
+                {/* MAIN IMAGE */}
+                <div className="relative h-[300px] md:h-[380px] rounded-2xl overflow-hidden">
+                  <Image
+                    src={getFullUrl(heroSrc || vendor.profilePhoto)}
+                    alt={vendor.businessName}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
 
-            {/* ABOUT */}
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-[#311970] mb-4">About</h2>
-              <p className="text-gray-700 leading-relaxed">
-                {vendor.description}
-              </p>
-            </div>
-          </div>
+                {/* RIGHT COLUMN (DESKTOP ONLY) */}
+                <div className="hidden md:grid grid-rows-2 gap-4 h-[380px]">
 
-
-          {/* GALLERY */}
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <h2 className="text-2xl font-bold text-[#311970] mb-6">Gallery</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {(galleryArray || []).map((img: string, i: number) => (
-                <img
-                  key={i}
-                  src={getFullUrl(img)}
-                  className="w-full h-56 object-cover rounded-xl cursor-pointer hover:opacity-80 transition"
-                  alt={`Gallery image ${i + 1}`}
-                  onClick={() => {
-                    setPopupImageIndex(i);
-                    setIsPopupOpen(true);
-                  }}
-                />
-              ))}
-            </div>
-
-          </div>
-
-          {/* PACKAGES & PRICING */}
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <h2 className="text-2xl font-bold text-[#311970] mb-6">
-              Packages & Pricing
-            </h2>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {packages.map(
-                (pkg: {
-                  name: string;
-                  price: string;
-                  features: string[];
-                  popular: boolean;
-                }) => (
-                  <div
-                    key={pkg.name}
-                    className={`relative rounded-2xl border p-6 transition ${pkg.popular
-                      ? "border-[#311970] ring-2 ring-[#311970]"
-                      : "border-gray-200"
-                      }`}
-                  >
-                    {pkg.popular && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#311970] text-white text-xs font-semibold px-4 py-1 rounded-full">
-                        Most Popular
-                      </span>
-                    )}
-
-                    <h3 className="text-xl font-semibold text-[#311970] mb-2">
-                      {pkg.name}
-                    </h3>
-
-                    <p className="text-3xl font-bold text-[#311970] mb-4">
-                      {pkg.price}
-                    </p>
-
-                    <ul className="space-y-2 mb-6">
-                      {pkg.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-2 text-sm text-gray-700"
-                        >
-                          <span className="text-[#311970] font-bold">✓</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button
+                  {galleryArray?.[0] && (
+                    <div
+                      className="relative rounded-2xl overflow-hidden cursor-pointer h-[180px]"
                       onClick={() => {
-                        setBookingMessage(`Hi there! I'm interested in your ${pkg.name} package and would love to get more details about what's included, pricing, and availability. Looking forward to your response!`);
-                        setShowBookingPopup(true);
+                        setPopupImageIndex(0);
+                        setIsPopupOpen(true);
                       }}
-                      className={`w-full py-2.5 rounded-xl font-semibold transition ${pkg.popular
-                        ? "bg-[#311970] text-white hover:bg-[#261457]"
-                        : "border border-gray-300 text-gray-800 hover:bg-gray-50"
-                        }`}
                     >
-                      Select Package
-                    </button>
+                      <img
+                        src={getFullUrl(galleryArray[0])}
+                        alt="Gallery 1"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
 
-                  </div>
-                ))}
-            </div>
-          </div>
+                  {galleryArray?.[1] && (
+                    <div
+                      className="relative rounded-2xl overflow-hidden cursor-pointer h-[180px]"
+                      onClick={() => {
+                        setPopupImageIndex(1);
+                        setIsPopupOpen(true);
+                      }}
+                    >
+                      <img
+                        src={getFullUrl(galleryArray[1])}
+                        alt="Gallery 2"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
 
-          {/* SERVICE CATEGORIES */}
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <h2 className="text-2xl font-bold text-[#311970] mb-6">
-              Services Offered
-            </h2>
-
-            {Array.isArray(vendorPost?.vendor?.serviceCategories) &&
-              vendorPost.vendor.serviceCategories.length > 0 ? (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {vendorPost.vendor.serviceCategories.map((service: string) => (
-                  <div
-                    key={service}
-                    className="flex items-center gap-3 p-4 rounded-xl border border-[#EEE9FF] bg-[#FAF8FF]"
-                  >
-                    <span className="text-[#311970] font-bold text-lg">✓</span>
-                    <span className="text-gray-800 font-medium">{service}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">
-                This vendor has not listed their services yet.
-              </p>
-            )}
-          </div>
-
-
-          {/* SERVICE AREAS */}
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <h2 className="text-2xl font-bold text-[#311970] mb-6">
-              Service Areas
-            </h2>
-
-            {Array.isArray(vendorPost?.vendor?.serviceAreas) &&
-              vendorPost.vendor.serviceAreas.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {vendorPost.vendor.serviceAreas.map((area: string) => (
-                  <span
-                    key={area}
-                    className="px-4 py-2 rounded-full bg-[#EEE9FF] text-[#311970] text-sm font-medium"
-                  >
-                    {area}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">
-                Service areas not specified by this vendor.
-              </p>
-            )}
-          </div>
-
-
-
-          {/* REVIEWS (UNCHANGED LOGIC, NEW LAYOUT) */}
-          <section className="w-full mx-auto px-1 py-6">
-
-            {/* Title */}
-            <div className="flex ml-4 items-center gap-2 mb-3">
-              <Star className="text-[#311970]" />
-              <h2 className="text-2xl font-bold text-[#311970]">Reviews</h2>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-3">
-
-              {/* TOP SUMMARY SECTION */}
-              <div className="flex flex-col md:flex-row gap-10">
-
-                {/* Left: Overall Rating Box */}
-                <div className="w-full md:w-1/4 flex flex-col items-center justify-center bg-green-100 rounded-xl py-6">
-                  <span className="text-4xl font-bold text-green-700">
-                    {averageRating.toFixed(1)}
-                  </span>
-                  <p className="text-gray-700 mb-2">out of 5.0</p>
-                  <RatingStars rating={Math.round(averageRating)} />
                 </div>
 
-                {/* Right: Category Ratings */}
-                <div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* GALLERY BELOW (ALL SCREENS) */}
+                <div className="md:col-span-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
 
-                  {[
-                    { key: "quality", label: "Quality of Service", icon: <Smile className="w-5 h-5 text-[#311970]" /> },
-                    { key: "responsiveness", label: "Responsiveness", icon: <RefreshCcw className="w-5 h-5 text-[#311970]" /> },
-                    { key: "professionalism", label: "Professionalism", icon: <User className="w-5 h-5 text-[#311970]" /> },
-                    { key: "flexibility", label: "Flexibility", icon: <SlidersHorizontal className="w-5 h-5 text-[#311970]" /> },
-                    { key: "value", label: "Value for Money", icon: <DollarSign className="w-5 h-5 text-[#311970]" /> },
-                  ].map((cat) => {
-                    const catAvg =
-                      reviews && reviews.length > 0
-                        ? reviews.reduce((sum, r: any) => sum + (r[cat.key] ?? 0), 0) / reviews.length
-                        : 0;
+                  {galleryArray.slice(0, 6).map((img: string, index: number) => {
+                    const showOverlay = index === 5 && galleryArray.length > 6;
 
                     return (
-                      <div key={cat.key}>
-                        <p className="font-medium text-gray-700 flex items-center gap-2">
-                          {cat.icon} {cat.label}
-                        </p>
-                        <div className="h-2 bg-gray-200 rounded mt-1">
-                          <div
-                            className="h-2 bg-[#311970] rounded"
-                            style={{ width: `${(catAvg / 5) * 100}%` }}
-                          />
-                        </div>
+                      <div
+                        key={index}
+                        className="relative h-[90px] md:h-[120px] rounded-xl overflow-hidden cursor-pointer"
+                        onClick={() => {
+                          setPopupImageIndex(index);
+                          setIsPopupOpen(true);
+                        }}
+                      >
+                        <img
+                          src={getFullUrl(img)}
+                          alt={`Gallery ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+
+                        {showOverlay && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-sm font-semibold">
+                            +{galleryArray.length - 6}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -588,149 +451,344 @@ export default function VendorProfile() {
                 </div>
               </div>
 
-              {/* Review Count */}
-              <p className="mt-8 text-gray-700 font-medium">
-                {reviews?.length} Reviews for {vendor?.businessName}
-              </p>
 
-              {/* LIST OF REVIEWS */}
-              <div className="mt-6 flex flex-col gap-6">
-                {(reviews || []).map((review: any, index: number) => (
-                  <div
-                    key={review._id || index}
-                    className="border border-gray-200 rounded-lg p-2 shadow-sm bg-white"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-800">
-                        {getReviewerName(review)}
+              {/* DIVIDER */}
+              <div className="border-t border-gray-100" />
+
+              {/* ABOUT */}
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-[#311970] mb-4">About</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  {vendor.description}
+                </p>
+              </div>
+            </div>
+
+
+
+            {/* PACKAGES & PRICING */}
+            <div className="bg-white rounded-2xl p-6 shadow">
+              <h2 className="text-2xl font-bold text-[#311970] mb-6">
+                Packages & Pricing
+              </h2>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {packages.map(
+                  (pkg: {
+                    name: string;
+                    price: string;
+                    features: string[];
+                    popular: boolean;
+                  }) => (
+                    <div
+                      key={pkg.name}
+                      className={`relative rounded-2xl border p-6 transition ${pkg.popular
+                        ? "border-[#311970] ring-2 ring-[#311970]"
+                        : "border-gray-200"
+                        }`}
+                    >
+                      {pkg.popular && (
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#311970] text-white text-xs font-semibold px-4 py-1 rounded-full">
+                          Most Popular
+                        </span>
+                      )}
+
+                      <h3 className="text-xl font-semibold text-[#311970] mb-2">
+                        {pkg.name}
                       </h3>
-                      <RatingStars rating={Number(review.rating ?? 0)} />
+
+                      <p className="text-3xl font-bold text-[#311970] mb-4">
+                        {pkg.price}
+                      </p>
+
+                      <ul className="space-y-2 mb-6">
+                        {pkg.features.map((feature) => (
+                          <li
+                            key={feature}
+                            className="flex items-start gap-2 text-sm text-gray-700"
+                          >
+                            <span className="text-[#311970] font-bold">✓</span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <button
+                        onClick={() => {
+                          setBookingMessage(`Hi there! I'm interested in your ${pkg.name} package and would love to get more details about what's included, pricing, and availability. Looking forward to your response!`);
+                          setShowBookingPopup(true);
+                        }}
+                        className={`w-full py-2.5 rounded-xl font-semibold transition ${pkg.popular
+                          ? "bg-[#311970] text-white hover:bg-[#261457]"
+                          : "border border-gray-300 text-gray-800 hover:bg-gray-50"
+                          }`}
+                      >
+                        Select Package
+                      </button>
+
                     </div>
+                  ))}
+              </div>
+            </div>
 
-                    <p className="text-gray-600 mb-3">{review.text}</p>
+            {/* SERVICE CATEGORIES */}
+            <div className="bg-white rounded-2xl p-6 shadow">
+              <h2 className="text-2xl font-bold text-[#311970] mb-6">
+                Services Offered
+              </h2>
 
-                    {(review.reply ?? (review as any).reply) && (
-                      <div className="ml-4 mt-3 border-l-4 border-[#311970] pl-4 bg-gray-50 rounded">
-                        <p className="text-sm text-gray-700">
-                          <strong>Vendor Reply:</strong>{" "}
-                          {review.reply ?? (review as any).reply}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+              {Array.isArray(vendorPost?.vendor?.serviceCategories) &&
+                vendorPost.vendor.serviceCategories.length > 0 ? (
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {vendorPost.vendor.serviceCategories.map((service: string) => (
+                    <div
+                      key={service}
+                      className="flex items-center gap-3 p-4 rounded-xl border border-[#EEE9FF] bg-[#FAF8FF]"
+                    >
+                      <span className="text-[#311970] font-bold text-lg">✓</span>
+                      <span className="text-gray-800 font-medium">{service}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">
+                  This vendor has not listed their services yet.
+                </p>
+              )}
+            </div>
+
+
+            {/* SERVICE AREAS */}
+            <div className="bg-white rounded-2xl p-6 shadow">
+              <h2 className="text-2xl font-bold text-[#311970] mb-6">
+                Service Areas
+              </h2>
+
+              {Array.isArray(vendorPost?.vendor?.serviceAreas) &&
+                vendorPost.vendor.serviceAreas.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {vendorPost.vendor.serviceAreas.map((area: string) => (
+                    <span
+                      key={area}
+                      className="px-4 py-2 rounded-full bg-[#EEE9FF] text-[#311970] text-sm font-medium"
+                    >
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">
+                  Service areas not specified by this vendor.
+                </p>
+              )}
+            </div>
+
+
+
+            {/* REVIEWS (UNCHANGED LOGIC, NEW LAYOUT) */}
+            <section className="w-full mx-auto px-1 py-6">
+
+              {/* Title */}
+              <div className="flex ml-4 items-center gap-2 mb-3">
+                <Star className="text-[#311970]" />
+                <h2 className="text-2xl font-bold text-[#311970]">Reviews</h2>
               </div>
 
-              {/* WRITE REVIEW FORM */}
-              <form
-                onSubmit={handleReviewSubmit}
-                className="mt-10 border border-gray-200 rounded-lg p-2 shadow-md"
-              >
-                <h3 className="text-2xl font-bold text-[#311970] mb-6 flex items-center gap-2">
-                  <Star className="text-[#311970] w-6 h-6" />
-                  Write a Review
-                </h3>
+              <div className="bg-white rounded-xl shadow-sm p-3">
 
-                {/* FIVE RATING CATEGORIES */}
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                {/* TOP SUMMARY SECTION */}
+                <div className="flex flex-col md:flex-row gap-10">
 
-                  {/* CATEGORY COMPONENT */}
+                  {/* Left: Overall Rating Box */}
+                  <div className="w-full md:w-1/4 flex flex-col items-center justify-center bg-green-100 rounded-xl py-6">
+                    <span className="text-4xl font-bold text-green-700">
+                      {averageRating.toFixed(1)}
+                    </span>
+                    <p className="text-gray-700 mb-2">out of 5.0</p>
+                    <RatingStars rating={Math.round(averageRating)} />
+                  </div>
 
-                  {[
-                    { label: "Quality of Service", icon: <Smile className="w-6 h-6 text-[#311970]" />, field: "quality" as ReviewCategory },
-                    { label: "Responsiveness", icon: <RefreshCcw className="w-6 h-6 text-[#311970]" />, field: "responsiveness" as ReviewCategory },
-                    { label: "Professionalism", icon: <User className="w-6 h-6 text-[#311970]" />, field: "professionalism" as ReviewCategory },
-                    { label: "Flexibility", icon: <SlidersHorizontal className="w-6 h-6 text-[#311970]" />, field: "flexibility" as ReviewCategory },
-                    { label: "Value for Money", icon: <DollarSign className="w-6 h-6 text-[#311970]" />, field: "value" as ReviewCategory }
-                  ]
-                    .map((item) => (
-                      <div key={item.field}>
-                        <p className="font-semibold text-gray-700 flex items-center gap-2 mb-1">
-                          {item.icon} {item.label}
-                        </p>
+                  {/* Right: Category Ratings */}
+                  <div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-                        {/* STAR SELECTOR */}
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() =>
-                                setNewReview((prev: any) => ({ ...prev, [item.field]: star }))
-                              }
-                              className="text-2xl"
-                            >
-                              <span className={newReview[item.field] >= star ? "text-yellow-400" : "text-gray-300"}>
-                                ★
-                              </span>
-                            </button>
-                          ))}
+                    {[
+                      { key: "quality", label: "Quality of Service", icon: <Smile className="w-5 h-5 text-[#311970]" /> },
+                      { key: "responsiveness", label: "Responsiveness", icon: <RefreshCcw className="w-5 h-5 text-[#311970]" /> },
+                      { key: "professionalism", label: "Professionalism", icon: <User className="w-5 h-5 text-[#311970]" /> },
+                      { key: "flexibility", label: "Flexibility", icon: <SlidersHorizontal className="w-5 h-5 text-[#311970]" /> },
+                      { key: "value", label: "Value for Money", icon: <DollarSign className="w-5 h-5 text-[#311970]" /> },
+                    ].map((cat) => {
+                      const catAvg =
+                        reviews && reviews.length > 0
+                          ? reviews.reduce((sum, r: any) => sum + (r[cat.key] ?? 0), 0) / reviews.length
+                          : 0;
+
+                      return (
+                        <div key={cat.key}>
+                          <p className="font-medium text-gray-700 flex items-center gap-2">
+                            {cat.icon} {cat.label}
+                          </p>
+                          <div className="h-2 bg-gray-200 rounded mt-1">
+                            <div
+                              className="h-2 bg-[#311970] rounded"
+                              style={{ width: `${(catAvg / 5) * 100}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
+                  </div>
                 </div>
 
-                {/* COMMENT FIELD */}
-                <textarea
-                  placeholder="Your Comments"
-                  className="w-full border rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-[#311970]"
-                  rows={6}
-                  value={newReview.text}
-                  onChange={(e) =>
-                    setNewReview((prev: any) => ({ ...prev, text: e.target.value }))
-                  }
-                />
+                {/* Review Count */}
+                <p className="mt-8 text-gray-700 font-medium">
+                  {reviews?.length} Reviews for {vendor?.businessName}
+                </p>
 
-                <button
-                  type="submit"
-                  disabled={submittingReview}
-                  className={`bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold flex items-center justify-center gap-2 ${submittingReview ? "cursor-not-allowed opacity-70" : ""}`}
+                {/* LIST OF REVIEWS */}
+                <div className="mt-6 flex flex-col gap-6">
+                  {(reviews || []).map((review: any, index: number) => (
+                    <div
+                      key={review._id || index}
+                      className="border border-gray-200 rounded-lg p-2 shadow-sm bg-white"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-800">
+                          {getReviewerName(review)}
+                        </h3>
+                        <RatingStars rating={Number(review.rating ?? 0)} />
+                      </div>
+
+                      <p className="text-gray-600 mb-3">{review.text}</p>
+
+                      {(review.reply ?? (review as any).reply) && (
+                        <div className="ml-4 mt-3 border-l-4 border-[#311970] pl-4 bg-gray-50 rounded">
+                          <p className="text-sm text-gray-700">
+                            <strong>Vendor Reply:</strong>{" "}
+                            {review.reply ?? (review as any).reply}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* WRITE REVIEW FORM */}
+                <form
+                  onSubmit={handleReviewSubmit}
+                  className="mt-10 border border-gray-200 rounded-lg p-2 shadow-md"
                 >
-                  {submittingReview ? (
-                    <span className="flex gap-1">
-                      <span className="animate-bounce">.</span>
-                      <span className="animate-bounce animation-delay-150">.</span>
-                      <span className="animate-bounce animation-delay-300">.</span>
-                      Submitting
-                    </span>
-                  ) : (
-                    "Submit Review"
-                  )}
-                </button>
+                  <h3 className="text-2xl font-bold text-[#311970] mb-6 flex items-center gap-2">
+                    <Star className="text-[#311970] w-6 h-6" />
+                    Write a Review
+                  </h3>
+
+                  {/* FIVE RATING CATEGORIES */}
+                  <div className="grid md:grid-cols-2 gap-8 mb-8">
+
+                    {/* CATEGORY COMPONENT */}
+
+                    {[
+                      { label: "Quality of Service", icon: <Smile className="w-6 h-6 text-[#311970]" />, field: "quality" as ReviewCategory },
+                      { label: "Responsiveness", icon: <RefreshCcw className="w-6 h-6 text-[#311970]" />, field: "responsiveness" as ReviewCategory },
+                      { label: "Professionalism", icon: <User className="w-6 h-6 text-[#311970]" />, field: "professionalism" as ReviewCategory },
+                      { label: "Flexibility", icon: <SlidersHorizontal className="w-6 h-6 text-[#311970]" />, field: "flexibility" as ReviewCategory },
+                      { label: "Value for Money", icon: <DollarSign className="w-6 h-6 text-[#311970]" />, field: "value" as ReviewCategory }
+                    ]
+                      .map((item) => (
+                        <div key={item.field}>
+                          <p className="font-semibold text-gray-700 flex items-center gap-2 mb-1">
+                            {item.icon} {item.label}
+                          </p>
+
+                          {/* STAR SELECTOR */}
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() =>
+                                  setNewReview((prev: any) => ({ ...prev, [item.field]: star }))
+                                }
+                                className="text-2xl"
+                              >
+                                <span className={newReview[item.field] >= star ? "text-yellow-400" : "text-gray-300"}>
+                                  ★
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                  </div>
+
+                  {/* COMMENT FIELD */}
+                  <textarea
+                    placeholder="Your Comments"
+                    className="w-full border rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                    rows={6}
+                    value={newReview.text}
+                    onChange={(e) =>
+                      setNewReview((prev: any) => ({ ...prev, text: e.target.value }))
+                    }
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={submittingReview}
+                    className={`bg-[#311970] text-white px-8 py-3 rounded-lg shadow hover:bg-[#261457] transition font-semibold flex items-center justify-center gap-2 ${submittingReview ? "cursor-not-allowed opacity-70" : ""}`}
+                  >
+                    {submittingReview ? (
+                      <span className="flex gap-1">
+                        <span className="animate-bounce">.</span>
+                        <span className="animate-bounce animation-delay-150">.</span>
+                        <span className="animate-bounce animation-delay-300">.</span>
+                        Submitting
+                      </span>
+                    ) : (
+                      "Submit Review"
+                    )}
+                  </button>
 
 
-              </form>
-            </div>
-          </section>
-          {/* --- YOUR EXISTING REVIEWS JSX CAN STAY HERE --- */}
+                </form>
+              </div>
+            </section>
+            {/* --- YOUR EXISTING REVIEWS JSX CAN STAY HERE --- */}
 
+          </div>
         </div>
 
+
         {/* ================= RIGHT ================= */}
-        <aside className="sticky top-28 h-fit bg-white rounded-2xl p-6 shadow">
-          <h3 className="text-xl font-bold text-[#311970] mb-4">Contact Vendor</h3>
-          <button
-            onClick={() => setShowBookingPopup(true)}
-            className="w-full bg-[#311970] text-white py-3 rounded-xl font-semibold mb-4"
-          >
-            Send Message
-          </button>
-          {phone && (
+        <div className="w-full md:w-[30%]">
+          <aside className="sticky top-28 h-fit bg-white rounded-2xl p-6 shadow">
+            <h3 className="text-xl font-bold text-[#311970] mb-4">Contact Vendor</h3>
             <button
-              onClick={() => (window.location.href = `tel:${phone}`)}
-              className="w-full border border-[#311970] text-[#311970] py-3 rounded-xl font-semibold hover:bg-gray-50 transition mb-4"
+              onClick={() => setShowBookingPopup(true)}
+              className="w-full bg-[#311970] text-white py-3 rounded-xl font-semibold mb-4"
             >
-              Call Now
+              Send Message
             </button>
-          )}
-          {/*<button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+            {phone && (
+              <button
+                onClick={() => (window.location.href = `tel:${phone}`)}
+                className="w-full border border-[#311970] text-[#311970] py-3 rounded-xl font-semibold hover:bg-gray-50 transition mb-4"
+              >
+                Call Now
+              </button>
+            )}
+            {/*<button className="w-full border py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
             <Calendar className="w-5 h-5" /> Check Availability
           </button>*/}
-          <p className="mt-6 text-sm text-gray-600">
-            <strong>Response time:</strong><br />Usually within 24 hours
-          </p>
-        </aside>
+            <p className="mt-6 text-sm text-gray-600">
+              <strong>Response time:</strong><br />Usually within 24 hours
+            </p>
+          </aside>
+        </div>
+
       </section>
 
 

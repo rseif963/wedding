@@ -115,7 +115,6 @@ export default function BlogPost({ params }: BlogProps) {
             {post.content || post.description}
           </ReactMarkdown>
         </div>
-
       </article>
 
       <Footer />
