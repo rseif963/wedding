@@ -68,7 +68,7 @@ export default function About() {
           className="text-gray-700 text-center max-w-3xl mx-auto text-lg leading-relaxed"
         >
           Founded with passion in East Africa, Wedpine is built for the modern
-          couple — intuitive, elegant, and deeply human. We combine smart
+          couple, intuitive, elegant, and deeply human. We combine smart
           technology with genuine storytelling to connect couples with verified
           wedding vendors, ensuring transparency, trust, and unmatched
           convenience. Our mission is simple: make wedding planning feel magical
@@ -88,7 +88,7 @@ export default function About() {
           >
             <h3 className="text-2xl font-bold text-[#311970] mb-4">Our Mission</h3>
             <p className="text-gray-700 leading-relaxed">
-              Our mission is to build Africa’s most trusted wedding ecosystem —
+              Our mission is to build Africa’s most trusted wedding ecosystem, 
               empowering couples with clarity, empowering vendors with growth,
               and bringing beauty, culture, and celebration into one seamless
               digital experience. We believe in weddings that reflect who you
@@ -105,7 +105,7 @@ export default function About() {
           >
             <h3 className="text-2xl font-bold text-[#311970] mb-4">Our Vision</h3>
             <p className="text-gray-700 leading-relaxed">
-              To become the global standard for modern wedding planning —
+              To become the global standard for modern wedding planning,
               personal, intuitive, and culturally inclusive. Our vision for 2026
               and beyond is to lead innovation through smart automation, vendor
               verification, personalized planning dashboards, and rich couple
@@ -189,7 +189,7 @@ export default function About() {
       <section className="bg-[#311970] text-white text-center py-20 px-4">
         <h2 className="text-4xl font-bold">Let’s build your perfect day</h2>
         <p className="max-w-xl mx-auto mt-4 text-sm opacity-90">
-          Whether you're planning your wedding or offering services — Wedpine is
+          Whether you're planning your wedding or offering services, Wedpine is
           your partner in the journey.
         </p>
 
