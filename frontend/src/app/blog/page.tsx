@@ -1,24 +1,10 @@
-"use client";
-import { useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Image from "next/image";
 import Link from "next/link";
-import { useAppContext } from "../../context/AppContext";
+import { blogs } from "@/app/blog/data/blogs";
 
 export default function Blog() {
-  const { blogs, fetchBlogs } = useAppContext();
-
-  useEffect(() => {
-    fetchBlogs(); // Fetch blogs from backend via AppContext
-  }, []);
-
-  const getImageUrl = (img?: string) => {
-    if (!img) return "/assets/default-blog.jpg"; // fallback
-    if (img.startsWith("http")) return img;
-    return `${process.env.NEXT_PUBLIC_API_BASE_URL}${img.startsWith("/") ? "" : "/"}${img}`;
-  };
-
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -27,10 +13,10 @@ export default function Blog() {
       <section
         className="relative overflow-hidden text-white py-28 text-center"
         style={{
-          backgroundImage: "url('/assets/blog-header.jpg')", // your image
-          backgroundSize: "cover",       // ensures full coverage
-          backgroundPosition: "center",  // centers the image
-          backgroundRepeat: "no-repeat", // prevents tiling
+          backgroundImage: "url('/assets/blog-header.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
         <div className="absolute inset-0 bg-[#311970]/50"></div>
@@ -42,7 +28,6 @@ export default function Blog() {
         </div>
       </section>
 
-
       {/* Blog Grid */}
       <section className="max-w-6xl mx-auto px-3 py-14">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
@@ -52,18 +37,18 @@ export default function Blog() {
             </p>
           ) : (
             blogs.map((post) => (
-              <div
-                key={post._id}
+              <Link
+                href={`/blog/${post.slug}`}
+                key={post.slug}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
               >
                 {/* Blog Image */}
                 <div className="relative w-full h-56">
                   <Image
-                    src={getImageUrl(post.mainPhoto)}
+                    src={post.image || "/assets/default-blog.jpg"}
                     alt={post.title}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
 
@@ -72,25 +57,18 @@ export default function Blog() {
                     {post.title}
                   </h2>
                   <p className="text-gray-600 text-sm mb-4">
-                    {post.description?.slice(0, 120)}...
+                    {post.excerpt}
                   </p>
                   <Link
-                    href={`/blog/${post._id}`}
+                    href={`/blog/${post.slug}`}
                     className="text-[#311970] font-semibold hover:underline"
                   >
                     Read More →
                   </Link>
                 </div>
-              </div>
+              </Link>
             ))
           )}
-        </div>
-
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <button className="bg-[#311970] text-white px-6 py-3 rounded-lg shadow hover:bg-[#261457] transition">
-            Load More
-          </button>
         </div>
       </section>
 
