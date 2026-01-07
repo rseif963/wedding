@@ -830,7 +830,7 @@ export default function VendorProfile() {
               {similarVendors.map((post: any) => {
                 const v = post.vendor;
                 const image =
-                  post.mainPhoto ||
+                  post.mainPhoto || v?.profilePhoto
                   v?.logo ||
                   v?.photo ||
                   "/assets/vendor-placeholder.jpg";
