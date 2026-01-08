@@ -327,7 +327,7 @@ export default function PortfolioGallery() {
                         />
 
                         {index === 0 && (
-                          <span className="absolute top-2 left-2 bg-[#4b1bb4] text-white text-xs px-2 py-1 rounded-md">
+                          <span className="absolute hidden top-2 left-2 bg-[#4b1bb4] text-white text-xs px-2 py-1 rounded-md">
                             Featured
                           </span>
                         )}

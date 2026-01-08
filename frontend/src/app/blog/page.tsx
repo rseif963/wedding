@@ -8,10 +8,9 @@ export default function Blog() {
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-
       {/* Hero Section */}
       <section
-        className="relative overflow-hidden text-white py-28 text-center"
+        className="relative mt-17 overflow-hidden text-white py-28 text-center"
         style={{
           backgroundImage: "url('/assets/blog-header.jpg')",
           backgroundSize: "cover",
