@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
+import Link from "next/link";
+
 
 interface Props {
   preview?: boolean;
@@ -759,6 +761,13 @@ export default function ProfileManager({ preview = false }: Props) {
             </button>
           </div>
         </div>
+
+        <Link href="/vdashboard/vendor/posts">
+          <button className="w-full bg-[#311970] text-white py-2 rounded-lg text-md mb-10 font-medium">
+            Create Post
+          </button>
+        </Link>
+
 
         {/* SERVICE CATEGORIES */}
         <div className="bg-white rounded-2xl shadow p-8 mb-10">
