@@ -15,7 +15,7 @@ export default function DashboardPage() {
       {/* Welcome Header */}
       <div className="p-4 bg-[#eee] ">
         <h1 className="font-serif font-bold text-2xl text-gray-900">
-          Welcome back, {vendorProfile?.businessName || "Business Name"}! ✨
+          Welcome back, {vendorProfile?.businessName || "Business Name"}!
         </h1>
 
         {/* Subtitle */}
