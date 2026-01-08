@@ -709,7 +709,6 @@ export default function ProfileManager({ preview = false }: Props) {
 
         {/* REMAINDER OF YOUR ORIGINAL CODE UNTOUCHED (BUSINESS INFO / SERVICES / SETTINGS / ETC) */}
         {/* ----------------------------------------------------------------------------- */}
-        {/* ----------------------------------------------------------------------------- */}
 
         {/* BUSINESS INFORMATION */}
         <div className="bg-white rounded-2xl shadow p-8 mb-10">
