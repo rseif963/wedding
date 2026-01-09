@@ -1,7 +1,7 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
+// Use Next.js useRouter instead
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,6 +15,8 @@ export default function ProfileManager({ preview = false }: Props) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
   const [isSavingImage, setIsSavingImage] = useState(false);
   const [showAddServicePopup, setShowAddServicePopup] = useState(false);
   const [newServiceCategory, setNewServiceCategory] = useState("");
@@ -470,10 +472,17 @@ export default function ProfileManager({ preview = false }: Props) {
     }
   };
 
+  // Handle form data changes
   const handleChange = (e: any) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Triggered when the Save button is clicked (shows the modal)
+  const handleSaveClick = () => {
+    setShowModal(true); // Show the modal
+  };
+
+  // This is your original handleSubmit function
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
@@ -481,7 +490,6 @@ export default function ProfileManager({ preview = false }: Props) {
     const fd = new FormData();
 
     Object.entries(formData).forEach(([key, value]) => {
-      // Skip image fields unless user selected a file
       if (
         (key === "profilePhoto" || key === "coverPhoto") &&
         !(value instanceof File)
@@ -489,18 +497,22 @@ export default function ProfileManager({ preview = false }: Props) {
         return;
       }
 
-      //Skip null / empty values
       if (value === null || value === "") return;
 
       fd.append(key, value as any);
     });
 
+    // Update vendor profile
     const updated = await updateVendorProfile(fd);
 
-    if (updated) setIsEditing(false);
-    setLoading(false);
+    if (updated) {
+      setLoading(false);
+      setShowModal(false); // Hide the modal after saving
+      router.push("/vdashboard/vendor/posts"); // Redirect to the posts page
+    } else {
+      setLoading(false);
+    }
   };
-
 
   const profilePhoto = vendorProfile?.profilePhoto || "/assets/avatar.png";
   const coverPhoto = vendorProfile?.coverPhoto || "/assets/cover-placeholder.jpg";
@@ -1413,7 +1425,7 @@ export default function ProfileManager({ preview = false }: Props) {
   // EDIT MODE (Category as dropdown)
   return (
     <div className="bg-white rounded-2xl shadow p-10">
-      <h2 className="text-2xl font-bold text-[#311970] mb-8">Edit Profile</h2>
+      <h2 className="text-2xl font-bold text-[#311970] mb-8">Profile</h2>
 
       <form
         onSubmit={handleSubmit}
@@ -1526,13 +1538,35 @@ export default function ProfileManager({ preview = false }: Props) {
         </div>
 
         <button
-          type="submit"
-          disabled={loading}
+          type="button" // Prevent actual form submission
           className="md:col-span-2 bg-[#311970] text-white py-3 rounded-xl shadow hover:bg-[#261457]"
+          onClick={handleSaveClick} // Trigger modal on click
         >
-          {loading ? "Saving..." : "Save Profile"}
+          Save Profile
         </button>
       </form>
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-xl shadow-lg w-96">
+            <h3 className="text-lg font-bold text-center text-[#311970] mb-4">
+              Thank you for joining Wedpine!
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              To ensure your profile is visible to couples, add at least 
+              <span className="font-bold text-black"> 4 images</span> to your portfolio on your vendor dashboard.
+            </p>
+            <p className="text-sm text-gray-700 mb-4">
+              We look forward to supporting your growth on Wedpine.
+            </p>
+            <button
+              onClick={handleSubmit} // Trigger the existing handleSubmit on click
+              className="bg-[#311970] text-white py-2 px-6 rounded-xl shadow hover:bg-[#261457] w-full"
+            >
+              Save & Add Photos
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

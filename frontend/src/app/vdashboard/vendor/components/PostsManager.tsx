@@ -100,9 +100,9 @@ export default function PortfolioGallery() {
 
     setLoading(true);
     try {
+      // Save price only (no image handling here)
       await updatePost(postId, form);
-      await fetchVendorPosts();
-      setEditingPrice(false); // ✅ switch to display mode
+      await fetchVendorPosts(); // Refresh posts after saving price
     } finally {
       setLoading(false);
     }
@@ -225,12 +225,13 @@ export default function PortfolioGallery() {
             />
 
             <button
-              onClick={handlePriceFromSave}
+              onClick={handlePriceFromSave} // This saves the price
               disabled={loading}
               className="bg-[#4b1bb4] text-white px-6 rounded-xl font-medium hover:bg-[#3a1591] transition"
             >
               {loading ? "Saving..." : "Save"}
             </button>
+
           </div>
         )}
       </div>
