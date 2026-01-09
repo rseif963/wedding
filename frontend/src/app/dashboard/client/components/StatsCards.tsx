@@ -70,7 +70,7 @@ export default function StatsCards() {
       {stats.map((s, i) => (
         <div
           key={s.label}
-          className={`p-5 rounded-2xl shadow-lg relative overflow-hidden bg-white flex flex-col`}
+          className={`p-5 rounded-2xl shadow-sm relative overflow-hidden bg-white flex flex-col`}
         >
           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${s.color}`}>
             {s.icon}

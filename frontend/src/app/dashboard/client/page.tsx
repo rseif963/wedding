@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { Calendar, Menu } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import StatsCards from "./components/StatsCards";
-import Bookings from "./components/Bookings";
-import BudgetTracker from "./components/BudgetTracker";
-import Messages from "./components/Messages";
-import GuestList from "./components/GuestList";
+import GuestListPreview from "./components/GuestListPreview";
+import ChecklistPreview from "./components/ChecklistPreview";
 
 
 function getTimeLeft(targetDate: string) {
@@ -57,7 +55,7 @@ export default function ClientDashboard() {
 
 
   return (
-    <div className="bg-[#eee] p-2 gap-6">
+    <div className="bg-gray-50 p-2 gap-6">
       <div className="relative px-2 pb-14 mt-20 text-center">
         {/* Mobile menu */}
         
@@ -81,7 +79,7 @@ export default function ClientDashboard() {
 
         {/* Countdown */}
         {timeLeft && (
-          <div className="mx-auto max-w-md bg-white rounded-3xl shadow-lg px-8 py-6">
+          <div className="mx-auto max-w-md bg-white rounded-3xl shadow-sm px-8 py-6">
             <div className="grid grid-cols-4 gap-6 text-center">
               {[
                 { label: "Days", value: timeLeft.days },
@@ -109,7 +107,7 @@ export default function ClientDashboard() {
             <StatsCards />
           </div>
           <div className="w-full">
-            <GuestList />
+            <GuestListPreview />
           </div>
         </main>
       </div>

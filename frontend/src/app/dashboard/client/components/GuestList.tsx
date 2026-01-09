@@ -9,9 +9,9 @@ import {
   XCircle,
   Plus,
   MoreVertical,
+  UserPlus,
 } from "lucide-react";
 
-// RSVP types your DB uses
 type RSVP = "attending" | "pending" | "declined" | "" | null | undefined;
 
 interface Guest {
@@ -32,30 +32,17 @@ export default function GuestList() {
     updateGuest,
     deleteGuest,
     fetchClientAll,
-    updateExpectedGuestCount,
   } = useAppContext();
-
-  const [expectedGuests, setExpectedGuests] = useState<number>(
-    clientProfile?.expectedGuestsCount ?? 0
-  );
-
-  const [isEditingExpected, setIsEditingExpected] = useState(false);
-
-  const handleUpdateExpectedGuests = async () => {
-    if (!updateExpectedGuestCount) return;
-    try {
-      await updateExpectedGuestCount(expectedGuests);
-      if (fetchClientAll) await fetchClientAll();
-    } catch (err) {
-      console.error("Failed to update expected guests:", err);
-    }
-  };
 
   const guests: Guest[] = Array.isArray(clientProfile?.guests)
     ? (clientProfile!.guests as Guest[])
     : [];
 
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
 
   const [newGuest, setNewGuest] = useState<Guest>({
     name: "",
@@ -64,12 +51,11 @@ export default function GuestList() {
     rsvp: "pending",
   });
 
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const normalized = (r: RSVP) => (r ? r.toLowerCase() : "");
 
   const counts = useMemo(() => {
-    const acc = { all: guests.length, attending: 0, pending: 0, declined: 0 };
+    const acc = { attending: 0, pending: 0, declined: 0 };
     guests.forEach((g) => {
       const r = normalized(g.rsvp);
       if (r === "attending") acc.attending++;
@@ -80,8 +66,17 @@ export default function GuestList() {
   }, [guests]);
 
   const filteredGuests = useMemo(() => {
-    if (filter === "all") return guests;
-    return guests.filter((g) => normalized(g.rsvp) === filter);
+    let list = guests;
+    if (filter !== "all") {
+      list = guests.filter((g) => normalized(g.rsvp) === filter);
+    }
+
+    // Sort newest first
+    return [...list].sort((a, b) => {
+      const idA = String(a._id ?? a.id ?? "");
+      const idB = String(b._id ?? b.id ?? "");
+      return idB.localeCompare(idA); // newest on top
+    });
   }, [guests, filter]);
 
   const statusStyle = (rsvp: RSVP) => {
@@ -89,307 +84,306 @@ export default function GuestList() {
     return r === "attending"
       ? "bg-green-100 text-green-700"
       : r === "pending"
-      ? "bg-yellow-100 text-yellow-700"
-      : r === "declined"
-      ? "bg-red-100 text-red-700"
-      : "bg-gray-100 text-gray-600";
+        ? "bg-yellow-100 text-yellow-700"
+        : "bg-gray-100 text-gray-500";
   };
 
   const statusLabel = (rsvp: RSVP) => {
     const r = normalized(rsvp);
     return r === "attending"
-      ? "Confirmed"
+      ? "Attending"
       : r === "pending"
-      ? "Pending"
-      : r === "declined"
-      ? "Declined"
-      : "Unknown";
-  };
-
-  const handleAdd = async () => {
-    if (!newGuest.name.trim()) return;
-
-    await addGuest({
-      name: newGuest.name,
-      phone: newGuest.phone,
-      email: newGuest.email,
-    });
-
-    setNewGuest({ name: "", phone: "", email: "", rsvp: "pending" });
-
-    try {
-      await fetchClientAll();
-    } catch {}
-  };
-
-  const TabButton = ({
-    label,
-    Icon,
-    value,
-    count,
-  }: {
-    label: string;
-    Icon: any;
-    value: FilterKey;
-    count: number;
-  }) => {
-    const active = filter === value;
-    return (
-      <button
-        onClick={() => setFilter(value)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition
-        ${
-          active
-            ? "bg-black text-white border-black shadow"
-            : "border-gray-300 text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <Icon size={16} />
-        {label} ({count})
-      </button>
-    );
+        ? "Pending"
+        : "Declined";
   };
 
   const safeUpdateGuest = async (guestId: string, update: Partial<Guest>) => {
     try {
-      await (updateGuest as unknown as (id: string, u: any) => Promise<any>)(
-        guestId,
-        update
-      );
-      if (fetchClientAll) await fetchClientAll();
+      await (updateGuest as any)(guestId, update);
+      await fetchClientAll();
     } catch (err) {
-      console.error("safeUpdateGuest error:", err);
+      console.error(err);
     }
   };
 
   const safeDeleteGuest = async (guestId: string, guestName: string) => {
     if (!confirm(`Delete guest ${guestName}?`)) return;
     try {
-      await (deleteGuest as unknown as (id: string) => Promise<any>)(guestId);
-      if (fetchClientAll) await fetchClientAll();
+      await (deleteGuest as any)(guestId);
+      await fetchClientAll();
     } catch (err) {
-      console.error("Delete guest error:", err);
+      console.error(err);
     }
   };
 
+  const handleSave = async () => {
+    if (!newGuest.name.trim()) return;
+
+    if (editingGuest) {
+      await safeUpdateGuest(
+        String(editingGuest._id ?? editingGuest.id),
+        newGuest
+      );
+    } else {
+      await addGuest(newGuest);
+      await fetchClientAll();
+    }
+
+    setShowModal(false);
+    setEditingGuest(null);
+    setNewGuest({ name: "", phone: "", email: "", rsvp: "pending" });
+  };
+
   return (
-    <div className="bg-white p-6 rounded-2xl">
-      <h2 className="text-xl font-bold mb-2">Guest List</h2>
-
-      {/* Expected guests editable */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
-        <label className="font-medium">Expected Guests:</label>
-
-        {!isEditingExpected ? (
-          <>
-            <span className="font-semibold">{expectedGuests}</span>
-            <button
-              onClick={() => setIsEditingExpected(true)}
-              className="px-3 py-1 border border-gray-400 rounded-lg text-sm hover:bg-gray-100"
-            >
-              Edit
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              type="number"
-              min={0}
-              value={expectedGuests}
-              onChange={(e) => setExpectedGuests(Number(e.target.value))}
-              className="w-20 p-1 border rounded-lg text-sm"
-            />
-
-            <button
-              onClick={async () => {
-                await handleUpdateExpectedGuests();
-                setIsEditingExpected(false);
-              }}
-              className="px-3 py-1 bg-black text-white rounded-lg text-sm hover:bg-gray-800 transition"
-            >
-              Save
-            </button>
-
-            <button
-              onClick={() => {
-                setExpectedGuests(clientProfile?.expectedGuestsCount ?? 0);
-                setIsEditingExpected(false);
-              }}
-              className="px-3 py-1 border border-gray-400 rounded-lg text-sm hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <TabButton label="All" Icon={Users} value="all" count={counts.all} />
-        <TabButton
-          label="Confirmed"
-          Icon={CheckCircle}
-          value="attending"
-          count={counts.attending}
-        />
-        <TabButton
-          label="Pending"
-          Icon={Clock}
-          value="pending"
-          count={counts.pending}
-        />
-        <TabButton
-          label="Declined"
-          Icon={XCircle}
-          value="declined"
-          count={counts.declined}
-        />
-      </div>
-
-      {/* Add guest section */}
-      <div className="mb-6 p-4 border rounded-xl bg-gray-50">
-        <h3 className="font-semibold text-gray-800 mb-3">Add New Guest</h3>
-
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-          <input
-            type="text"
-            placeholder="Guest name"
-            value={newGuest.name}
-            onChange={(e) => setNewGuest({ ...newGuest, name: e.target.value })}
-            className="p-2 border rounded-lg"
-          />
-
-          <input
-            type="text"
-            placeholder="Phone (optional)"
-            value={newGuest.phone}
-            onChange={(e) => setNewGuest({ ...newGuest, phone: e.target.value })}
-            className="p-2 border rounded-lg"
-          />
-
-          <input
-            type="email"
-            placeholder="Email (optional)"
-            value={newGuest.email}
-            onChange={(e) => setNewGuest({ ...newGuest, email: e.target.value })}
-            className="p-2 border rounded-lg"
-          />
-
-          <select
-            value={newGuest.rsvp || "pending"}
-            onChange={(e) =>
-              setNewGuest({ ...newGuest, rsvp: e.target.value as RSVP })
-            }
-            className="p-2 border rounded-lg"
-          >
-            <option value="pending">Pending</option>
-            <option value="attending">Confirmed</option>
-            <option value="declined">Declined</option>
-          </select>
+    <div className="bg-gray-50 p-2 md:px-6 rounded-2xl h-[100vh] overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-4xl font-bold">Guest List</h2>
+          <p className="text-sm text-gray-500">
+            Manage your wedding guests and RSVPs
+          </p>
         </div>
 
         <button
-          onClick={handleAdd}
-          className="mt-3 flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          onClick={() => {
+            setEditingGuest(null);
+            setNewGuest({ name: "", phone: "", email: "", rsvp: "pending" });
+            setShowModal(true);
+          }}
+          className="
+    flex items-center gap-2 mt-2
+    bg-[#311970] text-white font-medium
+    px-3 py-2 text-sm rounded-lg
+    md:px-5 md:py-3 md:text-base md:rounded-xl
+  "
         >
-          <Plus size={16} /> Add Guest
+          <UserPlus size={16} className="md:hidden" />
+          <UserPlus size={18} className="hidden md:block" />
+          Add Guest
         </button>
+
       </div>
 
-      {/* Guest list */}
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-2xl flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-green-100 text-green-600">
+            <CheckCircle size={24} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{counts.attending}</div>
+            <div className="text-sm text-gray-500">Attending</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-yellow-100 text-yellow-600">
+            <Clock size={24} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{counts.pending}</div>
+            <div className="text-sm text-gray-500">Pending</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-gray-200 text-gray-600">
+            <XCircle size={24} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{counts.declined}</div>
+            <div className="text-sm text-gray-500">Declined</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Table Header */}
+      <div className="hidden md:grid grid-cols-12 px-4 py-2 text-xs font-semibold text-gray-400 uppercase">
+        <div className="col-span-5">Guest Name</div>
+        <div className="col-span-4">Contact</div>
+        <div className="col-span-2">RSVP Status</div>
+        <div className="col-span-1 text-right">Actions</div>
+      </div>
+
+      {/* Guest List */}
       <ul className="space-y-3">
-        {filteredGuests.length ? (
-          filteredGuests.map((g, i) => {
-            const id = String(g._id ?? g.id ?? `guest-${i}`);
+        {filteredGuests.map((g, i) => {
+          const id = String(g._id ?? g.id ?? i);
 
-            return (
-              <li
-                key={id}
-                className="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50 transition"
-              >
-                <div>
-                  <div className="font-semibold">{g.name}</div>
-                  {g.phone && (
-                    <div className="text-xs text-gray-500">{g.phone}</div>
-                  )}
-                  {g.email && (
-                    <div className="text-xs text-gray-500">{g.email}</div>
-                  )}
+          return (
+            <li
+              key={id}
+              className="bg-white grid grid-cols-12 gap-3 p-4 rounded-xl items-center"
+            >
+              {/* Name */}
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center">
+                <p className="font-semibold">{g.name}</p>
+                <div className="md:hidden text-sm text-gray-500 mt-1">
+                  {g.email && <p>{g.email}</p>}
+                  {g.phone && <p>{g.phone}</p>}
                 </div>
+              </div>
 
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-3 py-1 text-xs rounded-full font-medium ${statusStyle(
-                      g.rsvp
-                    )}`}
+              {/* Contact */}
+              <div className="hidden md:block col-span-4 text-sm text-gray-500">
+                <p>{g.email || "—"}</p>
+                <p>{g.phone || "—"}</p>
+              </div>
+
+              {/* Status – desktop only */}
+              <div className="hidden md:flex col-span-2 order-1 md:order-none">
+                <span
+                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusStyle(
+                    g.rsvp
+                  )}`}
+                >
+                  {g.rsvp === "attending" && <CheckCircle size={14} />}
+                  {g.rsvp === "pending" && <Clock size={14} />}
+                  {g.rsvp === "declined" && <XCircle size={14} />}
+                  {statusLabel(g.rsvp)}
+                </span>
+              </div>
+
+
+              {/* Actions */}
+              {/* Actions */}
+              <div className="col-span-12 md:col-span-1 flex justify-end items-center gap-2 flex-wrap md:flex-nowrap">
+                {/* Status – mobile on top, desktop unchanged */}
+                <span
+                  className={`md:hidden inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusStyle(
+                    g.rsvp
+                  )}`}
+                >
+                  {g.rsvp === "attending" && <CheckCircle size={14} />}
+                  {g.rsvp === "pending" && <Clock size={14} />}
+                  {g.rsvp === "declined" && <XCircle size={14} />}
+                  {statusLabel(g.rsvp)}
+                </span>
+
+                <button
+                  onClick={() => {
+                    setEditingGuest(g);
+                    setNewGuest(g);
+                    setShowModal(true);
+                  }}
+                  className="text-sm font-medium text-[#311970]"
+                >
+                  Edit
+                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={() =>
+                      setOpenMenu(openMenu === id ? null : id)
+                    }
+                    className="p-2 rounded-full hover:bg-gray-100"
                   >
-                    {statusLabel(g.rsvp)}
-                  </span>
+                    <MoreVertical size={18} />
+                  </button>
 
-                  <div className="relative">
-                    <button
-                      className="p-2 hover:bg-gray-100 rounded-full"
-                      onClick={() =>
-                        setOpenMenu(openMenu === id ? null : id)
-                      }
-                    >
-                      <MoreVertical size={18} />
-                    </button>
+                  {openMenu === id && (
+                    <div className="absolute right-0 mt-2 w-36 bg-white border rounded-xl shadow-lg z-10">
+                      <button
+                        onClick={async () => {
+                          await safeUpdateGuest(id, { rsvp: "attending" });
+                          setOpenMenu(null);
+                        }}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                      >
+                        Confirmed
+                      </button>
 
-                    {openMenu === id && (
-                      <div className="absolute right-0 mt-2 w-36 bg-white border rounded-lg shadow-lg z-10">
-                        <button
-                          onClick={async () => {
-                            await safeUpdateGuest(id, { rsvp: "attending" });
-                            setOpenMenu(null);
-                          }}
-                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
-                        >
-                          Confirmed
-                        </button>
+                      <button
+                        onClick={async () => {
+                          await safeUpdateGuest(id, { rsvp: "pending" });
+                          setOpenMenu(null);
+                        }}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                      >
+                        Pending
+                      </button>
 
-                        <button
-                          onClick={async () => {
-                            await safeUpdateGuest(id, { rsvp: "pending" });
-                            setOpenMenu(null);
-                          }}
-                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
-                        >
-                          Pending
-                        </button>
+                      <button
+                        onClick={async () => {
+                          await safeUpdateGuest(id, { rsvp: "declined" });
+                          setOpenMenu(null);
+                        }}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-red-600"
+                      >
+                        Declined
+                      </button>
 
-                        <button
-                          onClick={async () => {
-                            await safeUpdateGuest(id, { rsvp: "declined" });
-                            setOpenMenu(null);
-                          }}
-                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-red-600"
-                        >
-                          Declined
-                        </button>
-
-                        <button
-                          onClick={async () => {
-                            await safeDeleteGuest(id, g.name);
-                            setOpenMenu(null);
-                          }}
-                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-red-700 font-semibold"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                      <button
+                        onClick={async () => {
+                          await safeDeleteGuest(id, g.name);
+                          setOpenMenu(null);
+                        }}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-red-700 font-semibold"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </li>
-            );
-          })
-        ) : (
-          <p className="text-center text-sm text-gray-500 py-4">
-            No guests found for this filter.
-          </p>
-        )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6">
+            <h3 className="text-lg font-bold mb-4">
+              {editingGuest ? "Edit Guest" : "Add Guest"}
+            </h3>
+
+            <div className="space-y-3">
+              <input
+                placeholder="Guest name"
+                value={newGuest.name}
+                onChange={(e) =>
+                  setNewGuest({ ...newGuest, name: e.target.value })
+                }
+                className="w-full p-3 border rounded-xl"
+              />
+              <input
+                placeholder="Email"
+                value={newGuest.email || ""}
+                onChange={(e) =>
+                  setNewGuest({ ...newGuest, email: e.target.value })
+                }
+                className="w-full p-3 border rounded-xl"
+              />
+              <input
+                placeholder="Phone"
+                value={newGuest.phone || ""}
+                onChange={(e) =>
+                  setNewGuest({ ...newGuest, phone: e.target.value })
+                }
+                className="w-full p-3 border rounded-xl"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 border rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-[#311970] text-white rounded-xl"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

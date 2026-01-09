@@ -27,7 +27,7 @@ export default function VendorDashboardLayout({
           className="absolute top-3 right-3 md:hidden p-2 rounded-md hover:bg-gray-100 z-50"
         >
         </button>
-
+       
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       </div>

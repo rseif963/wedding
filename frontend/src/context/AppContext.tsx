@@ -402,6 +402,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user?.id]);
 
+  // --- Load from localStorage on mount ---
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedTasks = localStorage.getItem("tasks");
+      if (storedTasks) setTasks(JSON.parse(storedTasks));
+      const storedShow = localStorage.getItem("showChecklist");
+      if (storedShow !== null) setShowChecklist(JSON.parse(storedShow));
+    }
+
+    // Then fetch latest from API
+    fetchTasks();
+  }, []);
+
+  // --- Save to localStorage whenever tasks or showChecklist change ---
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+      localStorage.setItem("showChecklist", JSON.stringify(showChecklist));
+    }
+  }, [tasks, showChecklist]);
+
 
   const applyToken = (t: string | null) => {
     if (t) {

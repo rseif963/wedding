@@ -11,6 +11,7 @@ import ImageGallery from "react-image-gallery";
 import "react-image-gallery/styles/css/image-gallery.css";
 import { useAppContext } from "@/context/AppContext";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 import { Smile, RefreshCcw, User, SlidersHorizontal, DollarSign, Calendar } from "lucide-react";
 
 type ReviewCategory = "quality" | "responsiveness" | "professionalism" | "flexibility" | "value";

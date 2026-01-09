@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
-import {
-  ArrowLeft,
-  Paperclip,
-  Send,
-} from "lucide-react";
+import { ArrowLeft, Paperclip, Send } from "lucide-react";
 import toast from "react-hot-toast";
 
 /* ---------------- TYPES ---------------- */
@@ -24,6 +20,8 @@ interface Vendor {
   _id: string;
   businessName?: string;
   category?: string;
+  profilePhoto?: string;
+  logo?: string;
 }
 
 interface Booking {
@@ -31,20 +29,57 @@ interface Booking {
   vendor?: Vendor | string;
   status: "Accepted" | "Pending" | "Declined";
   messages?: Message[];
+  mainPhoto?: string;
 }
 
-/* ---------------- ICONS ---------------- */
+/* ---------------- HELPERS ---------------- */
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+const getFullUrl = (path?: string) => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${API_URL}${path}`;
+};
+
+const getVendorInitials = (name?: string) => {
+  if (!name) return "V";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+};
+
+/* ---------------- COMPONENT ---------------- */
 
 export default function Bookings() {
-  const { bookings, fetchClientBookings, replyToBooking } = useAppContext();
+  const {
+    bookings,
+    fetchClientBookings,
+    replyToBooking,
+    clientProfile,
+  } = useAppContext();
 
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [replyMessage, setReplyMessage] = useState("");
-  const [activeReplyBooking, setActiveReplyBooking] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "details">("list");
   const [openedBookings, setOpenedBookings] = useState<Set<string>>(new Set());
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [lastSeenMap, setLastSeenMap] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    return JSON.parse(localStorage.getItem("lastSeenClientBookings") || "{}");
+  });
+
+
+  useEffect(() => {
+    localStorage.setItem(
+      "lastSeenClientBookings",
+      JSON.stringify(lastSeenMap)
+    );
+  }, [lastSeenMap]);
 
 
   /* ---------------- EFFECTS ---------------- */
@@ -70,12 +105,29 @@ export default function Bookings() {
     return msgs.length ? msgs[msgs.length - 1] : null;
   };
 
-  const getUnreadCount = (booking: Booking): number => {
-    if (openedBookings.has(booking._id)) return 0;
-    return (booking.messages ?? []).filter(
-      (m) => m.sender === "Vendor"
+  const getUnreadCount = (booking: any) => {
+    const lastSeen = lastSeenMap[booking._id];
+    const messages = booking.messages || [];
+
+    return messages.filter(
+      (m: any) =>
+        m.sender === "Vendor" &&
+        (!lastSeen || new Date(m.createdAt) > new Date(lastSeen))
     ).length;
   };
+
+  // Calculate total unread messages across all bookings
+  const totalUnreadBookings = bookings.filter(
+    (b: any) => getUnreadCount(b) > 0
+  ).length;
+
+
+
+  const brideInitial =
+    clientProfile?.brideName?.charAt(0).toUpperCase() ?? "";
+  const groomInitial =
+    clientProfile?.groomName?.charAt(0).toUpperCase() ?? "";
+  const coupleInitials = `${brideInitial}${groomInitial}`;
 
   /* ---------------- SORT BOOKINGS ---------------- */
 
@@ -83,12 +135,8 @@ export default function Bookings() {
     const aUnread = getUnreadCount(a) > 0 ? 1 : 0;
     const bUnread = getUnreadCount(b) > 0 ? 1 : 0;
 
-    // Unread bookings first
-    if (aUnread !== bUnread) {
-      return bUnread - aUnread;
-    }
+    if (aUnread !== bUnread) return bUnread - aUnread;
 
-    // Then newest message
     const aTime = new Date(getLatestMessage(a)?.createdAt || 0).getTime();
     const bTime = new Date(getLatestMessage(b)?.createdAt || 0).getTime();
 
@@ -96,19 +144,13 @@ export default function Bookings() {
   });
 
 
-  const totalUnreadBookings = bookings.filter(
-    (b: any) => getUnreadCount(b) > 0
-  ).length;
-
   const selectedBooking = bookings.find(
     (b: any) => b._id === selectedBookingId
-  );
+  ) as Booking | undefined;
 
-  const booking = selectedBooking!;
-
-  const bookingExists = selectedBooking as Booking | undefined;
-
-
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [selectedBooking?.messages]);
 
   /* ---------------- SEND MESSAGE ---------------- */
 
@@ -143,6 +185,7 @@ export default function Bookings() {
   return (
     <section className="bg-gray-200 w-full h-[80vh] md:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex h-full gap-3">
+
         {/* LEFT */}
         <aside
           className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-2xl bg-white
@@ -150,12 +193,14 @@ export default function Bookings() {
         >
           <div className="flex justify-between border-b mb-4 pb-2">
             <h2 className="font-bold">Messages</h2>
+
             {totalUnreadBookings > 0 && (
-              <span className="text-sm text-[#311970]">
+              <span className="text-sm font-medium text-[#311970]">
                 {totalUnreadBookings} unread
               </span>
             )}
           </div>
+
 
           <ul className="space-y-3">
             {sortedBookings.map((b: any) => {
@@ -168,11 +213,19 @@ export default function Bookings() {
                   key={b._id}
                   onClick={() => {
                     setSelectedBookingId(b._id);
-                    setOpenedBookings((prev) => {
-                      const next = new Set(prev);
-                      next.add(b._id);
-                      return next;
-                    });
+                    const latestVendorMessage = (b.messages || [])
+                      .filter((m: any) => m.sender === "Vendor")
+                      .slice(-1)[0];
+
+                    if (latestVendorMessage) {
+                      setLastSeenMap((prev) => ({
+                        ...prev,
+                        [b._id]: latestVendorMessage.createdAt,
+                      }));
+                    }
+
+
+                    setOpenedBookings((prev) => new Set(prev).add(b._id));
                     setView("details");
                   }}
                   className={`p-3 rounded-lg cursor-pointer transition
@@ -181,7 +234,32 @@ export default function Bookings() {
                       : "hover:bg-gray-50"
                     }`}
                 >
-                  <div className="flex w-[100%] text-ellipsis items-center gap-3">
+                  <div className="flex w-full items-center gap-3">
+                    {/* VENDOR AVATAR */}
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shrink-0">
+                      {(() => {
+                        const image =
+                          getFullUrl(
+                            b.mainPhoto ||
+                            vendor?.profilePhoto ||
+                            vendor?.logo
+                          );
+
+                        return image ? (
+                          <img
+                            src={image}
+                            alt={vendor?.businessName || "Vendor"}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-semibold text-gray-700">
+                            {getVendorInitials(vendor?.businessName)}
+                          </span>
+                        );
+                      })()}
+                    </div>
+
+                    {/* TEXT */}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
                         {vendor?.businessName ?? "Vendor"}
@@ -197,6 +275,7 @@ export default function Bookings() {
                       </span>
                     )}
                   </div>
+
                 </li>
               );
             })}
@@ -216,45 +295,83 @@ export default function Bookings() {
             <>
               {/* HEADER */}
               <div className="border-b p-4 flex items-center gap-3">
-                <button
-                  className="md:hidden"
-                  onClick={() => setView("list")}
-                >
+                <button className="md:hidden" onClick={() => setView("list")}>
                   <ArrowLeft />
                 </button>
-                {bookingExists && (
-                  <div>
-                    <h3 className="font-semibold">{getVendor(bookingExists)?.businessName ?? "Vendor"}</h3>
-                    <p className="text-sm text-gray-500">{getVendor(bookingExists)?.category ?? "Category"}</p>
-                  </div>
-                )}
-
+                <div>
+                  <h3 className="font-semibold">
+                    {getVendor(selectedBooking)?.businessName ?? "Vendor"}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {getVendor(selectedBooking)?.category ?? "Category"}
+                  </p>
+                </div>
               </div>
 
-              {/* MESSAGES */}
+              {/* MESSAGES (FIXED) */}
               <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
-                {selectedBooking.messages?.map((m: any) => {
+                {selectedBooking.messages?.map((m) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   });
 
+                  const vendor = getVendor(selectedBooking);
+                  const vendorImage = getFullUrl(
+                    selectedBooking.mainPhoto ||
+                    vendor?.profilePhoto ||
+                    vendor?.logo
+                  );
+
                   return (
                     <div
                       key={m._id}
-                      className={`max-w-[70%] p-3 rounded-lg relative
-                        ${m.sender === "Client"
-                          ? "ml-auto bg-[#311970] text-white"
-                          : "bg-gray-200"
+                      className={`flex items-end gap-2 ${m.sender === "Client"
+                        ? "justify-end"
+                        : "justify-start"
                         }`}
                     >
-                      <p className="pb-2">{m.content}</p>
-                      <span className="absolute bottom-1 right-2 text-xs text-gray-400">
-                        {time}
-                      </span>
+                      {m.sender === "Vendor" && (
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shrink-0">
+                          {vendorImage ? (
+                            <img
+                              src={vendorImage}
+                              alt="Vendor"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs font-semibold text-gray-700">
+                              {getVendorInitials(vendor?.businessName)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div
+                        className={`max-w-[70%] p-3 rounded-lg flex items-end justify-between gap-3
+                         ${m.sender === "Client"
+                            ? "bg-[#311970] text-white"
+                            : "bg-gray-200"
+                          }`}
+                      >
+                        <p className="flex-1">{m.content}</p>
+                        <span className="text-xs opacity-60 whitespace-nowrap">
+                          {time}
+                        </span>
+                      </div>
+
+                      {m.sender === "Client" && (
+                        <div className="w-8 h-8 rounded-full bg-[#311970] flex items-center justify-center shrink-0">
+                          <span className="text-white text-xs font-semibold">
+                            {coupleInitials}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
+                {/* Scroll target */}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* INPUT */}

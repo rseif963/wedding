@@ -317,7 +317,7 @@ export default function VendorBookings() {
                     <div
                       key={m._id}
                       className={`max-w-[70%] p-3 rounded-lg text-sm relative
-          ${m.sender === "Vendor"
+                        ${m.sender === "Vendor"
                           ? "ml-auto bg-[#311970] text-white"
                           : "bg-gray-200"
                         }`}
@@ -330,7 +330,7 @@ export default function VendorBookings() {
                   );
                 })}
 
-                {/* 👇 Scroll target */}
+                {/* Scroll target */}
                 <div ref={messagesEndRef} />
               </div>
 

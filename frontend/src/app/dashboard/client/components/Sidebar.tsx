@@ -10,6 +10,7 @@ import {
   LogOut,
   ArrowLeftCircle,
   X,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -46,7 +47,7 @@ export default function Sidebar({
     },
     {
       name: "Messages",
-      icon: <MessageSquare size={20} />,
+      icon: <MessageCircle size={20} />,
       href: "/dashboard/client/messages",
     },
     {

@@ -31,12 +31,12 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <Hero />
+      <Hero />    
       <FeaturedCategories />
+      <TopListingVendors />
       <FeaturedVendors />
       <TipsIdeas />
       <PopularCities />
-      <TopListingVendors /> 
       <HowItWorks />
       <VendorCTA />
       <Testimonials />
