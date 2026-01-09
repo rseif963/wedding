@@ -5,7 +5,6 @@ import { Calendar, Menu } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import StatsCards from "./components/StatsCards";
 import GuestListPreview from "./components/GuestListPreview";
-import ChecklistPreview from "./components/ChecklistPreview";
 
 
 function getTimeLeft(targetDate: string) {
@@ -56,9 +55,10 @@ export default function ClientDashboard() {
 
   return (
     <div className="bg-gray-50 p-2 gap-6">
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#f6f4fb] via-[#ede9fb]/60 to-transparent pointer-events-none z-0" />
       <div className="relative px-2 pb-14 mt-20 text-center">
         {/* Mobile menu */}
-        
+       
         {/* Welcome */}
         <p className="text-xs tracking-widest text-gray-500 uppercase mb-2">
           Welcome back
