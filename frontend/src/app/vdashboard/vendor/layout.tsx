@@ -34,7 +34,7 @@ export default function VendorDashboardLayout({
           aria-label="Close sidebar"
           className="absolute top-3 right-3 md:hidden p-2 rounded-md hover:bg-gray-100 z-50"
         >
-          <X size={20} color={"white"} />
+          <X size={20} color={"black"} />
         </button>
 
         {/* Sidebar content */}
