@@ -242,6 +242,7 @@ export default function AuthPage() {
                     />
                   </div>
                 </div>
+
               )}
 
               <div>
@@ -290,6 +291,32 @@ export default function AuthPage() {
                 </div>
               </div>
 
+              {mode === "signup" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    disabled={submitting}
+                    className="w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#311970]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-[#311970] transition"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+              )}
               {mode === "signup" && role === "vendor" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
