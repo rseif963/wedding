@@ -14,5 +14,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: "https://www.wedpine.com/auth",
       lastModified: new Date(),
     },
+    {
+      url: "https://www.wedpine.com/blog",
+      lastModified: new Date(),
+    },
   ];
 }

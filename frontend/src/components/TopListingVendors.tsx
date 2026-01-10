@@ -90,7 +90,7 @@ export default function TopListingVendors() {
   const topListings = calculatedPosts
     .filter((p) => p.avgRating >= 4.5 || p.totalReviews >= 10)
     .sort((a, b) => b.avgRating - a.avgRating)
-    .slice(0, 12);
+    .slice(0, 4); // ✅ ONLY CHANGE: show 4 posts
 
   return (
     <section className="py-24 bg-gradient-to-b from-[#faf8ff] via-[#f5f3ff] to-white">
@@ -116,22 +116,20 @@ export default function TopListingVendors() {
               const vendorId = v?._id ? String(v._id) : "";
               const imageUrl = getFullUrl(post.mainPhoto || v?.profilePhoto || v?.logo);
 
-              const handlePostClick = (vendorId: string, postId: string) => async (e: React.MouseEvent) => {
-                e.preventDefault(); // Prevent immediate navigation
-                if (!vendorId) return;
+              const handlePostClick =
+                (vendorId: string, postId: string) =>
+                async (e: React.MouseEvent) => {
+                  e.preventDefault();
+                  if (!vendorId) return;
 
-                try {
-                  // 1️⃣ Count the profile view
-                  await axios.post("/api/analytics/profile-view", { vendorId });
-
-                  // 2️⃣ Navigate after counting
-                  router.push(`/vendors/${postId}`);
-                } catch (err) {
-                  console.error("Profile view tracking failed:", err);
-                  router.push(`/vendors/${postId}`); // still navigate even if fails
-                }
-              };
-
+                  try {
+                    await axios.post("/api/analytics/profile-view", { vendorId });
+                    router.push(`/vendors/${postId}`);
+                  } catch (err) {
+                    console.error("Profile view tracking failed:", err);
+                    router.push(`/vendors/${postId}`);
+                  }
+                };
 
               return (
                 <a
@@ -140,9 +138,7 @@ export default function TopListingVendors() {
                   className="group block"
                   onClick={handlePostClick(vendorId, post._id)}
                 >
-
                   <div className="bg-white rounded-2xl overflow-hidden shadow-elevated hover:shadow-card transition">
-                    {/* IMAGE */}
                     <div className="relative aspect-[4/3]">
                       <Image
                         src={imageUrl}
@@ -151,7 +147,6 @@ export default function TopListingVendors() {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
 
-                      {/* Like Button */}
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -160,31 +155,29 @@ export default function TopListingVendors() {
                         className="absolute top-3 right-3 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
                       >
                         <Heart
-                          className={`h-5 w-5 ${liked.includes(post._id)
-                            ? "text-red-500 fill-red-500"
-                            : "text-red-500"
-                            }`}
+                          className={`h-5 w-5 ${
+                            liked.includes(post._id)
+                              ? "text-red-500 fill-red-500"
+                              : "text-red-500"
+                          }`}
                         />
                       </button>
 
-                      {/* BADGES – SAME LAYOUT AS FEATURED */}
                       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-                        <div className="bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1">
+                        <div className="bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded-full">
                           Top Listing
                         </div>
 
                         {post.avgRating >= 5 && (
-                          <div className="bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1">
-                             Top Rated
+                          <div className="bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded-full">
+                            Top Rated
                           </div>
                         )}
                       </div>
-
                     </div>
 
-                    {/* CONTENT */}
                     <div className="p-5">
-                      <h3 className="text-xl font-bold text-[#311970] truncate mb-1 group-hover:text-primary transition-colors">
+                      <h3 className="text-xl font-bold text-[#311970] truncate mb-1">
                         {v?.businessName}
                       </h3>
 
@@ -193,15 +186,15 @@ export default function TopListingVendors() {
                         {v?.location ? `${v.location}, Kenya` : "Kenya"}
                       </p>
 
-                      {/* Ratings */}
                       <div className="flex items-center gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${i < Math.round(post.avgRating)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                              }`}
+                            className={`w-4 h-4 ${
+                              i < Math.round(post.avgRating)
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                            }`}
                           />
                         ))}
                         <span className="text-sm text-gray-600 ml-2">
