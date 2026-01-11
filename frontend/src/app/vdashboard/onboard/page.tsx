@@ -24,9 +24,8 @@ export default function OnboardingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center px-6 overflow-hidden">
+    <div className="min-h-screen mt-20 bg-white flex flex-col items-center px-6 overflow-hidden">
       
-
       {/* Heading */}
       <h1
         className={`text-[56px] leading-[64px] font-semibold text-[#3B1D82] text-center transition-all duration-700 delay-100
