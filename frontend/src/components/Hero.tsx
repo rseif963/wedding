@@ -82,7 +82,7 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 animate-fade-up delay-300">
             <Link
               href="/vendors"
-              className="inline-flex items-center justify-center border border-border px-6 py-3 rounded-xl font-semibold hover:bg-muted transition"
+              className="inline-flex items-center bg-white justify-center border border-border px-6 py-3 rounded-xl font-semibold hover:bg-muted transition"
             >
               Browse All Vendors
               <ArrowRight className="ml-2 h-5 w-5" />
