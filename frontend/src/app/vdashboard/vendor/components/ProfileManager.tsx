@@ -12,7 +12,6 @@ interface Props {
 
 export default function ProfileManager({ preview = false }: Props) {
   const { vendorProfile, updateVendorProfile, fetchVendorMe } = useAppContext();
-
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
