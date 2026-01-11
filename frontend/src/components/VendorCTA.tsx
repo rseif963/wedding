@@ -13,7 +13,7 @@ export default function VendorCTA() {
           List your business on <span className="font-semibold">Wedpine</span> and connect with thousands of couples planning their big day.
         </p>
         <Link
-          href="/auth"
+          href="/auth?mode=signup&role=vendor"
           className="bg-white text-[#311970] font-semibold px-6 py-3 rounded-lg shadow hover:bg-gray-100 transition"
         >
           List Your Business
