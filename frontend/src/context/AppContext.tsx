@@ -146,7 +146,6 @@ export interface Inquiry {
   createdAt: string;
 }
 
-
 interface MessageItem {
   _id?: string;
   fromUser?: any;
@@ -305,8 +304,11 @@ interface AppContextType {
   updateVendorProfile: (payload: Partial<VendorProfile>) => Promise<VendorProfile | null>;
   fetchVendorProfile: (vendorId: string) => Promise<VendorProfile | null>;
   fetchVendorMe: () => Promise<void>;
-  uploadNationalID: (front: File, back: File) => Promise<any | null>;
-  uploadBusinessCertificate: (file: File) => Promise<any | null>;
+  uploadVerification: (payload: {
+    nationalIdFront?: File | null;
+    nationalIdBack?: File | null;
+    businessCertificate?: File | null;
+  }) => Promise<any | null>;
   fetchMyVerification: () => Promise<any | null>;
   fetchAllVerifications: () => Promise<any[]>;
   createPost: (form: FormData) => Promise<VendorPost | null>;
@@ -475,46 +477,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
 
-  // --- Vendor Verification functions ---
-  const uploadNationalID = async (front: File, back: File) => {
+  // --- Vendor Verification (MATCHES BACKEND) ---
+  const uploadVerification = async ({
+    nationalIdFront,
+    nationalIdBack,
+    businessCertificate,
+  }: {
+    nationalIdFront?: File | null;
+    nationalIdBack?: File | null;
+    businessCertificate?: File | null;
+  }) => {
     try {
       const formData = new FormData();
-      formData.append("idFront", front);
-      formData.append("idBack", back);
 
-      const res = await axios.post("/api/verification/national-id", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      if (nationalIdFront) {
+        formData.append("nationalIdFront", nationalIdFront);
+      }
+
+      if (nationalIdBack) {
+        formData.append("nationalIdBack", nationalIdBack);
+      }
+
+      if (businessCertificate) {
+        formData.append("businessCertificate", businessCertificate);
+      }
+
+      const res = await axios.post("/api/verification", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      // Update vendorProfile state locally if needed
-      setVendorProfile((prev) => prev ? { ...prev, verification: res.data } : prev);
+      toast.success("Documents uploaded successfully");
 
-      toast.success("National ID uploaded successfully");
       return res.data;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to upload National ID");
+      toast.error(err.response?.data?.message || "Verification upload failed");
       return null;
     }
   };
 
-  const uploadBusinessCertificate = async (file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append("businessCertificate", file);
-
-      const res = await axios.post("/api/verification/business-certificate", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setVendorProfile((prev) => prev ? { ...prev, verification: res.data } : prev);
-
-      toast.success("Business certificate uploaded successfully");
-      return res.data;
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to upload business certificate");
-      return null;
-    }
-  };
 
   const fetchMyVerification = async () => {
     try {
@@ -1647,10 +1649,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         conversations,
         activeConversation,
         chatMessages,
-        uploadNationalID,
-        uploadBusinessCertificate,
+        uploadVerification,
         fetchMyVerification,
         fetchAllVerifications,
+
 
         getOrCreateConversation,
         fetchConversations,
