@@ -8,7 +8,7 @@ import VendorProfile from "../models/VendorProfile.js";
 
 const router = express.Router();
 
-// 📌 Register (no verification)
+// Register (no verification)
 router.post("/register", async (req, res) => {
   const { email, password, role, phone } = req.body;
 
@@ -29,7 +29,7 @@ router.post("/register", async (req, res) => {
       role: role || "client",
     });
 
-    // ✅ Save phone/email in profile
+    // Save phone/email in profile
     if (user.role === "client") {
       await ClientProfile.create({ user: user._id, phone });
     }
@@ -62,7 +62,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// 📌 Login
+// Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });

@@ -30,7 +30,7 @@ export default function AboutBrandPage() {
             const updated = await updateVendorProfile(fd);
 
             if (updated) {
-                router.push("/vdashboard/vendor/onboarding/verification");
+                router.push("/vdashboard/onboard/verification");
             }
         } catch (error) {
             console.error("Failed to save description", error);
