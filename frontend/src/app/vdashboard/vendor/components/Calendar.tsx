@@ -7,7 +7,7 @@ import { useAppContext } from "@/context/AppContext";
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Calendar() {
-  const { bookings, fetchVendorBookings, vendorProfile, } = useAppContext();
+  const { bookings, fetchVendorBookings, vendorProfile, fetchVendorMe } = useAppContext();
 
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -20,6 +20,9 @@ export default function Calendar() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const monthName = date.toLocaleString("default", { month: "long" });
 
+  useEffect(() => {
+    fetchVendorMe();
+  }, []);
 
   useEffect(() => {
     fetchVendorBookings();

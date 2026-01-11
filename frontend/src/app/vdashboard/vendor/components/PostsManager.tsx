@@ -27,7 +27,7 @@ export default function PortfolioGallery() {
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [editingPrice, setEditingPrice] = useState(false);
 
-  // ✅ MAIN IMAGE STATE (ADDED)
+  // MAIN IMAGE STATE (ADDED)
   const [mainImage, setMainImage] = useState<string | File | null>(null);
   const [uploadingMainImage, setUploadingMainImage] = useState(false);
 
