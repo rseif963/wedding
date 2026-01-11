@@ -116,9 +116,9 @@ export default function AuthPage() {
         if (ok) {
           localStorage.setItem("userRole", role);
           if (role === "vendor") {
-            router.push("/vdashboard/vendor/onboarding");
+            router.push("/vdashboard/onboard");
           } else {
-            router.push("/dashboard/client/onboard");
+            router.push("/dashboard/client/onboarding");
           }
         }
       }
