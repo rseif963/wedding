@@ -11,7 +11,8 @@ export default function PortfolioGallery() {
     createPost,
     updatePost,
     fetchVendorPosts,
-    vendorProfile
+    vendorProfile,
+    fetchVendorMe
   } = useAppContext();
 
   const API_URL =
@@ -49,6 +50,11 @@ export default function PortfolioGallery() {
     if (!vendorProfile?._id) return;
     fetchVendorPosts();
   }, [vendorProfile]);
+
+  useEffect(() => {
+      fetchVendorMe();
+    }, []);
+  
 
   useEffect(() => {
     if (!ctxPosts || ctxPosts.length === 0) return;
