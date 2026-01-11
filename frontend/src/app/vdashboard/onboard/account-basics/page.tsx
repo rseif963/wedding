@@ -151,7 +151,7 @@ export default function AccountBasicsPage() {
             <button
               onClick={handleContinue}
               disabled={saving}
-              className={`rounded-2xl px-10 py-4 text-[16px] font-medium text-white shadow-[0_10px_25px_rgba(59,29,130,0.35)] transition
+              className={`rounded-2xl px-10 py-4 text-[16px] font-medium text-white transition
               ${
                 saving
                   ? "bg-[#B8AED8] cursor-not-allowed"

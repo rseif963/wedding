@@ -198,7 +198,6 @@ export default function LocationPage() {
               onClick={handleContinue}
               disabled={!canContinue || saving}
               className={`rounded-2xl px-12 py-4 text-white font-medium
-              shadow-[0_10px_25px_rgba(59,29,130,0.35)]
               ${saving ? "bg-[#B8AED8]" : "bg-[#3B1D82] hover:opacity-90"}`}
             >
               {saving ? "Saving..." : "Continue"}

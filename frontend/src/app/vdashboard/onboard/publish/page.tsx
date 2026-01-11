@@ -79,7 +79,7 @@ export default function FinalStepPage() {
                 <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
                     <button
                         onClick={handleRedirect}
-                        className="rounded-2xl px-10 py-4 text-[16px] font-medium text-white bg-[#3B1D82] shadow-[0_10px_25px_rgba(59,29,130,0.35)] transition hover:opacity-90"
+                        className="rounded-2xl px-10 py-4 text-[16px] font-medium text-white bg-[#3B1D82] transition hover:opacity-90"
                     >
                         Save & Publish
                     </button>

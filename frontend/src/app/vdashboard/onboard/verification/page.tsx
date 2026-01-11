@@ -139,7 +139,7 @@ export default function VerificationPage() {
         {/* ACTIONS */}
         <div className="mt-14 flex justify-between items-center">
           {/* SKIP */}
-          <Link href="/vdashboard/vendor/onboarding/review-profile">
+          <Link href="/vdashboard/onboard/publish">
             <button className="text-[16px] font-medium text-[#6B5FA7] hover:text-[#3B1D82] transition">
               Skip for now
             </button>
@@ -150,7 +150,6 @@ export default function VerificationPage() {
             onClick={handleContinue}
             disabled={!canContinue || loading}
             className={`rounded-2xl px-14 py-4 text-[16px] font-medium text-white
-                shadow-[0_10px_25px_rgba(59,29,130,0.35)]
                 transition
                 ${canContinue && !loading ? "bg-[#3B1D82] hover:opacity-90" : "bg-[#B8AED8] cursor-not-allowed"}`}
           >

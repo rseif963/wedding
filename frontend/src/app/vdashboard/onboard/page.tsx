@@ -87,7 +87,7 @@ export default function OnboardingPage() {
         ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
       >
         <Link href="/vdashboard/onboard/account-basics">
-          <button className="mt-16 rounded-2xl bg-[#3B1D82] px-10 py-4 text-[16px] font-medium text-white shadow-[0_10px_25px_rgba(59,29,130,0.35)] hover:opacity-90 transition">
+          <button className="mt-16 rounded-2xl bg-[#3B1D82] px-10 py-4 text-[16px] font-medium text-white hover:opacity-90 transition">
             Start Setup
           </button>
         </Link>

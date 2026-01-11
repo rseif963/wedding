@@ -213,7 +213,6 @@ export default function PackagesPage() {
         <div className="mt-14 flex justify-end">
           <button
             onClick={handleContinue}
-            disabled={packages.length === 0 || saving}
             className="rounded-2xl bg-[#3B1D82] px-14 py-4 text-white disabled:opacity-40"
           >
             {saving ? "Saving..." : "Continue"}

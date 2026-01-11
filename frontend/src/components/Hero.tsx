@@ -90,7 +90,7 @@ export default function Hero() {
 
             <Link
               href="/auth?mode=signup&role=vendor"
-              className="text-md font-medium text-muted-foreground hover:text-foreground transition"
+              className="text-md font-bold text-muted-foreground hover:text-foreground transition"
             >
               List Your Business
             </Link>
