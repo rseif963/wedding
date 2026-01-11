@@ -100,7 +100,7 @@ export default function PortfolioPage() {
       <header className="border-b border-[#EEEAF6]">
         <div className="mx-auto max-w-6xl px-6 py-5">
           <Link
-            href="/vdashboard/vendor/onboarding/packages"
+            href="/vdashboard/onboard/packages"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-[#EEEAF6] text-[#3B1D82] hover:bg-[#F6F4FB]"
           >
             <ArrowLeft size={18} />

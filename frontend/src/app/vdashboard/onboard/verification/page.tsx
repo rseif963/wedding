@@ -72,7 +72,7 @@ export default function VerificationPage() {
       <header className="border-b border-[#EEEAF6]">
         <div className="mx-auto max-w-6xl px-6 py-5 flex items-center justify-between">
           <Link
-            href="/vdashboard/vendor/onboarding/account-basics"
+            href="/vdashboard/onboard/about-brand"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-[#EEEAF6] text-[#3B1D82] hover:bg-[#F6F4FB] transition"
           >
             <ArrowLeft size={18} />

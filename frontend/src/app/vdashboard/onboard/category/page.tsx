@@ -89,7 +89,7 @@ export default function CategoryPage() {
         <div className="mx-auto max-w-6xl px-6 py-5 flex items-center justify-between">
           <div className="flex flex-col items-start gap-4">
             <Link
-              href="/vdashboard/vendor/onboarding/account-basics"
+              href="/vdashboard/onboard/account-basics"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-[#EEEAF6] text-[#3B1D82] hover:bg-[#F6F4FB] transition"
             >
               <ArrowLeft size={18} />

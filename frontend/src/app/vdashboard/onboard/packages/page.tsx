@@ -102,7 +102,7 @@ export default function PackagesPage() {
       <header className="border-b border-[#EEEAF6]">
         <div className="mx-auto max-w-6xl px-6 py-5">
           <Link
-            href="/vdashboard/vendor/onboarding/location"
+            href="/vdashboard/onboard/location"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-[#EEEAF6]"
           >
             <ArrowLeft size={18} />
