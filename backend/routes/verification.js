@@ -72,7 +72,6 @@ router.get("/me", auth, permit("vendor"), async (req, res) => {
     if (!verification)
       return res.status(404).json({ message: "Verification not found" });
 
-    // Only send metadata, no file URLs
     res.json({
       verified: verification.verified,
       createdAt: verification.createdAt,
