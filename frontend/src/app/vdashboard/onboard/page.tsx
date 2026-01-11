@@ -80,7 +80,6 @@ export default function OnboardingPage() {
           </div>
         ))}
       </div>
-
       {/* CTA */}
       <div
         className={`transition-all duration-700 delay-[750ms]
