@@ -774,7 +774,7 @@ export default function ProfileManager({ preview = false }: Props) {
         </div>
 
         <Link href="/vdashboard/vendor/posts">
-          <button className="w-full bg-[#311970] text-white py-2 rounded-lg text-md mb-10 font-medium">
+          <button className="w-full bg-[#311970] text-white py-2 px-3 rounded-lg text-md mb-10 font-medium">
             Create Post
           </button>
         </Link>
