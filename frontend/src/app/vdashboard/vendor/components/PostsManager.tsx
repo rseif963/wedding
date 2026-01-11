@@ -14,7 +14,6 @@ export default function PortfolioGallery() {
     vendorProfile
   } = useAppContext();
 
-
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -27,12 +26,15 @@ export default function PortfolioGallery() {
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [editingPrice, setEditingPrice] = useState(false);
 
+  // ✅ MAIN IMAGE STATE (ADDED)
+  const [mainImage, setMainImage] = useState<string | File | null>(null);
+  const [uploadingMainImage, setUploadingMainImage] = useState(false);
+
   const formatPrice = (value: string | number) => {
     const num = Number(value);
     if (Number.isNaN(num)) return "";
     return num.toLocaleString("en-US");
   };
-
 
   const getFullUrl = (path?: string) => {
     if (!path) return "";
@@ -45,9 +47,7 @@ export default function PortfolioGallery() {
 
   useEffect(() => {
     if (!vendorProfile?._id) return;
-    (async () => {
-      await fetchVendorPosts();
-    })();
+    fetchVendorPosts();
   }, [vendorProfile]);
 
   useEffect(() => {
@@ -57,23 +57,24 @@ export default function PortfolioGallery() {
     setPostId(p._id);
     setGallery(p.galleryImages || []);
     setPriceFrom(p.priceFrom?.toString() ?? "");
+    setMainImage(
+      typeof p.mainPhoto === "string"
+        ? p.mainPhoto
+        : p.mainPhoto
+          ? getFullUrl((p.mainPhoto as any).url || (p.mainPhoto as any).path)
+          : null
+    );
+
   }, [ctxPosts]);
 
 
-  // PREVIEW – not uploading yet
-  // Store file previews before upload
+
   const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
-
     const file = e.target.files[0];
-
-    // Reset so selecting same file twice works
     e.target.value = "";
-
-    // Add to preview list
     setPreviewFiles((prev) => [...prev, file]);
   };
-
 
   const ensurePostExists = async () => {
     if (postId) return postId;
@@ -83,9 +84,7 @@ export default function PortfolioGallery() {
     form.append("description", "");
     form.append("priceFrom", "0");
 
-    // first post creation
     const created = await createPost(form);
-
     if (!created) return null;
 
     setPostId(created._id);
@@ -100,21 +99,45 @@ export default function PortfolioGallery() {
 
     setLoading(true);
     try {
-      // Save price only (no image handling here)
       await updatePost(postId, form);
-      await fetchVendorPosts(); // Refresh posts after saving price
+      await fetchVendorPosts();
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ MAIN IMAGE UPLOAD HANDLER (ADDED)
+  const handleMainImageSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!e.target.files?.length) return;
 
+    const file = e.target.files[0];
+    e.target.value = "";
 
+    setMainImage(file);
+    setUploadingMainImage(true);
+
+    const id = await ensurePostExists();
+    if (!id) {
+      setUploadingMainImage(false);
+      return;
+    }
+
+    const form = new FormData();
+    form.append("mainPhoto", file);
+
+    try {
+      await updatePost(id, form);
+      await fetchVendorPosts();
+    } finally {
+      setUploadingMainImage(false);
+    }
+  };
 
   const uploadPreviewFile = async (file: File) => {
-    setUploadingFiles((prev) => [...prev, file]); // mark as uploading
+    setUploadingFiles((prev) => [...prev, file]);
 
-    // 1️⃣ Ensure post exists before uploading images
     const id = await ensurePostExists();
     if (!id) {
       setUploadingFiles((prev) => prev.filter((f) => f !== file));
@@ -125,22 +148,18 @@ export default function PortfolioGallery() {
     form.append("galleryImages", file);
 
     try {
-      const updated = await updatePost(id, form);
-      if (updated) await fetchVendorPosts();
+      await updatePost(id, form);
+      await fetchVendorPosts();
     } finally {
-      setPreviewFiles((prev) => prev.filter((f) => f !== file)); // remove preview
-      setUploadingFiles((prev) => prev.filter((f) => f !== file)); // mark done
+      setPreviewFiles((prev) => prev.filter((f) => f !== file));
+      setUploadingFiles((prev) => prev.filter((f) => f !== file));
     }
   };
 
-
-
-  // DELETE EXISTING IMAGE
   const deletePhoto = async (img: string) => {
     if (!postId) return;
 
-    const updated = gallery.filter((x) => x !== img);
-    setGallery(updated);
+    setGallery((prev) => prev.filter((x) => x !== img));
 
     const form = new FormData();
     form.append("removeGalleryImages", JSON.stringify([img]));
@@ -159,8 +178,6 @@ export default function PortfolioGallery() {
     return getFullUrl(img);
   };
 
-
-  // REORDER
   const onDragEnd = async (result: any) => {
     if (!result.destination) return;
 
@@ -191,6 +208,45 @@ export default function PortfolioGallery() {
           Showcase your best work by uploading high-quality images.
         </p>
       </div>
+
+      {/* ✅ MAIN IMAGE BOX (ADDED ONLY) */}
+      <div className="w-full max-w-4xl mx-auto mb-8">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Main Image
+        </label>
+
+        <div className="border-2 border-dashed border-purple-300 rounded-xl p-4 text-center bg-purple-50 min-h-[200px]">
+          {mainImage ? (
+            <img
+              src={resolveImage(mainImage)}
+              className="w-full h-[200px] object-cover rounded-xl"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full">
+              <Upload className="w-10 h-10 text-purple-500 mx-auto" />
+              <p className="mt-4 text-purple-700 font-medium">
+                Upload main featured image
+              </p>
+            </div>
+          )}
+
+          <label className="inline-flex mt-4 items-center gap-2 bg-[#4b1bb4] text-white px-5 py-2.5 rounded-xl cursor-pointer hover:bg-[#3a1591] transition">
+            <Upload className="w-4 h-4" />
+            {mainImage ? "Replace Main Image" : "Upload Main Image"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleMainImageSelect}
+              className="hidden"
+            />
+          </label>
+
+          {uploadingMainImage && (
+            <p className="mt-2 text-purple-600">Uploading...</p>
+          )}
+        </div>
+      </div>
+
 
       {/* Price From */}
       <div className="w-full max-w-4xl mx-auto mb-8">

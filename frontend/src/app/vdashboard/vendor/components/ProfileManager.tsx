@@ -515,7 +515,7 @@ export default function ProfileManager({ preview = false }: Props) {
   };
 
   const profilePhoto = vendorProfile?.profilePhoto || "/assets/avatar.png";
-  const coverPhoto = vendorProfile?.coverPhoto || "/assets/cover-placeholder.jpg";
+  const coverPhoto = vendorProfile?.coverPhoto || "/assets/cover-bg.jpg";
 
 
   /** ------------------------------------------------

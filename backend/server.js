@@ -22,7 +22,7 @@ import reviewRoutes from "./routes/reviews.js";
 import adminRoutes from "./routes/admin.js";
 import blogRoutes from "./routes/blogs.js";
 import analyticsRoutes from "./routes/analytics.js";
-
+import verificationRoutes from "./routes/verification.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,12 +38,14 @@ app.use("/api/vendors", vendorRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/bookingRequests", bookingRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/chat", chatRoutes);65
+app.use("/api/chat", chatRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
+// ✅ Mount verification routes
+app.use("/api/verification", verificationRoutes);
 
 // Health check route
 app.get("/", (req, res) => {

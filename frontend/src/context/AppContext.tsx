@@ -305,6 +305,10 @@ interface AppContextType {
   updateVendorProfile: (payload: Partial<VendorProfile>) => Promise<VendorProfile | null>;
   fetchVendorProfile: (vendorId: string) => Promise<VendorProfile | null>;
   fetchVendorMe: () => Promise<void>;
+  uploadNationalID: (front: File, back: File) => Promise<any | null>;
+  uploadBusinessCertificate: (file: File) => Promise<any | null>;
+  fetchMyVerification: () => Promise<any | null>;
+  fetchAllVerifications: () => Promise<any[]>;
   createPost: (form: FormData) => Promise<VendorPost | null>;
   updatePost: (id: string, form: FormData) => Promise<VendorPost | null>;
   fetchPosts: (vendorId?: string) => Promise<void>;
@@ -469,6 +473,70 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error("Profile view tracking failed:", err);
     }
   }, []);
+
+
+  // --- Vendor Verification functions ---
+  const uploadNationalID = async (front: File, back: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("idFront", front);
+      formData.append("idBack", back);
+
+      const res = await axios.post("/api/verification/national-id", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // Update vendorProfile state locally if needed
+      setVendorProfile((prev) => prev ? { ...prev, verification: res.data } : prev);
+
+      toast.success("National ID uploaded successfully");
+      return res.data;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to upload National ID");
+      return null;
+    }
+  };
+
+  const uploadBusinessCertificate = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("businessCertificate", file);
+
+      const res = await axios.post("/api/verification/business-certificate", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setVendorProfile((prev) => prev ? { ...prev, verification: res.data } : prev);
+
+      toast.success("Business certificate uploaded successfully");
+      return res.data;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to upload business certificate");
+      return null;
+    }
+  };
+
+  const fetchMyVerification = async () => {
+    try {
+      const res = await axios.get("/api/verification/me");
+      setVendorProfile((prev) => prev ? { ...prev, verification: res.data } : prev);
+      return res.data;
+    } catch (err: any) {
+      console.error("Failed to fetch my verification:", err);
+      return null;
+    }
+  };
+
+  const fetchAllVerifications = async () => {
+    try {
+      const res = await axios.get("/api/verification"); // admin only
+      return res.data;
+    } catch (err: any) {
+      toast.error("Failed to fetch all verifications");
+      return [];
+    }
+  };
+
 
 
   const fetchVendorAnalytics = async (vendorId: string) => {
@@ -1579,6 +1647,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         conversations,
         activeConversation,
         chatMessages,
+        uploadNationalID,
+        uploadBusinessCertificate,
+        fetchMyVerification,
+        fetchAllVerifications,
 
         getOrCreateConversation,
         fetchConversations,
