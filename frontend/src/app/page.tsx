@@ -46,7 +46,4 @@ export default function Home() {
   );
 }
 
-export const metadata = {
-  title: "Wedpine – Wedding Vendors & Planning Platform",
-};
 
