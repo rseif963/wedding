@@ -73,6 +73,9 @@ export default function Bookings() {
     return JSON.parse(localStorage.getItem("lastSeenClientBookings") || "{}");
   });
 
+  const [autoScroll, setAutoScroll] = useState(true);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
 
   useEffect(() => {
     localStorage.setItem(
@@ -148,9 +151,21 @@ export default function Bookings() {
     (b: any) => b._id === selectedBookingId
   ) as Booking | undefined;
 
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const isNearBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+
+    setAutoScroll(isNearBottom);
+  };
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedBooking?.messages]);
+    if (autoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedBooking?.messages, autoScroll]);
 
   /* ---------------- SEND MESSAGE ---------------- */
 
@@ -284,7 +299,7 @@ export default function Bookings() {
 
         {/* RIGHT */}
         <main
-          className={`flex-1 flex flex-col bg-white rounded-2xl
+          className={`flex-1 flex flex-col h-[80vh] md:h-[85vh] bg-white rounded-2xl
           ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
           {!selectedBooking ? (
@@ -309,7 +324,7 @@ export default function Bookings() {
               </div>
 
               {/* MESSAGES (FIXED) */}
-              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+              <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
                 {selectedBooking.messages?.map((m) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -382,12 +397,12 @@ export default function Bookings() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="flex-1 resize-none border border-blue-600 rounded-lg p-2"
-                    rows={2}
+                    rows={1}
                     placeholder="Type a message"
                   />
                   <button
                     onClick={handleSendMessage}
-                    className="bg-purple-600 text-white px-4 rounded-lg flex items-center gap-2"
+                    className="bg-[#311970] text-white px-4 rounded-lg flex items-center gap-2"
                   >
                     <Send className="w-4 h-4" /> Send
                   </button>

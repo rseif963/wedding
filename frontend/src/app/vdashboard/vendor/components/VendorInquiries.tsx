@@ -27,11 +27,27 @@ export default function VendorBookings() {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  const [autoScroll, setAutoScroll] = useState(true);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+
+
 
   const [lastSeenMap, setLastSeenMap] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
     return JSON.parse(localStorage.getItem("lastSeenBookings") || "{}");
   });
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const isNearBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+
+    setAutoScroll(isNearBottom);
+  };
+
 
   useEffect(() => {
     localStorage.setItem("lastSeenBookings", JSON.stringify(lastSeenMap));
@@ -43,8 +59,11 @@ export default function VendorBookings() {
 
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedBooking?.messages]);
+    if (autoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedBooking?.messages, autoScroll]);
+
 
 
 
@@ -222,6 +241,8 @@ export default function VendorBookings() {
                         : "hover:bg-gray-50"
                       }`}
                   >
+
+                    
                     <div className="flex justify-between items-start gap-3">
                       <div className="min-w-0">
                         <p className="font-medium text-gray-700">
@@ -248,7 +269,7 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col h-screen md:h-full overflow-hidden bg-white rounded-2xl
+          className={`flex-1 flex flex-col h-[80] md:h-full overflow-hidden bg-white rounded-2xl
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
 
@@ -307,7 +328,7 @@ export default function VendorBookings() {
               </div>
 
               {/* MESSAGES */}
-              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+              <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
                 {selectedBooking?.messages?.map((m: any) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
