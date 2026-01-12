@@ -307,7 +307,7 @@ export default function VendorBookings() {
               </div>
 
               {/* MESSAGES */}
-              <div className="flex-1 overflow-y-auto h-340 bg-gray-50 p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
                 {selectedBooking?.messages?.map((m: any) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -315,7 +315,7 @@ export default function VendorBookings() {
                   });
 
                   return (
-                    <div className="h-screen">
+                    <div className="">
                       <div
                         key={m._id}
                         className={`max-w-[70%] p-3 rounded-lg text-sm relative
