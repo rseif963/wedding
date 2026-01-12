@@ -299,7 +299,7 @@ export default function Bookings() {
 
         {/* RIGHT */}
         <main
-          className={`flex-1 flex flex-col h-[80vh] md:h-[85vh] bg-white rounded-2xl
+          className={`flex-1 flex flex-col h-[90vh] md:h-[85vh] bg-white rounded-2xl
           ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
           {!selectedBooking ? (

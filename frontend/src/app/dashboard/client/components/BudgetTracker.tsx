@@ -205,7 +205,7 @@ export default function BudgetTracker() {
 
           <button
             onClick={handleAddItem}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-1"
+            className="bg-[#311970] hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-1"
           >
             Add <Plus size={16} />
           </button>
@@ -264,7 +264,7 @@ export default function BudgetTracker() {
                 {/* PROGRESS BAR */}
                 <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
                   <div
-                    className={`${item.paid ? "bg-green-600" : "bg-blue-600"} h-3 transition-all`}
+                    className={`${item.paid ? "bg-green-600" : "bg-[#311970]"} h-3 transition-all`}
                     style={{ width: `${percentage}%` }}
                   ></div>
                 </div>
