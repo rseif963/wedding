@@ -60,9 +60,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+      <Script
+        id="site-name"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Wedpine",
+            "alternateName": "Wedpine",
+            "url": "https://www.wedpine.com",
+          }),
+        }}
+      />
       <body className="font-sans bg-gray-50 text-gray-800 bg-white">
 
-        {/* ✅ Google Analytics */}
+        {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-GMT9GH8T3L"
           strategy="afterInteractive"

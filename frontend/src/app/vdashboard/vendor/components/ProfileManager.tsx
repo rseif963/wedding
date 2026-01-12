@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
-// Use Next.js useRouter instead
+import { toast } from "react-hot-toast";
 import Image from "next/image";
 import Link from "next/link";
+import { BadgeCheck } from "lucide-react";
 
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export default function ProfileManager({ preview = false }: Props) {
-  const { vendorProfile, updateVendorProfile, fetchVendorMe } = useAppContext();
+  const { vendorProfile, updateVendorProfile, fetchVendorMe, uploadVerification, fetchMyVerification } = useAppContext();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -71,6 +72,58 @@ export default function ProfileManager({ preview = false }: Props) {
 
   const profileInputRef = React.useRef<HTMLInputElement>(null);
   const coverInputRef = React.useRef<HTMLInputElement>(null);
+  const [idFront, setIdFront] = useState<File | null>(null);
+  const [idBack, setIdBack] = useState<File | null>(null);
+  const [businessCert, setBusinessCert] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [loadingVerification, setLoadingVerification] = useState(true);
+
+
+
+  const documentsUploaded = Boolean(
+    vendorProfile?.verification?.documentsUploaded
+  );
+
+  const isVerified = Boolean(
+    vendorProfile?.verification?.verified
+  );
+
+  const isUnderReview = documentsUploaded && !isVerified;
+
+
+  const canUpload = Boolean(
+    (idFront && idBack) || businessCert
+  );
+
+  const handleVerificationUpload = async () => {
+    if (!canUpload) return;
+
+    setUploading(true);
+
+    try {
+      await uploadVerification({
+        nationalIdFront: idFront,
+        nationalIdBack: idBack,
+        businessCertificate: businessCert,
+      });
+
+      // 🔄 Re-fetch verification state so UI updates immediately
+      await fetchMyVerification();
+
+      toast.success("Documents uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+
+
+
+
+
+
 
   const openFilePicker = (target: "profilePhoto" | "coverPhoto") => {
     setImageTarget(target);
@@ -168,12 +221,19 @@ export default function ProfileManager({ preview = false }: Props) {
   const PACKAGE_NAMES = ["Essential", "Premium", "Luxury"];
 
 
-
-
   /** -------------------------- */
 
   useEffect(() => {
     fetchVendorMe();
+  }, []);
+
+  // Fetch verification state on mount
+  useEffect(() => {
+    (async () => {
+      setLoadingVerification(true);
+      await fetchMyVerification();
+      setLoadingVerification(false);
+    })();
   }, []);
 
   useEffect(() => {
@@ -1286,58 +1346,115 @@ export default function ProfileManager({ preview = false }: Props) {
             </div>
           </div>
 
-          {/* BUSINESS DOCUMENTS PENDING */}
-          <div className="w-full bg-yellow-50 border border-yellow-100 rounded-xl p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-yellow-600"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
+          {/* BUSINESS DOCUMENTS / VERIFICATION */}
+          <div className="w-full bg-yellow-50 border border-yellow-100 rounded-xl p-5">
+            {loadingVerification ? (
+              <p className="text-sm text-gray-600">Checking verification status...</p>
+            ) : isVerified ? (
+              /* 🟢 VERIFIED STATE */
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <BadgeCheck className="text-green-600" size={18} />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">Verified</p>
+                  <p className="text-gray-600 text-sm">
+                    Your account has been successfully verified
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-gray-800">Business Documents Pending</p>
-                <p className="text-gray-600 text-sm">
-                  Upload GST or PAN for verification
-                </p>
+            ) : isUnderReview ? (
+              /* 🟡 UNDER REVIEW STATE */
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-yellow-600"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    Verification under review
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    Your documents have been submitted and are being reviewed
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* 📤 UPLOAD STATE (ONLY IF NOTHING UPLOADED) */
+              <div className="space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-yellow-600"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
 
-            <button
-              className="px-4 py-2 rounded-xl bg-white border text-gray-700 shadow-sm hover:bg-gray-50 flex items-center gap-2"
-              type="button"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              Upload
-            </button>
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      Business Documents Pending
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Upload National ID and/or Business Certificate for verification
+                    </p>
+                  </div>
+                </div>
+
+                {/* NATIONAL ID */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <UploadPreviewBox label="ID Front" file={idFront} onChange={setIdFront} />
+                  <UploadPreviewBox label="ID Back" file={idBack} onChange={setIdBack} />
+                </div>
+
+                {/* BUSINESS CERTIFICATE */}
+                <UploadPreviewBox
+                  label="Business Certificate"
+                  file={businessCert}
+                  onChange={setBusinessCert}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleVerificationUpload}
+                  disabled={!canUpload || uploading}
+                  className={`px-4 py-2 rounded-xl bg-white border shadow-sm
+          ${canUpload && !uploading
+                      ? "text-gray-700 hover:bg-gray-50"
+                      : "text-gray-400 cursor-not-allowed"
+                    }`}
+                >
+                  {uploading ? "Uploading..." : "Upload"}
+                </button>
+              </div>
+            )}
           </div>
+
         </div>
 
         {/* AVAILABILITY SETTINGS */}
@@ -1417,6 +1534,43 @@ export default function ProfileManager({ preview = false }: Props) {
           </svg>
           Save Changes
         </button>*/}
+      </div>
+    );
+  }
+
+  function UploadPreviewBox({
+    label,
+    file,
+    onChange,
+  }: {
+    label: string;
+    file: File | null;
+    onChange: (file: File | null) => void;
+  }) {
+    return (
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+
+        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-4 hover:bg-gray-50">
+          {file ? (
+            <img
+              src={URL.createObjectURL(file)}
+              className="h-32 w-full object-cover rounded-lg"
+              alt={label}
+            />
+          ) : (
+            <span className="text-sm text-gray-500">Click to upload</span>
+          )}
+
+          <input
+            type="file"
+            accept="image/*,.pdf"
+            hidden
+            onChange={(e) => onChange(e.target.files?.[0] || null)}
+          />
+        </label>
       </div>
     );
   }
@@ -1551,7 +1705,7 @@ export default function ProfileManager({ preview = false }: Props) {
               Thank you for joining Wedpine!
             </h3>
             <p className="text-sm text-gray-700 mb-4">
-              To ensure your profile is visible to couples, add at least 
+              To ensure your profile is visible to couples, add at least
               <span className="font-bold text-black"> 4 images</span> to your portfolio on your vendor dashboard.
             </p>
             <p className="text-sm text-gray-700 mb-4">

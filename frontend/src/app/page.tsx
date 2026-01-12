@@ -27,6 +27,7 @@ export default function Home() {
   }, []);
 
   if (loading) return <Loader />;*/}
+  
 
   return (
     <main className="flex flex-col min-h-screen bg-white">
@@ -44,3 +45,8 @@ export default function Home() {
     </main>
   );
 }
+
+export const metadata = {
+  title: "Wedpine – Wedding Vendors & Planning Platform",
+};
+

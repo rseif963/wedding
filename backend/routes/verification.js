@@ -17,7 +17,11 @@ async function uploadToImageKit(file, folder = "/vendor_verification") {
   return result.url;
 }
 
-// Create or update verification documents
+/**
+ * ===============================
+ * CREATE / UPDATE VERIFICATION
+ * ===============================
+ */
 router.post(
   "/",
   auth,
@@ -29,82 +33,158 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const vendorProfile = await VendorProfile.findOne({ user: req.user.id });
-      if (!vendorProfile)
-        return res.status(400).json({ message: "Vendor profile required" });
+      const vendorProfile = await VendorProfile.findOne({
+        user: req.user.id,
+      });
+
+      if (!vendorProfile) {
+        return res.status(400).json({
+          message: "Vendor profile required",
+        });
+      }
 
       // Find existing verification or create new
-      let verification = await VendorVerification.findOne({ vendor: vendorProfile._id });
+      let verification = await VendorVerification.findOne({
+        vendor: vendorProfile._id,
+      });
+
       if (!verification) {
-        verification = new VendorVerification({ vendor: vendorProfile._id });
+        verification = new VendorVerification({
+          vendor: vendorProfile._id,
+        });
       }
 
       // Upload files if provided
       if (req.files?.nationalIdFront?.[0]) {
-        verification.nationalIdFront = await uploadToImageKit(req.files.nationalIdFront[0]);
+        verification.nationalIdFront = await uploadToImageKit(
+          req.files.nationalIdFront[0]
+        );
       }
+
       if (req.files?.nationalIdBack?.[0]) {
-        verification.nationalIdBack = await uploadToImageKit(req.files.nationalIdBack[0]);
+        verification.nationalIdBack = await uploadToImageKit(
+          req.files.nationalIdBack[0]
+        );
       }
+
       if (req.files?.businessCertificate?.[0]) {
-        verification.businessCertificate = await uploadToImageKit(req.files.businessCertificate[0]);
+        verification.businessCertificate = await uploadToImageKit(
+          req.files.businessCertificate[0]
+        );
       }
+
+      // Reset verification if re-uploaded
+      verification.verified = false;
 
       await verification.save();
 
-      // Only send a confirmation, not file URLs
-      res.json({ message: "Documents uploaded successfully" });
+      res.json({
+        message: "Documents uploaded successfully",
+      });
     } catch (err) {
       console.error("Error saving vendor verification:", err);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({
+        message: "Server error",
+      });
     }
   }
 );
 
-// Vendor: fetch verification metadata (no file URLs)
+/**
+ * ===============================
+ * VENDOR: FETCH VERIFICATION STATE
+ * ===============================
+ * ✅ NO FILE URLS
+ * ✅ EXPLICIT UPLOAD STATE
+ */
 router.get("/me", auth, permit("vendor"), async (req, res) => {
   try {
-    const vendorProfile = await VendorProfile.findOne({ user: req.user.id });
-    if (!vendorProfile)
-      return res.status(400).json({ message: "Vendor profile required" });
+    const vendorProfile = await VendorProfile.findOne({
+      user: req.user.id,
+    });
 
-    const verification = await VendorVerification.findOne({ vendor: vendorProfile._id });
-    if (!verification)
-      return res.status(404).json({ message: "Verification not found" });
+    if (!vendorProfile) {
+      return res.status(400).json({
+        message: "Vendor profile required",
+      });
+    }
+
+    const verification = await VendorVerification.findOne({
+      vendor: vendorProfile._id,
+    });
+
+    // ❌ No documents uploaded yet
+    if (!verification) {
+      return res.json({
+        documentsUploaded: false,
+        verified: false,
+      });
+    }
+
+    // ✅ At least one document exists
+    const documentsUploaded = Boolean(
+      verification.nationalIdFront ||
+        verification.nationalIdBack ||
+        verification.businessCertificate
+    );
 
     res.json({
+      documentsUploaded,
       verified: verification.verified,
       createdAt: verification.createdAt,
     });
   } catch (err) {
     console.error("Error fetching verification metadata:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 });
 
-// Admin: get all verification records with file URLs
+/**
+ * ===============================
+ * ADMIN: FETCH ALL VERIFICATIONS
+ * ===============================
+ */
 router.get("/", auth, permit("admin"), async (req, res) => {
   try {
     const verifications = await VendorVerification.find().populate("vendor");
-    res.json(verifications); // ✅ Only admin can see the photos
+    res.json(verifications);
   } catch (err) {
     console.error("Error fetching verifications:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 });
 
-// Admin: approve verification
+/**
+ * ===============================
+ * ADMIN: APPROVE VERIFICATION
+ * ===============================
+ */
 router.put("/:id/approve", auth, permit("admin"), async (req, res) => {
   try {
     const verification = await VendorVerification.findById(req.params.id);
-    if (!verification) return res.status(404).json({ message: "Verification not found" });
+
+    if (!verification) {
+      return res.status(404).json({
+        message: "Verification not found",
+      });
+    }
 
     verification.verified = true;
     await verification.save();
-    res.json({ message: "Vendor verified", verification });
+
+    res.json({
+      message: "Vendor verified",
+      verification,
+    });
   } catch (err) {
     console.error("Error approving verification:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 });
 

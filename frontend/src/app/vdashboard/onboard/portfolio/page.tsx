@@ -9,7 +9,6 @@ import { useAppContext } from "@/context/AppContext";
 export default function PortfolioPage() {
   const [progress, setProgress] = useState(40);
 
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [mainPhoto, setMainPhoto] = useState<File | null>(null);
   const [portfolioFiles, setPortfolioFiles] = useState<File[]>([]);
   const [priceFrom, setPriceFrom] = useState("");
@@ -17,9 +16,47 @@ export default function PortfolioPage() {
   const [uploading, setUploading] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
 
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    profilePhoto: null as File | string | null,
+  });
+
   const router = useRouter();
   const { createPost, updatePost, fetchVendorPosts } = useAppContext();
 
+  /* ---------------- PROFILE PHOTO (ProfileManager-style) ---------------- */
+  const handleImageSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setFormData({ profilePhoto: file });
+    setSelectedImage(previewUrl);
+
+    let id = postId;
+    if (!id) {
+      const fd = new FormData();
+      fd.append("title", "Untitled Portfolio");
+      fd.append("description", "");
+      fd.append("priceFrom", "0");
+      const created = await createPost(fd);
+      if (!created || !created._id) {
+        throw new Error("Failed to create post");
+      }
+      id = created._id as string;
+      setPostId(id);
+    }
+
+    const fd = new FormData();
+    fd.append("profilePhoto", file);
+    await updatePost(id, fd);
+  };
+
+  /* ---------------- UI HELPERS ---------------- */
   useEffect(() => {
     requestAnimationFrame(() => setProgress(62.5));
   }, []);
@@ -30,19 +67,18 @@ export default function PortfolioPage() {
   };
 
   const canContinue =
-    !!profilePhoto &&
+    !!formData.profilePhoto &&
     !!mainPhoto &&
     portfolioFiles.length >= 4 &&
     !!priceFrom &&
     !uploading;
 
-  /* ---------------- HANDLE POST ONCE ---------------- */
+  /* ---------------- HANDLE CONTINUE ---------------- */
   const handleContinue = async () => {
     if (!canContinue) return;
     setUploading(true);
 
     try {
-      // 1️⃣ Create post if it doesn't exist
       let id = postId;
       if (!id) {
         const fd = new FormData();
@@ -50,50 +86,38 @@ export default function PortfolioPage() {
         fd.append("description", "");
         fd.append("priceFrom", priceFrom.replace(/,/g, "") || "0");
         const created = await createPost(fd);
-        if (!created) throw new Error("Failed to create post");
-        id = created._id;
+        if (!created || !created._id) {
+          throw new Error("Failed to create post");
+        }
+        id = created._id as string;
         setPostId(id);
       }
 
-      // 2️⃣ Upload Profile Photo
-      if (profilePhoto) {
-        const fd = new FormData();
-        fd.append("profilePhoto", profilePhoto);
-        await updatePost(id, fd);
-      }
-
-      // 3️⃣ Upload Main Photo
       if (mainPhoto) {
         const fd = new FormData();
         fd.append("mainPhoto", mainPhoto);
         await updatePost(id, fd);
       }
 
-      // 4️⃣ Upload Portfolio / Gallery Photos
       for (const file of portfolioFiles) {
         const fd = new FormData();
         fd.append("galleryImages", file);
         await updatePost(id, fd);
       }
 
-      // 5️⃣ Save priceFrom explicitly
       const fdPrice = new FormData();
       fdPrice.append("priceFrom", priceFrom.replace(/,/g, ""));
       await updatePost(id, fdPrice);
 
-      // Refresh vendor posts
       await fetchVendorPosts();
-
-      // Navigate to next step
       router.push("/vdashboard/onboard/about-brand");
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong while saving. Please try again.");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
     } finally {
       setUploading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-white">
       {/* HEADER */}
@@ -155,11 +179,34 @@ export default function PortfolioPage() {
             />
           </div>
 
-          <UploadBox
-            label="Profile Photo *"
-            file={profilePhoto}
-            onChange={setProfilePhoto}
-          />
+          <div>
+            <label className="mb-2 block text-[14px] font-medium text-[#3B1D82]">
+              Profile Photo *
+            </label>
+
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[#E6E1F2] p-8 hover:bg-[#F6F4FB]">
+              {selectedImage ? (
+                <img
+                  src={selectedImage}
+                  className="h-40 w-full rounded-lg object-cover"
+                />
+              ) : (
+                <>
+                  <Upload size={28} className="text-[#6B5FA7]" />
+                  <span className="text-[14px] text-[#6B5FA7]">Click to upload</span>
+                </>
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageSelect}
+              />
+            </label>
+          </div>
+
+
           <UploadBox label="Main Photo *" file={mainPhoto} onChange={setMainPhoto} />
           <UploadMultipleBox
             label="Portfolio Photos (minimum 4) *"
@@ -174,10 +221,9 @@ export default function PortfolioPage() {
             onClick={handleContinue}
             className={`rounded-2xl px-14 py-4 text-[16px] font-medium text-white
               transition
-              ${
-                canContinue
-                  ? "bg-[#3B1D82] hover:opacity-90"
-                  : "bg-[#B8AED8] cursor-not-allowed"
+              ${canContinue
+                ? "bg-[#3B1D82] hover:opacity-90"
+                : "bg-[#B8AED8] cursor-not-allowed"
               }`}
           >
             {uploading ? "Saving..." : "Continue"}

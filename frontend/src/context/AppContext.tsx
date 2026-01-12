@@ -80,11 +80,11 @@ interface VendorProfile {
   }[];
 
   verification?: {
-    emailVerified?: boolean;
+    verified?: boolean;
     documentsUploaded?: boolean;
-    documentType?: string;
-    documentUrl?: string;
+    createdAt?: string;
   };
+
 
   availabilitySettings?: {
     instantInquiries?: boolean;
