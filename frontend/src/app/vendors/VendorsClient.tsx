@@ -220,7 +220,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 
 const VendorsPage = () => {
   const { posts, fetchPosts } = useAppContext();
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState(""); // typing
+  const [searchQuery, setSearchQuery] = useState(""); // committed
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
@@ -249,7 +250,10 @@ const VendorsPage = () => {
     const qSearch = searchParams.get("search") || "";
     const qLocation = searchParams.get("location") || "";
 
-    if (qSearch) setSearch(qSearch);
+    if (qSearch) {
+      setSearchInput(qSearch);
+      setSearchQuery(qSearch);
+    }
     if (qLocation) setCounty(qLocation);
   }, [searchParams]);
 
@@ -310,6 +314,8 @@ const VendorsPage = () => {
     };
   }, [posts]);
 
+  
+
 
   const toggleLike = (id: string) => {
     setLiked((prev) =>
@@ -317,18 +323,24 @@ const VendorsPage = () => {
     );
   };
 
+  const fuseResults: any[] =
+    searchQuery !== ""
+      ? fuse.search(searchQuery).map((r) => r.item)
+      : posts || [];
+
+
 
   // ✅ Filter + Sort (includes county filter)
-  const filteredVendors = (posts || [])
-    .filter((post) => {
-      const matchesCategory = filter === "All" || post.vendor?.category === filter;
-      const matchesCounty =
-        county === "All" || post.vendor?.location?.toLowerCase() === county.toLowerCase();
-      const matchesSearch = post.vendor?.businessName
-        ?.toLowerCase()
-        .includes(search.toLowerCase());
+  const filteredVendors = fuseResults
+    .filter((post: any) => {
+      const matchesCategory =
+        filter === "All" || post.vendor?.category === filter;
 
-      // Price filter
+      const matchesCounty =
+        county === "All" ||
+        post.vendor?.location?.toLowerCase() === county.toLowerCase();
+
+      // price filter (unchanged)
       const price = post.priceFrom || 0;
       let matchesPrice = true;
       switch (selectedPrice) {
@@ -344,43 +356,47 @@ const VendorsPage = () => {
         case "Above Ksh 100,000":
           matchesPrice = price > 100000;
           break;
-        case "Any":
         default:
           matchesPrice = true;
       }
 
-      // ✅ Rating filter
+      // rating filter (unchanged)
       const vendorId = post.vendor?._id ? String(post.vendor._id) : "";
-      const vendorReviews = vendorId ? vendorReviewsMap[vendorId] || [] : [];
-      const vendorAvgRating =
+      const vendorReviews = vendorReviewsMap[vendorId] || [];
+      const avgRating =
         vendorReviews.length > 0
-          ? vendorReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / vendorReviews.length
+          ? vendorReviews.reduce((s, r) => s + (r.rating || 0), 0) /
+          vendorReviews.length
           : 0;
 
       let matchesRating = true;
       switch (selectedRating) {
         case "5 Stars":
-          matchesRating = vendorAvgRating === 5;
+          matchesRating = avgRating === 5;
           break;
         case "4+ Stars":
-          matchesRating = vendorAvgRating >= 4;
+          matchesRating = avgRating >= 4;
           break;
         case "3+ Stars":
-          matchesRating = vendorAvgRating >= 3;
+          matchesRating = avgRating >= 3;
           break;
-        case "Any":
         default:
           matchesRating = true;
       }
 
-      return matchesCategory && matchesCounty && matchesSearch && matchesPrice && matchesRating;
+      return (
+        matchesCategory &&
+        matchesCounty &&
+        matchesPrice &&
+        matchesRating
+      );
     })
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       if (sort === "price_low") return (a.priceFrom || 0) - (b.priceFrom || 0);
       if (sort === "price_high") return (b.priceFrom || 0) - (a.priceFrom || 0);
-      // sort by rating logic...
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
 
 
 
@@ -439,8 +455,8 @@ const VendorsPage = () => {
                   <input
                     type="text"
                     placeholder="Search vendors..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#311970]"
                   />
                 </div>
@@ -461,7 +477,10 @@ const VendorsPage = () => {
 
                 {/* Search Button */}
                 <button
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => {
+                    setSearchQuery(searchInput);
+                    setCurrentPage(1);
+                  }}
                   className="bg-[#311970] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#261457] transition"
                 >
                   Search
