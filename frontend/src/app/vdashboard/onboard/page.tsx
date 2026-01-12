@@ -28,7 +28,7 @@ export default function OnboardingPage() {
       
       {/* Heading */}
       <h1
-        className={`text-[56px] leading-[64px] font-semibold text-[#3B1D82] text-center transition-all duration-700 delay-100
+        className={`text-[48px] leading-[64px] font-semibold text-[#3B1D82] text-center transition-all duration-700 delay-100
         ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
       >
         Welcome to Wedpine
