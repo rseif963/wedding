@@ -6,6 +6,7 @@ import {
   Paperclip,
   Send,
 } from "lucide-react";
+import { div } from "framer-motion/client";
 
 export default function VendorBookings() {
   const {
@@ -247,7 +248,7 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col h-full overflow-hidden bg-white rounded-2xl
+          className={`flex-1 flex flex-col h-[80vh] md:h-full overflow-hidden bg-white rounded-2xl
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
 
@@ -259,7 +260,7 @@ export default function VendorBookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b p-4 flex items-center gap-3">
+              <div className="border-b sticky top-0 p-4 flex items-center gap-3">
                 <button
                   onClick={() => setView("list")}
                   className="md:hidden text-sm font-bold text-[#311970]"
@@ -306,7 +307,7 @@ export default function VendorBookings() {
               </div>
 
               {/* MESSAGES */}
-              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto h-340 bg-gray-50 p-4 space-y-3">
                 {selectedBooking?.messages?.map((m: any) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -314,18 +315,20 @@ export default function VendorBookings() {
                   });
 
                   return (
-                    <div
-                      key={m._id}
-                      className={`max-w-[70%] p-3 rounded-lg text-sm relative
+                    <div className="h-screen">
+                      <div
+                        key={m._id}
+                        className={`max-w-[70%] p-3 rounded-lg text-sm relative
                         ${m.sender === "Vendor"
-                          ? "ml-auto bg-[#311970] text-white"
-                          : "bg-gray-200"
-                        }`}
-                    >
-                      <p className="pb-2">{m.content}</p>
-                      <span className="absolute bottom-1 right-2 text-xs text-gray-400">
-                        {time}
-                      </span>
+                            ? "ml-auto bg-[#311970] text-white"
+                            : "bg-gray-200"
+                          }`}
+                      >
+                        <p className="pb-2">{m.content}</p>
+                        <span className="absolute bottom-1 right-2 text-xs text-gray-400">
+                          {time}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
@@ -338,7 +341,7 @@ export default function VendorBookings() {
               {/* REPLY */}
               {/* INPUT */}
               {selectedBooking.status === "Accepted" && (
-                <div className="bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
+                <div className="bottom-0 sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
                   <Paperclip />
                   <textarea
                     value={replyMessage}

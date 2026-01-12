@@ -294,7 +294,7 @@ export default function Bookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="sticky top-0 z-40 border-b bg-white p-4 flex items-center gap-3">
+              <div className="border-b p-4 flex items-center gap-3">
                 <button className="md:hidden" onClick={() => setView("list")}>
                   <ArrowLeft />
                 </button>
@@ -309,7 +309,7 @@ export default function Bookings() {
               </div>
 
               {/* MESSAGES (FIXED) */}
-              <div className="flex-1 h-screen overflow-y-auto bg-gray-50 p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
                 {selectedBooking.messages?.map((m) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
