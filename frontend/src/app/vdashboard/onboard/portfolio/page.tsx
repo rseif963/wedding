@@ -23,7 +23,12 @@ export default function PortfolioPage() {
   });
 
   const router = useRouter();
-  const { createPost, updatePost, fetchVendorPosts } = useAppContext();
+  const {
+    createPost,
+    updatePost,
+    fetchVendorPosts,
+    updateVendorProfile,
+  } = useAppContext();
 
   /* ---------------- PROFILE PHOTO (ProfileManager-style) ---------------- */
   const handleImageSelect = async (
@@ -32,29 +37,25 @@ export default function PortfolioPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Preview immediately
     const previewUrl = URL.createObjectURL(file);
-
-    setFormData({ profilePhoto: file });
     setSelectedImage(previewUrl);
 
-    let id = postId;
-    if (!id) {
+    try {
       const fd = new FormData();
-      fd.append("title", "Untitled Portfolio");
-      fd.append("description", "");
-      fd.append("priceFrom", "0");
-      const created = await createPost(fd);
-      if (!created || !created._id) {
-        throw new Error("Failed to create post");
-      }
-      id = created._id as string;
-      setPostId(id);
-    }
+      fd.append("profilePhoto", file);
 
-    const fd = new FormData();
-    fd.append("profilePhoto", file);
-    await updatePost(id, fd);
+      const updated = await updateVendorProfile(fd);
+
+      if (!updated) {
+        throw new Error("Failed to update profile photo");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload profile photo");
+    }
   };
+
 
   /* ---------------- UI HELPERS ---------------- */
   useEffect(() => {
@@ -67,11 +68,12 @@ export default function PortfolioPage() {
   };
 
   const canContinue =
-    !!formData.profilePhoto &&
+    !!selectedImage &&
     !!mainPhoto &&
     portfolioFiles.length >= 4 &&
     !!priceFrom &&
     !uploading;
+
 
   /* ---------------- HANDLE CONTINUE ---------------- */
   const handleContinue = async () => {

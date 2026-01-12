@@ -292,7 +292,7 @@ export default function VendorProfile() {
         <div className="w-full overflow-hidden text-ellipsis">
           <Breadcrumb />
         </div>
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center h[90vh] justify-center">
           <div className="text-center">
             <div className="mb-4 animate-pulse text-[#311970]">Loading vendor...</div>
           </div>
@@ -309,7 +309,7 @@ export default function VendorProfile() {
         <div className="w-full overflow-hidden text-ellipsis">
           <Breadcrumb />
         </div>
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center h[90vh] justify-center">
           <h1 className="text-2xl font-bold text-red-500">Vendor Not Found</h1>
         </div>
         <Footer />

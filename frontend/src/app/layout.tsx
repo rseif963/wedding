@@ -4,7 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { AppProvider } from "@/context/AppContext";
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import Script from "next/script"; // ✅ add this
+import Script from "next/script";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -34,8 +34,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.wedpine.com"),
   openGraph: {
     title: "Wedpine",
-    description:
-      "Discover and book the best wedding vendors in one place.",
+    description: "Discover and book the best wedding vendors in one place.",
     url: "https://www.wedpine.com",
     siteName: "Wedpine",
     images: [
@@ -52,7 +51,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 export default function RootLayout({
   children,
 }: {
@@ -60,23 +58,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
-      <Script
-        id="site-name"
-        type="application/ld+json"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": "Wedpine",
-            "alternateName": "Wedpine",
-            "url": "https://www.wedpine.com",
-          }),
-        }}
-      />
       <body className="font-sans bg-gray-50 text-gray-800 bg-white">
 
-        {/* Google Analytics */}
+        {/* 🔹 Structured Data (SEO) */}
+        <Script
+          id="site-name"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Wedpine",
+              alternateName: "Wedpine",
+              url: "https://www.wedpine.com",
+            }),
+          }}
+        />
+
+        {/* 🔹 Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-GMT9GH8T3L"
           strategy="afterInteractive"
