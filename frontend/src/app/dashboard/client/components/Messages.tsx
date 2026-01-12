@@ -299,7 +299,7 @@ export default function Bookings() {
 
         {/* RIGHT */}
         <main
-          className={`flex-1 flex mt-16 md:mt-0 flex-col h-[90vh] md:h-[85vh] bg-white rounded-2xl
+          className={`flex-1 flex md:mt-0 flex-col h-[90vh] md:h-[85vh] bg-white rounded-2xl
           ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
           {!selectedBooking ? (
@@ -309,7 +309,7 @@ export default function Bookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b p-4 mt-10 md:mt-0 flex items-center gap-3">
+              <div className="border-b p-4 mt-16 md:mt-0 flex items-center gap-3">
                 <button className="md:hidden" onClick={() => setView("list")}>
                   <ArrowLeft />
                 </button>
