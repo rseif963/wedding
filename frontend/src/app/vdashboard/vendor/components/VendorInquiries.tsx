@@ -248,7 +248,7 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col h-[80vh] md:h-full overflow-hidden bg-white rounded-2xl
+          className={`flex-1 flex flex-col h-screen md:h-full overflow-hidden bg-white rounded-2xl
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
 
