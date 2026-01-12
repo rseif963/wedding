@@ -347,13 +347,13 @@ export default function VendorBookings() {
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     className="flex-1 resize-none border border-blue-600 rounded-lg p-2"
-                    rows={2}
+                    rows={1}
                     placeholder="Type a message"
                   />
 
                   <button
                     onClick={handleReplySubmit}
-                    className="bg-purple-600 text-white px-4 rounded-lg flex items-center gap-2"
+                    className="bg-[#311970] text-white px-4 rounded-lg flex items-center gap-2"
                   >
                     <Send className="w-4 h-4" /> Send
                   </button>
