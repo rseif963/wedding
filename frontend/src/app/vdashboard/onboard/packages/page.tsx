@@ -74,14 +74,16 @@ export default function PackagesPage() {
     setEditingIndex(index);
   };
 
-  /** 🔥 SAVE TO MONGODB */
+  /** SAVE TO MONGODB */
   const handleContinue = async () => {
-    if (packages.length === 0) return;
-
     setSaving(true);
     try {
       const fd = new FormData();
-      fd.append("pricingPackages", JSON.stringify(packages));
+
+      // only send packages if user added any
+      if (packages.length > 0) {
+        fd.append("pricingPackages", JSON.stringify(packages));
+      }
 
       const updated = await updateVendorProfile(fd);
 
@@ -213,6 +215,7 @@ export default function PackagesPage() {
         <div className="mt-14 flex justify-end">
           <button
             onClick={handleContinue}
+            disabled={saving}
             className="rounded-2xl bg-[#3B1D82] px-14 py-4 text-white disabled:opacity-40"
           >
             {saving ? "Saving..." : "Continue"}
@@ -225,7 +228,7 @@ export default function PackagesPage() {
 
 /* CHIP INPUT */
 function ChipInput({ label, placeholder, value, setValue, list, setList }: any) {
- return (
+  return (
     <div>
       <label className="block text-sm font-medium">{label}</label>
       <div className="relative">
