@@ -20,7 +20,7 @@ export default function VendorBookings() {
   const [replyMessage, setReplyMessage] = useState("");
   const [view, setView] = useState<"list" | "details">("list");
 
-  // 👇 Tracks which chats have been opened (READ)
+  //  Tracks which chats have been opened (READ)
   const [openedBookings, setOpenedBookings] = useState<Set<string>>(new Set());
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -88,7 +88,7 @@ export default function VendorBookings() {
     return msgs.length ? msgs[msgs.length - 1] : null;
   };
 
-  // ✅ UNREAD = client messages AND booking not opened
+  //  UNREAD = client messages AND booking not opened
   const getUnreadCount = (booking: any) => {
     const lastSeen = lastSeenMap[booking._id];
     const messages = booking.messages || [];
@@ -105,12 +105,12 @@ export default function VendorBookings() {
     const aUnread = getUnreadCount(a) > 0 ? 1 : 0;
     const bUnread = getUnreadCount(b) > 0 ? 1 : 0;
 
-    // 1️⃣ Unread bookings first
+    // Unread bookings first
     if (aUnread !== bUnread) {
       return bUnread - aUnread;
     }
 
-    // 2️⃣ Then newest message
+    // Then newest message
     const aTime = new Date(getLatestMessage(a)?.createdAt || 0).getTime();
     const bTime = new Date(getLatestMessage(b)?.createdAt || 0).getTime();
 
