@@ -198,7 +198,7 @@ export default function Bookings() {
   /* ---------------- UI ---------------- */
 
   return (
-    <section className="bg-gray-200 w-full h-[80vh] md:h-[84vh] rounded-xl overflow-hidden">
+    <section className="bg-gray-200 w-full h-[90vh] md:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex h-full gap-3">
 
         {/* LEFT */}
@@ -309,7 +309,7 @@ export default function Bookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b p-4 flex items-center gap-3">
+              <div className="border-b p-4 mt-10 md:mt-0 flex items-center gap-3">
                 <button className="md:hidden" onClick={() => setView("list")}>
                   <ArrowLeft />
                 </button>
