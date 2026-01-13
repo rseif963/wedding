@@ -226,7 +226,7 @@ export default function VendorBookings() {
 
   /* ---------------- UI ---------------- */
   return (
-    <section className="bg-white w-full  lg:h-[84vh] rounded-xl overflow-hidden">
+    <section className="bg-gray-200 w-full  lg:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
         {/* BOOKINGS LIST */}
@@ -323,7 +323,7 @@ export default function VendorBookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b sticky mt-16 p-4 flex items-center gap-3">
+              <div className="border-b sticky p-4 flex items-center gap-3">
                 <button
                   onClick={() => setView("list")}
                   className="md:hidden text-sm font-bold text-[#311970]"
