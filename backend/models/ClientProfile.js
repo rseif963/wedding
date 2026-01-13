@@ -28,19 +28,8 @@ const ClientProfileSchema = new mongoose.Schema({
     },
   ],
 
-  // Expected number of guests (simple number)
-  expectedGuestsCount: {
-    type: Number,
-    default: 0,
-    required: true,
-  },
-
-  // Toggle to show/hide guests section
-  showGuests: {
-    type: Boolean,
-    default: true,
-    required: true,
-  },
+  expectedGuestsCount: { type: Number, default: 0, required: true },
+  showGuests: { type: Boolean, default: true, required: true },
 
   // ===========================
   //        BUDGET
@@ -48,7 +37,6 @@ const ClientProfileSchema = new mongoose.Schema({
   budget: {
     plannedAmount: { type: Number, default: 0 },
     actualSpent: { type: Number, default: 0 },
-
     items: [
       {
         title: { type: String, required: true },
@@ -59,7 +47,6 @@ const ClientProfileSchema = new mongoose.Schema({
         createdAt: { type: Date, default: Date.now },
       },
     ],
-
     showBudget: { type: Boolean, default: true },
   },
 
@@ -76,9 +63,17 @@ const ClientProfileSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     },
   ],
-
-  // Toggle checklist
   showChecklist: { type: Boolean, default: true },
+
+  // ===========================
+  //       LIKED POSTS
+  // ===========================
+  likedPosts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+    },
+  ],
 
   createdAt: { type: Date, default: Date.now },
 });

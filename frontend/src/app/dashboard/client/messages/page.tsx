@@ -1,11 +1,12 @@
-"use client";
+export const dynamic = "force-dynamic"; // optional, but explicit
 
+import { Suspense } from "react";
 import Messages from "../components/Messages";
 
 export default function MessagesPage() {
   return (
-    <div>
+    <Suspense fallback={<div></div>}>
       <Messages />
-    </div>
+    </Suspense>
   );
 }

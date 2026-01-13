@@ -31,6 +31,56 @@ router.get("/me", auth, permit("client"), async (req, res) => {
   res.json(profile);
 });
 
+
+
+// ==================== LIKE A POST ====================
+router.put("/like-post/:postId", auth, permit("client"), async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const profile = await ClientProfile.findOneAndUpdate(
+      { user: req.user.id },
+      { $addToSet: { likedPosts: postId } }, // only add if not already liked
+      { new: true }
+    ).populate("likedPosts");
+
+    res.json(profile.likedPosts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ==================== UNLIKE A POST ====================
+router.put("/unlike-post/:postId", auth, permit("client"), async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const profile = await ClientProfile.findOneAndUpdate(
+      { user: req.user.id },
+      { $pull: { likedPosts: postId } },
+      { new: true }
+    ).populate("likedPosts");
+
+    res.json(profile.likedPosts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ==================== GET ALL LIKED POSTS ====================
+router.get("/liked-posts", auth, permit("client"), async (req, res) => {
+  try {
+    const profile = await ClientProfile.findOne({ user: req.user.id }).populate("likedPosts");
+    res.json(profile.likedPosts || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 /* ===========================================================
    GET ALL (PROFILE + GUESTS + BUDGET + TASKS)
    =========================================================== */
