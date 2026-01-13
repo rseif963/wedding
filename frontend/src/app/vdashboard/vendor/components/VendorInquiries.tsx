@@ -226,7 +226,7 @@ export default function VendorBookings() {
 
   /* ---------------- UI ---------------- */
   return (
-    <section className="bg-gray-200 w-full h[80vh] lg:h-[84vh] rounded-xl overflow-hidden">
+    <section className="bg-white w-full  lg:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
         {/* BOOKINGS LIST */}
@@ -311,7 +311,7 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col h-[80vh] md:h-full overflow-hidden bg-white 
+          className={`flex-1 flex flex-col h-[90vh] md:h-full overflow-hidden bg-white 
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
 
@@ -399,7 +399,7 @@ export default function VendorBookings() {
                       {/* MESSAGE BUBBLE */}
                       <div
                         className={`max-w-[70%] p-3 rounded-lg text-sm flex items-end gap-2
-    ${m.sender === "Vendor"
+                           ${m.sender === "Vendor"
                             ? "bg-[#311970] text-white"
                             : "bg-gray-200"
                           }`}
@@ -438,7 +438,7 @@ export default function VendorBookings() {
               {/* REPLY */}
               {/* INPUT */}
               {selectedBooking.status === "Accepted" && (
-                <div className="bottom-0 sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
+                <div className="bottom-0 sticky bottom-0 bg-white border-t border-gray-200 px-4 py-2 flex gap-3">
                   <Paperclip />
                   <textarea
                     value={replyMessage}

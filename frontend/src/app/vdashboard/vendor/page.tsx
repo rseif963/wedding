@@ -9,11 +9,14 @@ import Subscriptions from "./components/Subscriptions";
 import VendorInquiries from "./components/VendorInquiries";
 
 export default function DashboardPage() {
-  const { vendorProfile } = useAppContext();
+  const { vendorProfile, fetchVendorMe } = useAppContext();
 
   // State for controlling the visibility of the welcome pop-up
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
+  useEffect(() => {
+    fetchVendorMe();
+  }, []);
   // Check if the pop-up was shown before
   useEffect(() => {
     const isPopupShown = localStorage.getItem("hasShownWelcomePopup");
