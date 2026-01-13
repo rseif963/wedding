@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Paperclip, Send } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -72,6 +73,9 @@ export default function Bookings() {
     if (typeof window === "undefined") return {};
     return JSON.parse(localStorage.getItem("lastSeenClientBookings") || "{}");
   });
+  // inside the component
+  const searchParams = useSearchParams();
+  const bookingIdFromParam = searchParams.get("bookingId");
 
   const [autoScroll, setAutoScroll] = useState(true);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -97,6 +101,13 @@ export default function Bookings() {
       document.body.style.overflow = "";
     };
   }, [selectedBookingId]);
+
+  useEffect(() => {
+    if (bookingIdFromParam) {
+      setSelectedBookingId(bookingIdFromParam);
+      setView("details");
+    }
+  }, [bookingIdFromParam]);
 
   /* ---------------- HELPERS ---------------- */
 

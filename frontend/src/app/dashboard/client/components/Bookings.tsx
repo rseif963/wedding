@@ -38,15 +38,24 @@ export default function Bookings() {
     return `${API_URL}${cleaned}`;
   };
 
+  const getDateString = (booking: any) => {
+    if (!booking?.date) return "-";
+    const d = new Date(booking.date);
+    return Number.isNaN(d.getTime())
+      ? booking.date
+      : d.toLocaleDateString();
+  };
+
+
   useEffect(() => {
     fetchClientBookings();
     fetchPosts(); // ✅ REQUIRED to access post.mainPhoto
   }, [fetchClientBookings, fetchPosts]);
 
   return (
-    <div className="bg-white w-full h-[95vh] overflow-y-auto p-6 rounded-xl shadow-md">
+    <div className="bg-white w-full h-[95vh] overflow-y-auto px-3 ">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 py-3">
         <h2 className="font-display text-3xl font-semibold text-[#311970]">
           Your Bookings
         </h2>
@@ -61,7 +70,7 @@ export default function Bookings() {
           No bookings yet
         </p>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
           {[...bookings]
             .sort((a, b) => String(b._id).localeCompare(String(a._id))) // ✅ NEWEST FIRST
             .map((booking: any) => {
@@ -83,13 +92,14 @@ export default function Bookings() {
               // Price from post first, fallback to booking
               const price = post?.priceFrom ?? booking.price ?? 0;
 
+
               // Booking date
               const bookingDate = booking.eventDate
                 ? new Date(booking.eventDate).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
                 : "Date not set";
 
               return (
@@ -109,10 +119,9 @@ export default function Bookings() {
                     {/* STATUS BADGE */}
                     <span
                       className={`absolute top-4 right-4 px-3 py-1 text-xs font-medium rounded-full
-                        ${
-                          booking.status === "Accepted"
-                            ? "bg-green-500 text-white"
-                            : booking.status === "Pending"
+                        ${booking.status === "Accepted"
+                          ? "bg-green-500 text-white"
+                          : booking.status === "Pending"
                             ? "bg-yellow-400 text-white"
                             : "bg-red-500 text-white"
                         }`}
@@ -136,28 +145,31 @@ export default function Bookings() {
                     {/* DATE */}
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Calendar className="w-4 h-4" />
-                      <span>{bookingDate}</span>
+                      <span>{getDateString(booking)}</span>
                     </div>
+
 
                     {/* PRICE */}
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <DollarSign className="w-4 h-4" />
-                      <span>
-                        {price > 0 ? `Ksh ${price.toLocaleString()}` : "Price not set"}
+                    {/*<div className="flex items-center gap-1 text-sm text-gray-500">
+                      From{" "}
+                      <span className="font-semibold">
+                        {price > 0 ? `Ksh ${price.toLocaleString()}` : "N/A"}
                       </span>
-                    </div>
+                    </div>*/}
 
                     {/* VIEW DETAILS BUTTON */}
-                    <button
-                      onClick={() =>
-                        router.push(
-                          `/dashboard/client/bookings/${booking._id}`
-                        )
-                      }
-                      className="mt-4 w-full bg-[#311970] text-white py-3 rounded-xl font-medium hover:bg-[#4a22c6] transition"
-                    >
-                      View Details
-                    </button>
+                    {booking.status === "Accepted" && (
+                      <button
+                        onClick={() => {
+                          const params = new URLSearchParams();
+                          params.set("bookingId", booking._id);
+                          router.push(`/dashboard/client/messages?${params.toString()}`);
+                        }}
+                        className="mt-4 w-full bg-[#311970] text-white py-3 rounded-xl font-medium hover:bg-[#4a22c6] transition"
+                      >
+                        Message
+                      </button>
+                    )}
                   </div>
                 </div>
               );

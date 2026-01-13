@@ -268,11 +268,11 @@ export default function Reviews({ vendorId }: { vendorId?: string }) {
 
               {/* ACTIONS */}
               <div className="mt-4 flex items-center gap-6">
-                <button className="flex items-center gap-1 text-gray-500 text-sm">
+                {/*<button className="flex items-center gap-1 text-gray-500 text-sm">
                   <ThumbsUp className="w-4 h-4" />
                   Helpful ({rev.helpful || 0})
-                </button>
-
+                </button>*/}
+                
                 {!rev.reply && vendorProfile?._id === rev.vendorId && (
                   <button
                     onClick={() => setActiveReply(rev._id)}
