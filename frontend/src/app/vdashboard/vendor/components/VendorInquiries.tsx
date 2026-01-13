@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
+import Image from "next/image";
 import {
   ArrowLeft,
   Paperclip,
@@ -14,6 +15,8 @@ export default function VendorBookings() {
     fetchVendorBookings,
     respondBooking,
     replyToBooking,
+    vendorProfile,
+    fetchVendorMe
   } = useAppContext();
 
   const [loading, setLoading] = useState(true);
@@ -66,6 +69,10 @@ export default function VendorBookings() {
     return `${first}${last}`.toUpperCase();
   };
 
+  useEffect(() => {
+    fetchVendorMe();
+  }, []);
+
 
   useEffect(() => {
     localStorage.setItem("lastSeenBookings", JSON.stringify(lastSeenMap));
@@ -74,6 +81,23 @@ export default function VendorBookings() {
   const selectedBooking = bookings.find(
     (b: any) => b._id === selectedBookingId
   );
+
+
+  const getClientName = (booking: any) => {
+    const client = booking.client ?? {};
+    const getFirst = (str?: string) => (str ? str.split(" ")[0] : "");
+    if (client.brideName && client.groomName)
+      return `${getFirst(client.brideName)} & ${getFirst(
+        client.groomName
+      )}`;
+    if (client.name) return getFirst(client.name);
+    return "Client";
+  };
+
+  const clientName = selectedBooking
+    ? getClientName(selectedBooking)
+    : "";
+
 
 
   useEffect(() => {
@@ -110,16 +134,7 @@ export default function VendorBookings() {
 
 
   /* ---------------- HELPERS ---------------- */
-  const getClientName = (booking: any) => {
-    const client = booking.client ?? {};
-    const getFirst = (str?: string) => (str ? str.split(" ")[0] : "");
-    if (client.brideName && client.groomName)
-      return `${getFirst(client.brideName)} & ${getFirst(
-        client.groomName
-      )}`;
-    if (client.name) return getFirst(client.name);
-    return "Client";
-  };
+
 
   const getLatestMessage = (booking: any) => {
     const msgs = booking.messages || [];
@@ -204,6 +219,10 @@ export default function VendorBookings() {
       toast.error("Failed to send reply");
     }
   };
+
+
+  const vendorProfilePhoto =
+    vendorProfile?.profilePhoto || "/assets/avatar.png";
 
   /* ---------------- UI ---------------- */
   return (
@@ -304,7 +323,7 @@ export default function VendorBookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b sticky top-0 p-4 flex items-center gap-3">
+              <div className="border-b sticky mt-16 p-4 flex items-center gap-3">
                 <button
                   onClick={() => setView("list")}
                   className="md:hidden text-sm font-bold text-[#311970]"
@@ -351,7 +370,11 @@ export default function VendorBookings() {
               </div>
 
               {/* MESSAGES */}
-              <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+              <div
+                ref={containerRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3"
+              >
                 {selectedBooking?.messages?.map((m: any) => {
                   const time = new Date(m.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -359,20 +382,50 @@ export default function VendorBookings() {
                   });
 
                   return (
-                    <div className="">
+                    <div
+                      key={m._id}
+                      className={`flex items-end gap-2 ${m.sender === "Vendor" ? "justify-end" : "justify-start"
+                        }`}
+                    >
+                      {/* CLIENT INITIALS (RECEIVED MESSAGE) */}
+                      {m.sender !== "Vendor" && (
+                        <div className="w-8 h-8 rounded-full bg-[#ede9fe] flex items-center justify-center shrink-0">
+                          <span className="text-xs font-semibold text-[#311970]">
+                            {getClientInitials(clientName)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* MESSAGE BUBBLE */}
                       <div
-                        key={m._id}
-                        className={`max-w-[70%] p-3 rounded-lg text-sm relative
-                        ${m.sender === "Vendor"
-                            ? "ml-auto bg-[#311970] text-white"
+                        className={`max-w-[70%] p-3 rounded-lg text-sm flex items-end gap-2
+    ${m.sender === "Vendor"
+                            ? "bg-[#311970] text-white"
                             : "bg-gray-200"
                           }`}
                       >
-                        <p className="pb-2">{m.content}</p>
-                        <span className="absolute bottom-1 right-2 text-xs text-gray-400">
+                        <p className="flex-1 whitespace-pre-wrap break-words">
+                          {m.content}
+                        </p>
+
+                        <span className="text-xs opacity-60 whitespace-nowrap">
                           {time}
                         </span>
                       </div>
+
+
+
+                      {/* VENDOR PROFILE PIC (SENT MESSAGE) */}
+                      {m.sender === "Vendor" && (
+                        <div className="w-8 h-8 rounded-full overflow-hidden relative shrink-0">
+                          <Image
+                            src={vendorProfilePhoto}
+                            alt="Vendor profile"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}

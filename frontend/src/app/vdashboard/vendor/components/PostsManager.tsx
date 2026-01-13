@@ -46,15 +46,17 @@ export default function PortfolioGallery() {
     return `${base}${cleanPath.replace(/\\/g, "/")}`;
   };
 
+  
+  useEffect(() => {
+    fetchVendorMe();
+  }, []);
+
   useEffect(() => {
     if (!vendorProfile?._id) return;
     fetchVendorPosts();
   }, [vendorProfile]);
 
-  useEffect(() => {
-      fetchVendorMe();
-    }, []);
-  
+
 
   useEffect(() => {
     if (!ctxPosts || ctxPosts.length === 0) return;
