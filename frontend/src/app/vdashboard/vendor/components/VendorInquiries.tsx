@@ -48,6 +48,24 @@ export default function VendorBookings() {
     setAutoScroll(isNearBottom);
   };
 
+  const getClientInitials = (name?: string) => {
+    if (!name) return "?";
+
+    const cleaned = name
+      .replace("&", "")
+      .split(" ")
+      .filter(Boolean);
+
+    if (cleaned.length === 1) {
+      return cleaned[0][0].toUpperCase();
+    }
+
+    const first = cleaned[0][0];
+    const last = cleaned[cleaned.length - 1][0];
+
+    return `${first}${last}`.toUpperCase();
+  };
+
 
   useEffect(() => {
     localStorage.setItem("lastSeenBookings", JSON.stringify(lastSeenMap));
@@ -192,12 +210,13 @@ export default function VendorBookings() {
     <section className="bg-gray-200 w-full h[80vh] lg:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex gap-4 h-full">
         {/* BOOKINGS LIST */}
+        {/* BOOKINGS LIST */}
         <aside
           className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-none md:rounded-2xl bg-white
-            ${view === "details" ? "hidden md:block" : "block"}`}
+           ${view === "details" ? "hidden md:block" : "block"}`}
         >
           <div className="flex items-center justify-between border-b mb-4 pb-2">
-            <h2 className="font-semibold mb-3">Inquiries & Accepted Bookings</h2>
+            <h2 className="font-semibold">Inquiries & Accepted Bookings</h2>
 
             {totalUnreadBookings > 0 && (
               <span className="text-sm font-medium text-[#311970]">
@@ -215,13 +234,13 @@ export default function VendorBookings() {
               {sortedBookings.map((b: any) => {
                 const latestMessage = getLatestMessage(b);
                 const unreadCount = getUnreadCount(b);
+                const clientName = getClientName(b);
 
                 return (
                   <li
                     key={b._id}
                     onClick={() => {
                       setSelectedBookingId(b._id);
-                      const latestMessage = getLatestMessage(b);
 
                       if (latestMessage) {
                         setLastSeenMap((prev) => ({
@@ -230,32 +249,36 @@ export default function VendorBookings() {
                         }));
                       }
 
-                      setSelectedBookingId(b._id);
-                      setView("details");
-
                       setView("details");
                     }}
-                    className={`cursor-pointer rounded-lg p-3 transition
-                      ${selectedBookingId === b._id
-                        ? "bg-[#f3f0ff] border-[#311970]"
+                    className={`p-3 rounded-lg cursor-pointer transition
+                    ${selectedBookingId === b._id
+                        ? "bg-[#f3f0ff]"
                         : "hover:bg-gray-50"
                       }`}
                   >
+                    <div className="flex w-full items-center gap-3">
+                      {/* CLIENT AVATAR (INITIALS) */}
+                      {/* CLIENT AVATAR (INITIALS) */}
+                      <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-semibold text-purple-900">
+                          {getClientInitials(clientName)}
+                        </span>
+                      </div>
 
-                    
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-700">
-                          {getClientName(b)}
+
+                      {/* TEXT */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-700 truncate">
+                          {clientName}
                         </p>
-                        <p className="text-xs text-gray-500 truncate md:truncate sm:truncate">
-                          {latestMessage?.content ||
-                            "No messages yet"}
+                        <p className="text-xs text-gray-500 truncate">
+                          {latestMessage?.content || "No messages yet"}
                         </p>
                       </div>
 
                       {unreadCount > 0 && (
-                        <span className="min-w-[22px] h-[22px] flex items-center justify-center rounded-full bg-[#311970] text-white text-xs">
+                        <span className="w-6 h-6 rounded-full bg-[#311970] text-white text-xs flex items-center justify-center">
                           {unreadCount}
                         </span>
                       )}
@@ -269,7 +292,7 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col h-[80] md:h-full overflow-hidden bg-white rounded-2xl
+          className={`flex-1 flex flex-col h-[80vh] md:h-full overflow-hidden bg-white 
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
 
@@ -384,6 +407,6 @@ export default function VendorBookings() {
           )}
         </main>
       </div>
-    </section>
+    </section >
   );
 }
