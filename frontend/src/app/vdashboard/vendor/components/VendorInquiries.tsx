@@ -311,7 +311,7 @@ export default function VendorBookings() {
 
         {/* DETAILS */}
         <main
-          className={`flex-1 flex flex-col h-[85vh] md:h-full overflow-hidden bg-white 
+          className={`flex-1 flex flex-col h-[90vh] md:h-full overflow-hidden bg-white 
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
 
@@ -323,7 +323,7 @@ export default function VendorBookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b sticky p-4 flex items-center gap-3">
+              <div className="border-b sticky mt-16 md:mt-0 p-4 flex items-center gap-3">
                 <button
                   onClick={() => setView("list")}
                   className="md:hidden text-sm font-bold text-[#311970]"
