@@ -49,7 +49,7 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
     "Decoration",
     "Entertainment",
     "Tailor",
-    "Makeup & Beauty",
+    "Makeup Artist",
     "Cars",
     "Dresses",
     "Cake",
