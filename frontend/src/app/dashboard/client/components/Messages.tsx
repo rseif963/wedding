@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Paperclip, Send } from "lucide-react";
 import toast from "react-hot-toast";
@@ -209,220 +210,222 @@ export default function Bookings() {
   /* ---------------- UI ---------------- */
 
   return (
-    <section className="bg-gray-200 w-full h-[90vh] md:h-[84vh] rounded-xl overflow-hidden">
-      <div className="flex h-full gap-3">
+    <Suspense fallback={<div></div>}>
+      <section className="bg-gray-200 w-full h-[90vh] md:h-[84vh] rounded-xl overflow-hidden">
+        <div className="flex h-full gap-3">
 
-        {/* LEFT */}
-        <aside
-          className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-2xl bg-white
+          {/* LEFT */}
+          <aside
+            className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-2xl bg-white
           ${view === "details" ? "hidden md:block" : "block"}`}
-        >
-          <div className="flex justify-between border-b mb-4 pb-2">
-            <h2 className="font-bold">Messages</h2>
+          >
+            <div className="flex justify-between border-b mb-4 pb-2">
+              <h2 className="font-bold">Messages</h2>
 
-            {totalUnreadBookings > 0 && (
-              <span className="text-sm font-medium text-[#311970]">
-                {totalUnreadBookings} unread
-              </span>
-            )}
-          </div>
-
-
-          <ul className="space-y-3">
-            {sortedBookings.map((b: any) => {
-              const vendor = getVendor(b);
-              const latestMessage = getLatestMessage(b);
-              const unreadCount = getUnreadCount(b);
-
-              return (
-                <li
-                  key={b._id}
-                  onClick={() => {
-                    setSelectedBookingId(b._id);
-                    const latestVendorMessage = (b.messages || [])
-                      .filter((m: any) => m.sender === "Vendor")
-                      .slice(-1)[0];
-
-                    if (latestVendorMessage) {
-                      setLastSeenMap((prev) => ({
-                        ...prev,
-                        [b._id]: latestVendorMessage.createdAt,
-                      }));
-                    }
-
-
-                    setOpenedBookings((prev) => new Set(prev).add(b._id));
-                    setView("details");
-                  }}
-                  className={`p-3 rounded-lg cursor-pointer transition
-                    ${selectedBookingId === b._id
-                      ? "bg-[#f3f0ff]"
-                      : "hover:bg-gray-50"
-                    }`}
-                >
-                  <div className="flex w-full items-center gap-3">
-                    {/* VENDOR AVATAR */}
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shrink-0">
-                      {(() => {
-                        const image =
-                          getFullUrl(
-                            b.mainPhoto ||
-                            vendor?.profilePhoto ||
-                            vendor?.logo
-                          );
-
-                        return image ? (
-                          <img
-                            src={image}
-                            alt={vendor?.businessName || "Vendor"}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm font-semibold text-gray-700">
-                            {getVendorInitials(vendor?.businessName)}
-                          </span>
-                        );
-                      })()}
-                    </div>
-
-                    {/* TEXT */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {vendor?.businessName ?? "Vendor"}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {latestMessage?.content ?? "No messages yet"}
-                      </p>
-                    </div>
-
-                    {unreadCount > 0 && (
-                      <span className="w-6 h-6 rounded-full bg-[#311970] text-white text-xs flex items-center justify-center">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </div>
-
-                </li>
-              );
-            })}
-          </ul>
-        </aside>
-
-        {/* RIGHT */}
-        <main
-          className={`flex-1 flex md:mt-0 flex-col h-[90vh] md:h-[85vh] bg-white rounded-2xl
-          ${view === "list" ? "hidden md:flex" : "flex"}`}
-        >
-          {!selectedBooking ? (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-              Select a booking
+              {totalUnreadBookings > 0 && (
+                <span className="text-sm font-medium text-[#311970]">
+                  {totalUnreadBookings} unread
+                </span>
+              )}
             </div>
-          ) : (
-            <>
-              {/* HEADER */}
-              <div className="border-b p-4 mt-16 md:mt-0 flex items-center gap-3">
-                <button className="md:hidden" onClick={() => setView("list")}>
-                  <ArrowLeft />
-                </button>
-                <div>
-                  <h3 className="font-semibold">
-                    {getVendor(selectedBooking)?.businessName ?? "Vendor"}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {getVendor(selectedBooking)?.category ?? "Category"}
-                  </p>
-                </div>
-              </div>
 
-              {/* MESSAGES (FIXED) */}
-              <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
-                {selectedBooking.messages?.map((m) => {
-                  const time = new Date(m.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
 
-                  const vendor = getVendor(selectedBooking);
-                  const vendorImage = getFullUrl(
-                    selectedBooking.mainPhoto ||
-                    vendor?.profilePhoto ||
-                    vendor?.logo
-                  );
+            <ul className="space-y-3">
+              {sortedBookings.map((b: any) => {
+                const vendor = getVendor(b);
+                const latestMessage = getLatestMessage(b);
+                const unreadCount = getUnreadCount(b);
 
-                  return (
-                    <div
-                      key={m._id}
-                      className={`flex items-end gap-2 ${m.sender === "Client"
-                        ? "justify-end"
-                        : "justify-start"
-                        }`}
-                    >
-                      {m.sender === "Vendor" && (
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shrink-0">
-                          {vendorImage ? (
+                return (
+                  <li
+                    key={b._id}
+                    onClick={() => {
+                      setSelectedBookingId(b._id);
+                      const latestVendorMessage = (b.messages || [])
+                        .filter((m: any) => m.sender === "Vendor")
+                        .slice(-1)[0];
+
+                      if (latestVendorMessage) {
+                        setLastSeenMap((prev) => ({
+                          ...prev,
+                          [b._id]: latestVendorMessage.createdAt,
+                        }));
+                      }
+
+
+                      setOpenedBookings((prev) => new Set(prev).add(b._id));
+                      setView("details");
+                    }}
+                    className={`p-3 rounded-lg cursor-pointer transition
+                    ${selectedBookingId === b._id
+                        ? "bg-[#f3f0ff]"
+                        : "hover:bg-gray-50"
+                      }`}
+                  >
+                    <div className="flex w-full items-center gap-3">
+                      {/* VENDOR AVATAR */}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shrink-0">
+                        {(() => {
+                          const image =
+                            getFullUrl(
+                              b.mainPhoto ||
+                              vendor?.profilePhoto ||
+                              vendor?.logo
+                            );
+
+                          return image ? (
                             <img
-                              src={vendorImage}
-                              alt="Vendor"
+                              src={image}
+                              alt={vendor?.businessName || "Vendor"}
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="text-xs font-semibold text-gray-700">
+                            <span className="text-sm font-semibold text-gray-700">
                               {getVendorInitials(vendor?.businessName)}
                             </span>
-                          )}
-                        </div>
-                      )}
-
-                      <div
-                        className={`max-w-[70%] p-3 rounded-lg flex items-end justify-between gap-3
-                         ${m.sender === "Client"
-                            ? "bg-[#311970] text-white"
-                            : "bg-gray-200"
-                          }`}
-                      >
-                        <p className="flex-1">{m.content}</p>
-                        <span className="text-xs opacity-60 whitespace-nowrap">
-                          {time}
-                        </span>
+                          );
+                        })()}
                       </div>
 
-                      {m.sender === "Client" && (
-                        <div className="w-8 h-8 rounded-full bg-[#311970] flex items-center justify-center shrink-0">
-                          <span className="text-white text-xs font-semibold">
-                            {coupleInitials}
-                          </span>
-                        </div>
+                      {/* TEXT */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {vendor?.businessName ?? "Vendor"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {latestMessage?.content ?? "No messages yet"}
+                        </p>
+                      </div>
+
+                      {unreadCount > 0 && (
+                        <span className="w-6 h-6 rounded-full bg-[#311970] text-white text-xs flex items-center justify-center">
+                          {unreadCount}
+                        </span>
                       )}
                     </div>
-                  );
-                })}
-                {/* Scroll target */}
-                <div ref={messagesEndRef} />
-              </div>
 
-              {/* INPUT */}
-              {selectedBooking.status === "Accepted" && (
-                <div className="border-t border-gray-50 p-4 flex gap-3">
-                  <Paperclip />
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="flex-1 resize-none border border-blue-600 rounded-lg p-2"
-                    rows={1}
-                    placeholder="Type a message"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    className="bg-[#311970] text-white px-4 rounded-lg flex items-center gap-2"
-                  >
-                    <Send className="w-4 h-4" /> Send
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+
+          {/* RIGHT */}
+          <main
+            className={`flex-1 flex md:mt-0 flex-col h-[90vh] md:h-[85vh] bg-white rounded-2xl
+          ${view === "list" ? "hidden md:flex" : "flex"}`}
+          >
+            {!selectedBooking ? (
+              <div className="flex-1 flex items-center justify-center text-gray-500">
+                Select a booking
+              </div>
+            ) : (
+              <>
+                {/* HEADER */}
+                <div className="border-b p-4 mt-16 md:mt-0 flex items-center gap-3">
+                  <button className="md:hidden" onClick={() => setView("list")}>
+                    <ArrowLeft />
                   </button>
+                  <div>
+                    <h3 className="font-semibold">
+                      {getVendor(selectedBooking)?.businessName ?? "Vendor"}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {getVendor(selectedBooking)?.category ?? "Category"}
+                    </p>
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-        </main>
-      </div>
-    </section>
+
+                {/* MESSAGES (FIXED) */}
+                <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+                  {selectedBooking.messages?.map((m) => {
+                    const time = new Date(m.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+
+                    const vendor = getVendor(selectedBooking);
+                    const vendorImage = getFullUrl(
+                      selectedBooking.mainPhoto ||
+                      vendor?.profilePhoto ||
+                      vendor?.logo
+                    );
+
+                    return (
+                      <div
+                        key={m._id}
+                        className={`flex items-end gap-2 ${m.sender === "Client"
+                          ? "justify-end"
+                          : "justify-start"
+                          }`}
+                      >
+                        {m.sender === "Vendor" && (
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shrink-0">
+                            {vendorImage ? (
+                              <img
+                                src={vendorImage}
+                                alt="Vendor"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-xs font-semibold text-gray-700">
+                                {getVendorInitials(vendor?.businessName)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div
+                          className={`max-w-[70%] p-3 rounded-lg flex items-end justify-between gap-3
+                         ${m.sender === "Client"
+                              ? "bg-[#311970] text-white"
+                              : "bg-gray-200"
+                            }`}
+                        >
+                          <p className="flex-1">{m.content}</p>
+                          <span className="text-xs opacity-60 whitespace-nowrap">
+                            {time}
+                          </span>
+                        </div>
+
+                        {m.sender === "Client" && (
+                          <div className="w-8 h-8 rounded-full bg-[#311970] flex items-center justify-center shrink-0">
+                            <span className="text-white text-xs font-semibold">
+                              {coupleInitials}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {/* Scroll target */}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* INPUT */}
+                {selectedBooking.status === "Accepted" && (
+                  <div className="border-t border-gray-50 p-4 flex gap-3">
+                    <Paperclip />
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      className="flex-1 resize-none border border-blue-600 rounded-lg p-2"
+                      rows={1}
+                      placeholder="Type a message"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      className="bg-[#311970] text-white px-4 rounded-lg flex items-center gap-2"
+                    >
+                      <Send className="w-4 h-4" /> Send
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+        </div>
+      </section>
+    </Suspense>
   );
 }
