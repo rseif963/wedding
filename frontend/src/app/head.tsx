@@ -11,20 +11,12 @@ export default function Head() {
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 
-      {/* 🔹 PWA / Manifest */}
-      <link rel="manifest" href="/manifest.json" />
-      <link rel="apple-touch-icon" href="/favicon-192.png" />
-      <meta name="theme-color" content="#FF4081" />
-
       {/* 🔹 SEO Meta Tags */}
       <meta
         name="description"
         content="Find trusted wedding vendors, venues, photographers, caterers and planners on Wedpine."
       />
-      <meta
-        name="keywords"
-        content="wedding vendors, wedding planning, wedding photographers, wedding venues, wedding catering"
-      />
+      <meta name="keywords" content="wedding vendors, wedding planning, wedding photographers, wedding venues, wedding catering" />
       <meta name="robots" content="index, follow" />
 
       {/* 🔹 Open Graph / Social Preview */}
