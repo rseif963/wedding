@@ -270,7 +270,7 @@ interface AppContextType {
   showChecklist: boolean;
 
   // TASK FUNCTIONS
-  fetchTasks: () => Promise<void>;
+
   addTask: (task: {
     title: string;
     description?: string;
@@ -412,18 +412,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user?.id]);
 
-  // --- Load from localStorage on mount ---
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedTasks = localStorage.getItem("tasks");
-      if (storedTasks) setTasks(JSON.parse(storedTasks));
-      const storedShow = localStorage.getItem("showChecklist");
-      if (storedShow !== null) setShowChecklist(JSON.parse(storedShow));
-    }
-
-    // Then fetch latest from API
-    fetchTasks();
-  }, []);
 
   // --- Save to localStorage whenever tasks or showChecklist change ---
   useEffect(() => {
@@ -862,12 +850,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   );
 
 
-
-
-
-
-
-
   // fetch all clients (exposed)
   const fetchClients = async () => {
     try {
@@ -915,6 +897,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         budget: data.budget ?? (prev?.budget ?? { plannedAmount: 0, items: [] }),
         tasks: data.tasks ?? (prev?.tasks ?? []),
       }));
+
+      // ✅ THIS IS THE MISSING PIECE
+      setTasks(data.tasks ?? []);
+
+      // optional if checklist visibility is stored server-side
+      if (typeof data.profile?.showChecklist === "boolean") {
+        setShowChecklist(data.profile.showChecklist);
+      }
     } catch (err) {
       console.error("fetchClientAll error:", err);
     }
@@ -1021,17 +1011,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // FETCH ALL TASKS
-  const fetchTasks = async () => {
-    try {
-      const { data } = await axios.get("/api/clients/me/all");
-      setTasks(data.tasks || []);
-      setShowChecklist(data.profile?.showChecklist ?? true);
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err);
-      setTasks([]);
-    }
-  };
+
+
 
   // ADD TASK
   const addTask = async (task: {
@@ -1749,7 +1730,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 
 
-        fetchTasks,
+
         addTask,
         updateTask,
         deleteTask,

@@ -12,7 +12,7 @@ export default function Checklist() {
     deleteTask,
     showChecklist,
     toggleChecklist,
-    fetchTasks,
+    fetchClientAll,
   } = useAppContext();
 
   const [formVisible, setFormVisible] = useState(false);
@@ -25,10 +25,11 @@ export default function Checklist() {
     category: "",
   });
 
-  // Fetch tasks on mount
+
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchClientAll();
+  }, [fetchClientAll]);
+
 
   const handleShowForm = () => setFormVisible(!formVisible);
 
@@ -54,7 +55,7 @@ export default function Checklist() {
 
     setTaskForm({ title: "", description: "", dueDate: "", category: "" });
     setFormVisible(false);
-    await fetchTasks();
+    await fetchClientAll();
   };
 
   const handleEdit = (task: any) => {
@@ -78,12 +79,12 @@ export default function Checklist() {
   const handleToggleCompleted = async (task: any) => {
     const updated = { ...task, completed: !task.completed };
     await updateTask(task._id, { completed: updated.completed });
-    await fetchTasks();
+    await fetchClientAll();
   };
 
   const handleDelete = async (taskId: string) => {
     await deleteTask(taskId);
-    await fetchTasks();
+    await fetchClientAll();
   };
 
   // Sort tasks newest first by createdAt

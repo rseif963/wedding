@@ -23,7 +23,7 @@ export default function FeaturedVendors() {
     if (path.startsWith("http")) return path;
     return `${API_URL}${path}`;
   };
-
+  
   useEffect(() => {
     fetchPosts();
   }, []);

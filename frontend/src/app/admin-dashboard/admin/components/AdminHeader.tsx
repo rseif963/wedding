@@ -24,7 +24,7 @@ export default function AdminHeader({
           <Menu size={24} />
         </button>
 
-        <div className="text-lg font-semibold text-gray-800">Dashboard</div>
+        <div className="text-lg font-semibold text-gray-800"></div>
 
         {/* Search bar */}
         <div className="hidden sm:flex items-center bg-gray-100 px-3 py-2 rounded-lg">

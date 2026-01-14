@@ -3,37 +3,32 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 
 export default function AdminAuthPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "register">("login");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const toggleMode = () => {
-    setMode(mode === "login" ? "register" : "login");
-  };
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
 
     try {
-      if (mode === "login") {
-        const res = await axios.post("/api/admin/login", { email, password });
-        localStorage.setItem("token", res.data.token);
-        toast.success("Welcome Admin!");
-        router.push("/admin-dashboard/admin");
-      } else {
-        await axios.post("/api/admin/register", { email, password });
-        toast.success("Admin registered successfully, please login.");
-        setMode("login");
-      }
+      const res = await axios.post("/api/admin/login", { email, password });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userRole", "admin");  // Mark role explicitly
+
+      toast.success("Welcome Admin!");
+      router.push("/admin-dashboard/admin");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -41,7 +36,7 @@ export default function AdminAuthPage() {
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] to-[#6a1b9a] px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          {mode === "login" ? "Admin Login" : "Admin Register"}
+          Admin Login
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -57,6 +52,7 @@ export default function AdminAuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@example.com"
+                disabled={submitting}
                 className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#311970] focus:outline-none"
               />
             </div>
@@ -69,13 +65,22 @@ export default function AdminAuthPage() {
             <div className="relative">
               <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#311970] focus:outline-none"
+                disabled={submitting}
+                className="w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-[#311970] focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-[#311970] transition"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
@@ -83,14 +88,34 @@ export default function AdminAuthPage() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            className="w-full bg-[#311970] text-white py-3 rounded-lg font-semibold shadow hover:bg-[#261457] transition"
+            disabled={submitting}
+            className="w-full bg-[#311970] text-white py-3 rounded-lg font-semibold shadow hover:bg-[#261457] transition disabled:opacity-70 flex items-center justify-center gap-3"
           >
-            {mode === "login" ? "Login" : "Register"}
+            {submitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                <span>Logging in...</span>
+              </>
+            ) : (
+              "Login"
+            )}
           </motion.button>
         </form>
-
-        <div className="mt-6 text-center">
-        </div>
       </div>
     </main>
   );
