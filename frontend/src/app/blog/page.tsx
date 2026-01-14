@@ -1,3 +1,13 @@
+export const metadata = {
+  title: "Wedding Blog | Tips, Inspiration & Planning Guides",
+  description:
+    "Read wedding planning tips, inspiration, and expert advice from vendors and planners on Wedpine.",
+  alternates: {
+    canonical: "https://wedpine.com/blog",
+  },
+};
+
+
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Image from "next/image";

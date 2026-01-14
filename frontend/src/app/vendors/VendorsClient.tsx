@@ -443,7 +443,7 @@ const VendorsPage = () => {
             </h1>
 
             <p className="text-gray-500 text-lg text-center max-w-2xl mx-auto mb-10">
-              Discover verified professionals to bring your dream wedding to life
+              Browse wedding photographers, planners, decorators, venues, and more accross Kenya.
             </p>
 
             {/* Search Bar */}

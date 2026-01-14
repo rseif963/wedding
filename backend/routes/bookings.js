@@ -30,15 +30,6 @@ router.post("/", auth, permit("client"), async (req, res) => {
       messages: message ? [{ sender: "Client", content: message }] : [],
     });
 
-    // ✅ ANALYTICS: COUNT MONTHLY BOOKINGS / INQUIRIES
-    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
-
-    await VendorAnalytics.findOneAndUpdate(
-      { vendorId: vendor._id, month },
-      { $inc: { bookings: 1 } },
-      { upsert: true }
-    );
-
     res.json(booking);
   } catch (err) {
     res.status(500).json({ error: "Failed to create request" });

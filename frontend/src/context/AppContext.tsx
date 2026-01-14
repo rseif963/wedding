@@ -236,6 +236,10 @@ interface AppContextType {
   analytics: AnalyticsRow[];
   fetchVendorAnalytics: (vendorId: string) => Promise<void>;
   countProfileView: (vendorId: string) => Promise<void>;
+  likedPosts: VendorPost[];
+  fetchLikedPosts: () => Promise<VendorPost[]>;
+  likePost: (postId: string) => Promise<VendorPost[]>;
+  unlikePost: (postId: string) => Promise<VendorPost[]>;
 
 
   socket: any;
@@ -475,6 +479,68 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error("Profile view tracking failed:", err);
     }
   }, []);
+
+  // ==================== LIKED POSTS ====================
+
+  // Type guard to safely get userId
+  const getUserId = (): string | undefined => {
+    if (!clientProfile?.user) return undefined;
+    return typeof clientProfile.user === "string" ? clientProfile.user : clientProfile.user._id;
+  };
+
+  // Fetch all liked posts for the logged-in client
+  const fetchLikedPosts = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) return [];
+
+    try {
+      const res = await axios.get(`/api/clients/liked-posts`);
+      const likedPosts: VendorPost[] = res.data || [];
+      setClientProfile((prev) => ({ ...prev, likedPosts }));
+      return likedPosts;
+    } catch (err: any) {
+      console.error("Failed to fetch liked posts:", err);
+      toast.error("Could not fetch liked posts");
+      return [];
+    }
+  }, [clientProfile]);
+
+  // Like a post
+  const likePost = useCallback(async (postId: string) => {
+    const userId = getUserId();
+    if (!userId) return [];
+
+    try {
+      const res = await axios.put(`/api/clients/like-post/${postId}`);
+      const likedPosts: VendorPost[] = res.data || [];
+      setClientProfile((prev) => ({ ...prev, likedPosts }));
+      toast.success("Post liked!");
+      return likedPosts;
+    } catch (err: any) {
+      console.error("Failed to like post:", err);
+      toast.error("Could not like post");
+      return clientProfile?.likedPosts || [];
+    }
+  }, [clientProfile]);
+
+  // Unlike a post
+  const unlikePost = useCallback(async (postId: string) => {
+    const userId = getUserId();
+    if (!userId) return [];
+
+    try {
+      const res = await axios.put(`/api/clients/unlike-post/${postId}`);
+      const likedPosts: VendorPost[] = res.data || [];
+      setClientProfile((prev) => ({ ...prev, likedPosts }));
+      toast.success("Post removed from liked posts");
+      return likedPosts;
+    } catch (err: any) {
+      console.error("Failed to unlike post:", err);
+      toast.error("Could not remove post from liked posts");
+      return clientProfile?.likedPosts || [];
+    }
+  }, [clientProfile]);
+
 
 
   // --- Vendor Verification (MATCHES BACKEND) ---
@@ -1653,6 +1719,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         fetchMyVerification,
         fetchAllVerifications,
 
+        likedPosts: clientProfile?.likedPosts || [],
+        fetchLikedPosts,
+        likePost,
+        unlikePost,
 
         getOrCreateConversation,
         fetchConversations,

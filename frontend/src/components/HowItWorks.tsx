@@ -3,19 +3,19 @@
 export default function HowItWorks() {
   const howItWorks = [
     {
-      step: "01",
+      step: "1",
       title: "Find Vendors",
       description:
         "Browse through hundreds of trusted wedding vendors by category and location.",
     },
     {
-      step: "02",
+      step: "2",
       title: "Compare & Shortlist",
       description:
         "Check ratings, reviews, and portfolios to choose the right vendor for your big day.",
     },
     {
-      step: "03",
+      step: "3",
       title: "Book Easily",
       description:
         "Contact vendors directly and manage bookings seamlessly on our platform.",
@@ -43,7 +43,7 @@ export default function HowItWorks() {
             >
               <div className="relative inline-block mb-6">
                 <div className="w-20 h-20 rounded-3xl bg-wedding-purple-light flex items-center justify-center">
-                  <span className="font-display text-3xl font-bold text-primary">
+                  <span className="font-display px-4 text-3xl bg-purple-200 p-2 rounded-2xl font-bold text-primary">
                     {item.step}
                   </span>
                 </div>

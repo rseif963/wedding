@@ -15,18 +15,6 @@ import { useState, useEffect } from "react";
 import TopListingVendors from "@/components/TopListingVendors";
 
 export default function Home() {
-  {/*const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading time or wait for actual data
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3500); // 1.5s stylish fade-in delay
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading) return <Loader />;*/}
   
 
   return (

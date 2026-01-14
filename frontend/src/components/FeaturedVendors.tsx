@@ -6,11 +6,13 @@ import { useEffect, useState } from "react";
 import { Heart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import axios from "axios";
 
 export default function FeaturedVendors() {
-  const { posts, fetchPosts } = useAppContext();
+  const { posts, fetchPosts, likedPosts, fetchLikedPosts, likePost, unlikePost } = useAppContext();
   const [liked, setLiked] = useState<string[]>([]);
+
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const router = useRouter();
 
@@ -73,11 +75,38 @@ export default function FeaturedVendors() {
     };
   }, [posts]);
 
-  const toggleLike = (id: string) => {
-    setLiked((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  // Load liked posts on mount and whenever likedPosts changes
+  useEffect(() => {
+    const loadLiked = async () => {
+      const likedData = await fetchLikedPosts();
+      setLiked(likedData.map((p) => p._id));
+    };
+    loadLiked();
+  }, [fetchLikedPosts]);
+
+
+  const handleLike = async (postId: string) => {
+    if (!liked.includes(postId)) {
+      // Like post
+      try {
+        const updated = await likePost(postId);
+        setLiked(updated.map((p) => p._id));
+        toast.success("Post liked!");
+      } catch {
+        toast.error("Failed to like post");
+      }
+    } else {
+      // Unlike post
+      try {
+        const updated = await unlikePost(postId);
+        setLiked(updated.map((p) => p._id));
+        toast.success("Post removed from liked posts");
+      } catch {
+        toast.error("Failed to unlike post");
+      }
+    }
   };
+
 
   const featuredPosts = (posts || []).filter((post) => post.vendor?.featured).slice(0, 12);
 
@@ -151,19 +180,21 @@ export default function FeaturedVendors() {
 
                       {/* Like Button */}
                       <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.preventDefault();
-                          toggleLike(post._id);
+                          e.stopPropagation(); // Prevent card click
+                          await handleLike(post._id);
                         }}
                         className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
                       >
                         <Heart
                           className={`h-5 w-5 ${liked.includes(post._id)
-                            ? "text-red-500 fill-red-500"
-                            : "text-red-500"
+                            ? "text-red-500 fill-red-500" // filled if liked
+                            : "text-red-500" // unfilled if not liked
                             }`}
                         />
                       </button>
+
 
                       {/* Featured Badge */}
                       {v?.featured && (
@@ -233,6 +264,6 @@ export default function FeaturedVendors() {
           </Link>
         </div>
       </div>
-    </section>
+    </section >
   );
 }

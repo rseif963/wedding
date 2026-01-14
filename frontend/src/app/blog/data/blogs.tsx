@@ -21,7 +21,7 @@ export const blogs: BlogPost[] = [
         content: (
             <>
                 <style>{`
-          h2 {
+          h1 {
             font-weight: 700;
             font-size: 1.5rem;
             margin-bottom: 1rem;
@@ -42,7 +42,7 @@ export const blogs: BlogPost[] = [
                     masters at freezing both the big moments and the tiny, tender ones.
                 </p>
 
-                <h2>Antony Trivet Photography</h2>
+                <h1>Antony Trivet Photography</h1>
                 <p>
                     Antony Trivet is a household name in Kenya’s wedding photography
                     industry. His style is artistic and photo-journalistic, weaving
@@ -54,7 +54,7 @@ export const blogs: BlogPost[] = [
                     premium wedding feel.
                 </p>
 
-                <h2>Timothy Katua (Katz Photography)</h2>
+                <h1>Timothy Katua (Katz Photography)</h1>
                 <p>
                     Based in Nairobi, Timothy Katua is known for a creative documentary
                     approach. Having captured over 100 weddings, his focus is on how the
@@ -65,7 +65,7 @@ export const blogs: BlogPost[] = [
                     speaks volumes about his professionalism and quality.
                 </p>
 
-                <h2>Kiss the Bride Photography</h2>
+                <h1>Kiss the Bride Photography</h1>
                 <p>
                     Run by Nicholas Muyoma, Kiss the Bride Photography Kenya specializes in
                     wedding and lifestyle photography with a romantic, expressive, and
@@ -76,7 +76,7 @@ export const blogs: BlogPost[] = [
                     the Maasai Mara.
                 </p>
 
-                <h2>Janeson Events / Janeson Films</h2>
+                <h1>Janeson Events / Janeson Films</h1>
                 <p>
                     Janeson offers both cinematic videography and wedding photography.
                     Their premium packages include full-day coverage, hundreds of edited
@@ -87,7 +87,7 @@ export const blogs: BlogPost[] = [
                     crisp, cinematic visuals that feel straight out of a film.
                 </p>
 
-                <h2>Twist Pictures</h2>
+                <h1>Twist Pictures</h1>
                 <p>
                     Twist Pictures provides both photography and video services with a
                     clean, modern style. Their packages include full-day coverage, drone
@@ -98,7 +98,7 @@ export const blogs: BlogPost[] = [
                     sacrificing photography quality.
                 </p>
 
-                <h2>Sarah Waiswa</h2>
+                <h1>Sarah Waiswa</h1>
                 <p>
                     Nairobi-based Sarah Waiswa brings a soulful, documentary-style
                     perspective to her work. While not exclusively a wedding photographer,
@@ -116,7 +116,7 @@ export const blogs: BlogPost[] = [
                     powerful visual stories.
                 </p>
 
-                <h2>Tips for Picking the Right Photographer</h2>
+                <h1>Tips for Picking the Right Photographer</h1>
                 <ul>
                     <li>
                         <strong>Know your style:</strong> Documentary, traditional,
@@ -148,7 +148,7 @@ export const blogs: BlogPost[] = [
                 <p>
                     Whether you want classic elegance, cinematic drama, or raw emotion,
                     the photographers above bring professionalism, artistry, and heart.
-                    Choose someone who captures not just your moments — but how they felt.
+                    Choose someone who captures not just your moments, but how they felt.
                 </p>
             </>
         ),

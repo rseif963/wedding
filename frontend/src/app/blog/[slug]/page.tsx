@@ -2,11 +2,31 @@ import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Breadcrumb from "../../../components/Breadcrumb";
 import Image from "next/image";
+import { Metadata } from "next";
 import { blogs } from "@/app/blog/data/blogs";
 
 type BlogProps = {
   params: { slug: string };
 };
+
+export async function generateMetadata({ params }: BlogProps): Promise<Metadata> {
+  const post = blogs.find((b) => b.slug === params.slug);
+
+  if (!post) {
+    return {
+      title: "Blog Post Not Found | Wedpine",
+      description: "The blog post you are looking for does not exist.",
+    };
+  }
+
+  return {
+    title: `${post.title} | Wedpine Blog`,
+    description: post.excerpt || post.title,
+    alternates: {
+      canonical: `https://wedpine.com/blog/${params.slug}`,
+    },
+  };
+}
 
 export default function BlogPost({ params }: BlogProps) {
   const post = blogs.find((b) => b.slug === params.slug);

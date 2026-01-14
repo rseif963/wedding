@@ -19,7 +19,7 @@ export default function Testimonials() {
     {
       id: 3,
       name: "Mary & Jerry",
-      text: "We discovered Bloom & Bliss Decor on this platform — they made our wedding beautiful beyond expectations.",
+      text: "We discovered Bloom & Bliss Decor on this platform, they made our wedding beautiful beyond expectations.",
       rating: 5,
     },
   ];
