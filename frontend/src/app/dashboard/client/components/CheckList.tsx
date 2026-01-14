@@ -189,11 +189,15 @@ export default function Checklist() {
             <CheckCircle size={20} />
           </div>
           <h3 className="text-lg font-semibold text-gray-900">Completed</h3>
-          <span className="text-gray-500 font-normal">({completedTasks.length})</span>
+          <span className="text-gray-500 font-normal">
+            ({completedTasks.length})
+          </span>
         </div>
 
         {completedTasks.length === 0 ? (
-          <p className="text-center text-gray-400 py-8">No completed tasks.</p>
+          <p className="text-center text-gray-400 py-8">
+            No completed tasks.
+          </p>
         ) : (
           <ul className="space-y-4">
             {completedTasks.map((task) => (
@@ -209,34 +213,56 @@ export default function Checklist() {
                     aria-checked={task.completed}
                     tabIndex={0}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") handleToggleCompleted(task);
+                      if (e.key === "Enter" || e.key === " ")
+                        handleToggleCompleted(task);
                     }}
                   >
                     <CheckCircle size={20} color="white" />
                   </div>
 
                   <div>
-                    <div className="text-gray-500 line-through font-semibold">{task.title}</div>
+                    {/* Title */}
+                    <div className="text-gray-500 line-through font-semibold">
+                      {task.title}
+                    </div>
+
+                    {/* Description */}
+                    {task.description && (
+                      <div className="text-sm text-gray-400 mt-0.5">
+                        {task.description}
+                      </div>
+                    )}
+
+                    {/* Due date */}
                     {task.dueDate && (
                       <div className="text-sm text-gray-400 flex items-center gap-1 mt-1">
-                        <Calendar size={14} /> {new Date(task.dueDate).toLocaleDateString()}
+                        <Calendar size={14} />
+                        {new Date(task.dueDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="text-gray-400 text-sm italic">{task.category}</div>
+
+                <div className="text-gray-400 text-sm italic">
+                  {task.category}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      {/* Upcoming Tasks Section */}
+
       <section>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Tasks</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Upcoming Tasks
+        </h3>
+
         <ul className="space-y-4">
           {incompleteTasks.length === 0 ? (
-            <p className="text-center text-gray-400 py-8">No incomplete tasks.</p>
+            <p className="text-center text-gray-400 py-8">
+              No incomplete tasks.
+            </p>
           ) : (
             incompleteTasks.map((task) => (
               <li
@@ -250,11 +276,22 @@ export default function Checklist() {
                     onChange={() => handleToggleCompleted(task)}
                     className="w-5 h-5 border-2 border-gray-300 rounded-sm cursor-pointer"
                   />
+
                   <div>
-                    <div className="text-gray-900 font-semibold">{task.title}</div>
+                    <div className="text-gray-900 font-semibold">
+                      {task.title}
+                    </div>
+
+                    {task.description && (
+                      <div className="text-sm text-gray-500 mt-0.5">
+                        {task.description}
+                      </div>
+                    )}
+
                     {task.dueDate && (
                       <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                        <Calendar size={14} /> {new Date(task.dueDate).toLocaleDateString()}
+                        <Calendar size={14} />
+                        {new Date(task.dueDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -268,6 +305,7 @@ export default function Checklist() {
                   >
                     <Pencil size={16} />
                   </button>
+
                   <button
                     onClick={() => handleDelete(task._id!)}
                     className="text-[#9B1B1B] p-2 hover:bg-[#F9D9D9] rounded-lg transition"
@@ -281,6 +319,7 @@ export default function Checklist() {
           )}
         </ul>
       </section>
+
     </div>
   );
 }
