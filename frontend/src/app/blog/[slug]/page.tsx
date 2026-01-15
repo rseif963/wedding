@@ -90,7 +90,7 @@ export default async function BlogPost({ params }: BlogProps) {
           priority
         />
 
-        {/* ✅ FULL BLOG CONTENT */}
+        {/* ✅ FULL BLOG CONTEN */}
         <div className="prose prose-lg max-w-none text-gray-700">
           {post.content}
         </div>
