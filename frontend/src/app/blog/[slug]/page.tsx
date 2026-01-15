@@ -6,11 +6,15 @@ import { Metadata } from "next";
 import { blogs } from "@/app/blog/data/blogs";
 
 type BlogProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata({ params }: BlogProps): Promise<Metadata> {
-  const post = blogs.find((b) => b.slug === params.slug);
+// ✅ FIX 1: await params here
+export async function generateMetadata({
+  params,
+}: BlogProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = blogs.find((b) => b.slug === slug);
 
   if (!post) {
     return {
@@ -23,13 +27,15 @@ export async function generateMetadata({ params }: BlogProps): Promise<Metadata>
     title: `${post.title} | Wedpine Blog`,
     description: post.excerpt || post.title,
     alternates: {
-      canonical: `https://wedpine.com/blog/${params.slug}`,
+      canonical: `https://wedpine.com/blog/${slug}`,
     },
   };
 }
 
-export default function BlogPost({ params }: BlogProps) {
-  const post = blogs.find((b) => b.slug === params.slug);
+// ✅ FIX 2: async page + await params
+export default async function BlogPost({ params }: BlogProps) {
+  const { slug } = await params;
+  const post = blogs.find((b) => b.slug === slug);
 
   if (!post) {
     return (
@@ -84,7 +90,7 @@ export default function BlogPost({ params }: BlogProps) {
           priority
         />
 
-        {/* FULL BLOG CONTENT */}
+        {/* ✅ FULL BLOG CONTENT */}
         <div className="prose prose-lg max-w-none text-gray-700">
           {post.content}
         </div>

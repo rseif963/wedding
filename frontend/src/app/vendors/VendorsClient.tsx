@@ -490,7 +490,7 @@ const VendorsPage = () => {
         </section>
 
 
-        <section className="w-full mx-auto px-6 py-12">
+        <section className="w-full mx-auto px-3 py-12">
           {/* MOBILE FILTERS BUTTON + DROPDOWN */}
           <div className="lg:hidden mb-6">
             <MobileFilters

@@ -22,6 +22,7 @@ import reviewRoutes from "./routes/reviews.js";
 import adminRoutes from "./routes/admin.js";
 import blogRoutes from "./routes/blogs.js";
 import analyticsRoutes from "./routes/analytics.js";
+import adminStatsRoutes from "./routes/stats.js";
 import verificationRoutes from "./routes/verification.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,8 +44,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/analytics", analyticsRoutes);
-
-// ✅ Mount verification routes
+app.use("/api/admin", adminStatsRoutes);
 app.use("/api/verification", verificationRoutes);
 
 // Health check route
@@ -91,7 +91,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// ✅ Keep DB connection and listen inside .then()
 connectDB()
   .then(() => {
     server.listen(PORT, () =>

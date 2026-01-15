@@ -11,6 +11,7 @@ import {
   BarChart2,
   DollarSign,
   LogOut,
+  BadgeCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -47,6 +48,11 @@ export default function AdminSidebar({
       name: "Clients",
       href: "/admin-dashboard/admin/clients",
       icon: <Users size={18} />,
+    },
+    {
+      name: "Verifications",
+      href: "/admin-dashboard/admin/verifications",
+      icon: <BadgeCheck size={18} />,
     },
     {
       name: "Analytics",

@@ -1,29 +1,64 @@
 import multer from "multer";
 import imagekit from "../config/imagekit.js";
+import crypto from "crypto";
+import path from "path";
 
-// Use in-memory storage instead of writing to disk
+// In-memory storage
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  if (/image|video/.test(file.mimetype)) cb(null, true);
-  else cb(new Error("Only images and videos allowed"), false);
-};
-
-const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } });
-
-// Function to upload a file buffer to ImageKit
-export const uploadToImageKit = async (file) => {
-  try {
-    const uploadResponse = await imagekit.upload({
-      file: file.buffer.toString("base64"), // Convert buffer to base64
-      fileName: file.originalname,
-      folder: "uploads", // optional folder name in ImageKit
-    });
-    return uploadResponse.url; // Return the hosted URL
-  } catch (err) {
-    console.error("ImageKit Upload Error:", err);
-    throw new Error("Failed to upload to ImageKit");
+  if (/^(image|video)\//.test(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images and videos allowed"), false);
   }
 };
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+});
+
+// Upload buffer to ImageKit safely
+export const uploadToImageKit = async (file, folder = "vendor_uploads") => {
+  if (!file?.buffer) {
+    throw new Error("No file buffer provided");
+  }
+
+  const mimeToExt = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/heic": ".heic",
+    "video/mp4": ".mp4",
+  };
+
+  const ext =
+    mimeToExt[file.mimetype] ||
+    path.extname(file.originalname) ||
+    ".bin";
+
+  const finalFileName = `${crypto.randomUUID()}${ext}`;
+
+  const uploadResponse = await imagekit.upload({
+    file: file.buffer.toString("base64"),
+    fileName: finalFileName,
+    folder,
+    mimeType: file.mimetype,   // 🔥 THIS LINE FIXES IT
+    useUniqueFileName: false,
+  });
+
+  if (!uploadResponse?.url || !uploadResponse?.filePath) {
+    throw new Error("Invalid ImageKit response");
+  }
+
+  return {
+    url: uploadResponse.url,
+    filePath: uploadResponse.filePath,
+    fileId: uploadResponse.fileId,
+  };
+};
+
 
 export default upload;
