@@ -766,25 +766,7 @@ const VendorsPage = () => {
                     );
                   })}
                 </div>
-              )}
-
-              {/* PAGINATION */}
-              {totalPages > 1 && (
-                <div className="flex justify-center mt-10 space-x-2 flex-wrap">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageClick(page)}
-                      className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${currentPage === page
-                        ? "bg-[#311970] text-white border-[#311970]"
-                        : "bg-white text-[#311970] border-gray-300 hover:bg-[#f5f3fa]"
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-              )}
+              )}   
             </div>
 
           </div>

@@ -6,9 +6,12 @@ import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useAppContext } from "@/context/AppContext";
 
 export default function AdminAuthPage() {
   const router = useRouter();
+  const { fetchClients, fetchVendors } = useAppContext();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,8 +23,15 @@ export default function AdminAuthPage() {
 
     try {
       const res = await axios.post("/api/admin/login", { email, password });
+
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userRole", "admin");  // Mark role explicitly
+      localStorage.setItem("userRole", "admin");
+
+      // ✅ Fetch admin-only data immediately
+      await Promise.all([
+        fetchClients(),
+        fetchVendors(),
+      ]);
 
       toast.success("Welcome Admin!");
       router.push("/admin-dashboard/admin");
@@ -31,6 +41,7 @@ export default function AdminAuthPage() {
       setSubmitting(false);
     }
   };
+
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#311970] to-[#6a1b9a] px-4">

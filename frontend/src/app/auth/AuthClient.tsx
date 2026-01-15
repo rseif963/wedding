@@ -54,7 +54,8 @@ export default function AuthPage() {
     // ✅ Special case for Admin login
     if (mode === "login" && email === "info@wedpine.com" && password === "Secret@2025") {
       localStorage.setItem("userRole", "admin");
-      router.push("/admin-auth");
+      
+      router.push("/wpad-auth");
       return;
     }
 
