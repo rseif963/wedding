@@ -231,7 +231,7 @@ const VendorsPage = () => {
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const vendorsPerPage = 18;
+  const vendorsPerPage = 12;
   const [selectedPrice, setSelectedPrice] = useState("Any");
   const [selectedRating, setSelectedRating] = useState("Any");
 
