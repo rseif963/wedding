@@ -231,7 +231,7 @@ const VendorsPage = () => {
   const [liked, setLiked] = useState<string[]>([]);
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const vendorsPerPage = 16;
+  const vendorsPerPage = 18;
   const [selectedPrice, setSelectedPrice] = useState("Any");
   const [selectedRating, setSelectedRating] = useState("Any");
 
@@ -314,7 +314,6 @@ const VendorsPage = () => {
     };
   }, [posts]);
 
-  
 
 
   const toggleLike = (id: string) => {
@@ -492,10 +491,8 @@ const VendorsPage = () => {
 
 
         <section className="w-full mx-auto px-6 py-12">
-          <div className="flex flex-col lg:flex-row gap-8">
-
-            {/* FILTERS SIDEBAR */}
-            {/* MOBILE FILTERS BUTTON + DROPDOWN */}
+          {/* MOBILE FILTERS BUTTON + DROPDOWN */}
+          <div className="lg:hidden mb-6">
             <MobileFilters
               filter={filter}
               setFilter={setFilter}
@@ -507,7 +504,12 @@ const VendorsPage = () => {
               setCounty={setCounty}
               setCurrentPage={setCurrentPage}
             />
-            <aside className="hidden lg:block w-72 flex-shrink-0">
+          </div>
+
+
+          <div className="md:grid lg:grid-cols-[18rem_1fr] gap-8 items-start">
+            {/* FILTERS SIDEBAR */}
+            <aside className="hidden lg:block w-72">
               <div className="sticky top-24 bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-semibold mb-6">Filters</h3>
 
@@ -635,17 +637,18 @@ const VendorsPage = () => {
             </aside>
 
             {/* MAIN CONTENT WRAPPER */}
-            <div className="flex-1">
+            <div className="w-full">
 
               {/* RESULTS HEADER */}
               <div className="flex items-center md:text-1xl lg:text-1xl text-sm justify-between mb-6">
                 <p className="text-gray-500">
                   Showing{" "}
                   <span className="font-semibold text-gray-900">
-                    {totalVendors}
+                    {currentVendors.length}
                   </span>{" "}
                   vendors
                 </p>
+
 
                 {/*<select
                   value={sort}
@@ -766,9 +769,8 @@ const VendorsPage = () => {
                     );
                   })}
                 </div>
-              )}   
+              )}
             </div>
-
           </div>
         </section>
 
