@@ -2,16 +2,16 @@
 export default function Head() {
   return (
     <>
-      {/* 🔹 Page Title */}
+      {/* Page Title */}
       <title>Wedpine</title>
 
-      {/* 🔹 Favicon / App Icons */}
+      {/* Favicon / App Icons */}
       <link rel="icon" href="/favicon.ico" />
       <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 
-      {/* 🔹 SEO Meta Tags */}
+      {/* SEO Meta Tags */}
       <meta
         name="description"
         content="Find trusted wedding vendors, venues, photographers, caterers and planners on Wedpine."
@@ -19,7 +19,7 @@ export default function Head() {
       <meta name="keywords" content="wedding vendors, wedding planning, wedding photographers, wedding venues, wedding catering" />
       <meta name="robots" content="index, follow" />
 
-      {/* 🔹 Open Graph / Social Preview */}
+      {/* Open Graph / Social Preview */}
       <meta property="og:title" content="Wedpine" />
       <meta
         property="og:description"
@@ -32,7 +32,7 @@ export default function Head() {
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
 
-      {/* 🔹 Twitter Card */}
+      {/*  Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content="Wedpine" />
       <meta

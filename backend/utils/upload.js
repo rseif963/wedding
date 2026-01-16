@@ -45,7 +45,7 @@ export const uploadToImageKit = async (file, folder = "vendor_uploads") => {
     file: file.buffer.toString("base64"),
     fileName: finalFileName,
     folder,
-    mimeType: file.mimetype,   // 🔥 THIS LINE FIXES IT
+    mimeType: file.mimetype, 
     useUniqueFileName: false,
   });
 

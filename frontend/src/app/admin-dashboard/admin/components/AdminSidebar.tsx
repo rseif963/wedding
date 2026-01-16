@@ -12,6 +12,7 @@ import {
   DollarSign,
   LogOut,
   BadgeCheck,
+  Store,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -42,7 +43,7 @@ export default function AdminSidebar({
     {
       name: "Vendors",
       href: "/admin-dashboard/admin/vendors",
-      icon: <Users size={18} />,
+      icon: <Store size={18} />,
     },
     {
       name: "Clients",

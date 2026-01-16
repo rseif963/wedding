@@ -323,7 +323,7 @@ export default function VendorBookings() {
           ) : (
             <>
               {/* HEADER */}
-              <div className="border-b sticky mt-16 md:mt-0 p-4 flex items-center gap-3">
+              <div className="border-b sticky mt-6 md:mt-0 p-4 flex items-center gap-3">
                 <button
                   onClick={() => setView("list")}
                   className="md:hidden text-sm font-bold text-[#311970]"
