@@ -10,6 +10,7 @@ import SubscriptionsEarnings from "./components/SubscriptionsEarnings";
 import BlogManager from "./components/BlogManager";
 import ActivityLog from "./components/ActivityLog";
 import AdminSettings from "./components/AdminSettings";
+import NotificationsPreview from "./components/NotificationsPreview";
 
 export default function AdminPage() {
   return (
@@ -24,37 +25,14 @@ export default function AdminPage() {
           <AdminStats />
 
           {/* mid grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="lg:col-span-2 space-y-6">
-              <AnalyticsOverview />
-              <VendorsTable />
-              <SubscriptionsEarnings />
-            </div>
+          <div className="grid grid-cols-1 gap-6 mt-6">
 
-            <aside className="space-y-6">
-              <BlogManager />
-              <ClientsTable />
-              <ActivityLog />
+            <aside className="">
+              
+              <NotificationsPreview />
             </aside>
           </div>
 
-          {/* bottom */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div>
-              <AdminSettings />
-            </div>
-            <div>
-              {/* space for future widgets like payouts, taxes, detailed exports */}
-              <section className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-3">Exports & Reports</h3>
-                <p className="text-sm text-gray-600 mb-4">Export vendors, clients, payments, and activity logs (CSV / XLSX / PDF).</p>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-[#7c4dff] text-white rounded">Export CSV</button>
-                  <button className="px-4 py-2 border rounded">Generate Report</button>
-                </div>
-              </section>
-            </div>
-          </div>
         </main>
       </div>
     </div>

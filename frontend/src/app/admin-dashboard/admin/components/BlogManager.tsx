@@ -141,7 +141,7 @@ export default function BlogManager() {
       <div className="flex items-center justify-between mb-4">
 
         <h3 className="text-lg font-semibold">Blog Manager</h3>
-        <button onClick={handleOpenNew} className="bg-[#7c4dff] text-white px-4 py-2 rounded">
+        <button onClick={handleOpenNew} className="bg-[#311970] text-white px-4 py-2 rounded">
           New Post
         </button>
       </div>

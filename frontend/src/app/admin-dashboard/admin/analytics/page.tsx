@@ -1,10 +1,10 @@
 "use client";
 
 import AnalyticsOverview from "../components/AnalyticsOverview";
-import BlogManager from "../components/BlogManager";
 
 
-export default function PostsPage() {
+
+export default function AnalyticsPage() {
   return (
     <div>
       <AnalyticsOverview />
