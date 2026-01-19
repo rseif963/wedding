@@ -223,7 +223,13 @@ export default function TopListingVendors() {
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-gray-600 text-sm">{v?.category}</p>
                         {vendorId && verifiedVendors[vendorId] && (
-                          <BadgeCheck size={16} className="text-[#311970]" />
+                          <Image
+                            src="/assets/verify.png"
+                            alt="Wedpine Logo"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
                         )}
                       </div>
                       <p className="text-gray-500 text-sm mb-2">

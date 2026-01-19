@@ -397,7 +397,13 @@ export default function VendorProfile() {
                       {vendor.businessName}
                     </h1>
                     {vendorId && verifiedVendors[vendorId] && (
-                      <BadgeCheck size={20} className="text-[#311970] mt-2" />
+                      <Image
+                        src="/assets/verify.png"
+                        alt="Wedpine Logo"
+                        width={20}
+                        height={20}
+                        className="object-contain mt-2"
+                      />
                     )}
                   </div>
 
