@@ -314,6 +314,7 @@ interface AppContextType {
     businessCertificate?: File | null;
   }) => Promise<any | null>;
   fetchMyVerification: () => Promise<any | null>;
+  fetchVendorVerification: (vendorId: string) => Promise<{ verified: boolean } | null>;
   fetchAllVerifications: () => Promise<any[]>;
   createPost: (form: FormData) => Promise<VendorPost | null>;
   updatePost: (id: string, form: FormData) => Promise<VendorPost | null>;
@@ -582,6 +583,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
   };
+
+  const fetchVendorVerification = async (vendorId: string) => {
+    if (!vendorId) return null;
+
+    try {
+      const res = await axios.get(`/api/verification/vendor/${vendorId}`);
+      return res.data; // { verified: boolean }
+    } catch (err) {
+      console.error("Failed to fetch vendor verification:", err);
+      return null;
+    }
+  };
+
 
   const fetchAllVerifications = async () => {
     try {
@@ -1698,6 +1712,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         chatMessages,
         uploadVerification,
         fetchMyVerification,
+        fetchVendorVerification,
         fetchAllVerifications,
 
         likedPosts: clientProfile?.likedPosts || [],

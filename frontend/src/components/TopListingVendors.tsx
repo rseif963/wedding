@@ -3,14 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { useEffect, useState } from "react";
-import { Heart, Star } from "lucide-react";
+import { BadgeCheck, Heart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 
 export default function TopListingVendors() {
-  const { posts, fetchPosts, countProfileView } = useAppContext();
+  const { posts, fetchPosts, countProfileView, fetchVendorVerification } = useAppContext();
   const [liked, setLiked] = useState<string[]>([]);
+  const [verifiedVendors, setVerifiedVendors] = useState<Record<string, boolean>>({});
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const router = useRouter();
 
@@ -63,6 +64,45 @@ export default function TopListingVendors() {
       mounted = false;
     };
   }, [posts]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadVerifications = async () => {
+      if (!posts || posts.length === 0) return;
+
+      const vendorIds = Array.from(
+        new Set(
+          posts
+            .map((p) => p.vendor?._id)
+            .filter(Boolean)
+            .map(String)
+        )
+      );
+
+      const map: Record<string, boolean> = {};
+
+      await Promise.all(
+        vendorIds.map(async (id) => {
+          try {
+            const res = await fetchVendorVerification(id);
+            if (!mounted) return;
+            map[id] = !!res?.verified;
+          } catch {
+            map[id] = false;
+          }
+        })
+      );
+
+      if (mounted) setVerifiedVendors(map);
+    };
+
+    loadVerifications();
+
+    return () => {
+      mounted = false;
+    };
+  }, [posts, fetchVendorVerification]);
 
   const toggleLike = (id: string) => {
     setLiked((prev) =>
@@ -118,18 +158,18 @@ export default function TopListingVendors() {
 
               const handlePostClick =
                 (vendorId: string, postId: string) =>
-                async (e: React.MouseEvent) => {
-                  e.preventDefault();
-                  if (!vendorId) return;
+                  async (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    if (!vendorId) return;
 
-                  try {
-                    await axios.post("/api/analytics/profile-view", { vendorId });
-                    router.push(`/vendors/${postId}`);
-                  } catch (err) {
-                    console.error("Profile view tracking failed:", err);
-                    router.push(`/vendors/${postId}`);
-                  }
-                };
+                    try {
+                      await axios.post("/api/analytics/profile-view", { vendorId });
+                      router.push(`/vendors/${postId}`);
+                    } catch (err) {
+                      console.error("Profile view tracking failed:", err);
+                      router.push(`/vendors/${postId}`);
+                    }
+                  };
 
               return (
                 <a
@@ -155,11 +195,10 @@ export default function TopListingVendors() {
                         className="absolute top-3 right-3 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
                       >
                         <Heart
-                          className={`h-5 w-5 ${
-                            liked.includes(post._id)
-                              ? "text-red-500 fill-red-500"
-                              : "text-red-500"
-                          }`}
+                          className={`h-5 w-5 ${liked.includes(post._id)
+                            ? "text-red-500 fill-red-500"
+                            : "text-red-500"
+                            }`}
                         />
                       </button>
 
@@ -181,7 +220,12 @@ export default function TopListingVendors() {
                         {v?.businessName}
                       </h3>
 
-                      <p className="text-gray-600 text-sm">{v?.category}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-gray-600 text-sm">{v?.category}</p>
+                        {vendorId && verifiedVendors[vendorId] && (
+                          <BadgeCheck size={16} className="text-[#311970]" />
+                        )}
+                      </div>
                       <p className="text-gray-500 text-sm mb-2">
                         {v?.location ? `${v.location}, Kenya` : "Kenya"}
                       </p>
@@ -190,11 +234,10 @@ export default function TopListingVendors() {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.round(post.avgRating)
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            }`}
+                            className={`w-4 h-4 ${i < Math.round(post.avgRating)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
+                              }`}
                           />
                         ))}
                         <span className="text-sm text-gray-600 ml-2">

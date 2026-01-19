@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Breadcrumb from "../../../components/Breadcrumb";
-import { Heart, Star } from "lucide-react";
+import { BadgeCheck, Heart, Star } from "lucide-react";
 import ImageGallery from "react-image-gallery";
 import "react-image-gallery/styles/css/image-gallery.css";
 import { useAppContext } from "@/context/AppContext";
@@ -77,12 +77,13 @@ export default function VendorProfile() {
     postReview,
     fetchReviewsForVendor,
     reviews,
+    fetchVendorVerification,
   } = useAppContext();
 
   const [vendorPost, setVendorPost] = useState<any | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [submittingBooking, setSubmittingBooking] = useState(false);
-
+  const [verifiedVendors, setVerifiedVendors] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [newReview, setNewReview] = useState<NewReview>({
     rating: 0,
@@ -196,7 +197,49 @@ export default function VendorProfile() {
     };
   }, [id, posts]);
 
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadVerifications = async () => {
+      if (!posts || posts.length === 0) return;
+
+      const vendorIds = Array.from(
+        new Set(
+          posts
+            .map((p) => p.vendor?._id)
+            .filter(Boolean)
+            .map(String)
+        )
+      );
+
+      const map: Record<string, boolean> = {};
+
+      await Promise.all(
+        vendorIds.map(async (id) => {
+          try {
+            const res = await fetchVendorVerification(id);
+            if (!mounted) return;
+            map[id] = !!res?.verified;
+          } catch {
+            map[id] = false;
+          }
+        })
+      );
+
+      if (mounted) setVerifiedVendors(map);
+    };
+
+    loadVerifications();
+
+    return () => {
+      mounted = false;
+    };
+  }, [posts, fetchVendorVerification]);
+
   const vendor = vendorPost?.vendor || null;
+  const vendorId = vendor?._id ? String(vendor._id) : "";
+
 
   // Similar Vendors (same category, excluding current vendor)
   const similarVendors = (posts || [])
@@ -349,10 +392,15 @@ export default function VendorProfile() {
                     </span>
                     <span className="text-sm text-gray-500">{vendor.location}</span>
                   </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h1 className="text-1xl md:text-2xl font-bold text-[#311970]">
+                      {vendor.businessName}
+                    </h1>
+                    {vendorId && verifiedVendors[vendorId] && (
+                      <BadgeCheck size={20} className="text-[#311970] mt-2" />
+                    )}
+                  </div>
 
-                  <h1 className="text-1xl md:text-2xl font-bold text-[#311970]">
-                    {vendor.businessName}
-                  </h1>
 
                   <div className="flex items-center gap-2 mt-2">
                     <RatingStars rating={Math.round(averageRating)} />
@@ -833,7 +881,7 @@ export default function VendorProfile() {
                 const v = post.vendor;
                 const image =
                   post.mainPhoto || v?.profilePhoto
-                  v?.logo ||
+                v?.logo ||
                   v?.photo ||
                   "/assets/vendor-placeholder.jpg";
 

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { Heart, Star, Search, MapPin, SlidersHorizontal } from "lucide-react";
+import { Heart, Star, Search, MapPin, SlidersHorizontal, BadgeCheck } from "lucide-react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -219,7 +219,8 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
 };
 
 const VendorsPage = () => {
-  const { posts, fetchPosts } = useAppContext();
+  const { posts, fetchPosts, fetchVendorVerification } = useAppContext();
+  const [verifiedVendors, setVerifiedVendors] = useState<Record<string, boolean>>({});
   const [searchInput, setSearchInput] = useState(""); // typing
   const [searchQuery, setSearchQuery] = useState(""); // committed
   const searchParams = useSearchParams();
@@ -313,6 +314,46 @@ const VendorsPage = () => {
       mounted = false;
     };
   }, [posts]);
+
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadVerifications = async () => {
+      if (!posts || posts.length === 0) return;
+
+      const vendorIds = Array.from(
+        new Set(
+          posts
+            .map((p) => p.vendor?._id)
+            .filter(Boolean)
+            .map(String)
+        )
+      );
+
+      const map: Record<string, boolean> = {};
+
+      await Promise.all(
+        vendorIds.map(async (id) => {
+          try {
+            const res = await fetchVendorVerification(id);
+            if (!mounted) return;
+            map[id] = !!res?.verified;
+          } catch {
+            map[id] = false;
+          }
+        })
+      );
+
+      if (mounted) setVerifiedVendors(map);
+    };
+
+    loadVerifications();
+
+    return () => {
+      mounted = false;
+    };
+  }, [posts, fetchVendorVerification]);
 
 
 
@@ -735,7 +776,12 @@ const VendorsPage = () => {
                               {v?.businessName}
                             </h3>
 
-                            <p className="text-gray-600 text-sm">{v?.category}</p>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-gray-600 text-sm">{v?.category}</p>
+                              {vendorId && verifiedVendors[vendorId] && (
+                                <BadgeCheck size={16} className="text-[#311970]" />
+                              )}
+                            </div>
                             <p className="text-gray-500 text-sm mb-2">
                               {v?.location ? `${v.location}, Kenya` : "Kenya"}
                             </p>

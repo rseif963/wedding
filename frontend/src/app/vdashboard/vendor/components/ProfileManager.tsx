@@ -119,12 +119,6 @@ export default function ProfileManager({ preview = false }: Props) {
   };
 
 
-
-
-
-
-
-
   const openFilePicker = (target: "profilePhoto" | "coverPhoto") => {
     setImageTarget(target);
     if (target === "profilePhoto") profileInputRef.current?.click();
@@ -643,23 +637,6 @@ export default function ProfileManager({ preview = false }: Props) {
 
   /** -------------------------- */
 
-  {/* if (preview) {
-    return (
-      <section className="bg-white shadow-sm rounded-2xl p-2">
-        <h2 className="text-2xl font-semibold text-center text-[#311970] mb-4">
-          My Profile
-        </h2>
-        <div>
-          <p className="text-gray-800 font-semibold text-sm">
-            {vendorProfile?.businessName}
-          </p>
-          <p className="text-sm text-gray-500">
-            {vendorProfile?.category} • {vendorProfile?.location}
-          </p>
-        </div>
-      </section>
-    );
-  }*/}
 
   if (!isEditing && vendorProfile) {
     return (
@@ -754,26 +731,19 @@ export default function ProfileManager({ preview = false }: Props) {
                 <h6 className="text-1xl md:text-2xl lg:text-3xl font-semibold text-gray-900">
                   {vendorProfile.businessName}
                 </h6>
-                <p className="text-gray-500 text-sm">{vendorProfile.category}</p>
+                <div className="flex mt-2 items-center gap-2 text-gray-500 text-sm">
+                  <span>{vendorProfile.category}</span>
+
+                  {isVerified && (
+                    <BadgeCheck
+                      size={18}
+                      className="text-[#311970]"
+                     
+                    />
+                  )}
+                </div>
+
               </div>
-              {/*<div className="inline-flex rounded-full bg-green-100 px-2 py-1 text-green-700 font-medium text-xs h-6 items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-3 h-3"
-                >
-                  <path d="M21.801 10A10 10 0 1 1 17 3.335"></path>
-                  <path d="m9 11 3 3L22 4"></path>
-                </svg>
-                <span>Verified</span>
-              </div>*/}
             </div>
           </div>
         </div>

@@ -99,7 +99,6 @@ export default function VendorBookings() {
     : "";
 
 
-
   useEffect(() => {
     if (autoScroll) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -225,10 +224,10 @@ export default function VendorBookings() {
     vendorProfile?.profilePhoto || "/assets/avatar.png";
 
   /* ---------------- UI ---------------- */
+  
   return (
-    <section className="bg-gray-200 w-full  lg:h-[84vh] rounded-xl overflow-hidden">
+    <section className="bg-gray-200 w-full lg:h-[84vh] rounded-xl overflow-hidden">
       <div className="flex gap-4 h-full">
-        {/* BOOKINGS LIST */}
         {/* BOOKINGS LIST */}
         <aside
           className={`w-screen md:w-1/3 lg:w-1/4 xl:w-[320px] p-4 overflow-y-auto rounded-none md:rounded-2xl bg-white
@@ -278,13 +277,11 @@ export default function VendorBookings() {
                   >
                     <div className="flex w-full items-center gap-3">
                       {/* CLIENT AVATAR (INITIALS) */}
-                      {/* CLIENT AVATAR (INITIALS) */}
                       <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center shrink-0">
                         <span className="text-sm font-semibold text-purple-900">
                           {getClientInitials(clientName)}
                         </span>
                       </div>
-
 
                       {/* TEXT */}
                       <div className="flex-1 min-w-0">
@@ -314,7 +311,6 @@ export default function VendorBookings() {
           className={`flex-1 flex flex-col h-[90vh] md:h-full overflow-hidden bg-white 
            ${view === "list" ? "hidden md:flex" : "flex"}`}
         >
-
 
           {!selectedBooking ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">

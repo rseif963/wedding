@@ -38,12 +38,9 @@ router.post(
       });
 
       if (!vendorProfile) {
-        return res.status(400).json({
-          message: "Vendor profile required",
-        });
+        return res.status(400).json({ message: "Vendor profile required" });
       }
 
-      // Find existing verification or create new
       let verification = await VendorVerification.findOne({
         vendor: vendorProfile._id,
       });
@@ -54,7 +51,6 @@ router.post(
         });
       }
 
-      // Upload files if provided
       if (req.files?.nationalIdFront?.[0]) {
         verification.nationalIdFront = await uploadToImageKit(
           req.files.nationalIdFront[0]
@@ -73,29 +69,23 @@ router.post(
         );
       }
 
-      // Reset verification if re-uploaded
+      // reset approval on re-upload
       verification.verified = false;
 
       await verification.save();
 
-      res.json({
-        message: "Documents uploaded successfully",
-      });
+      res.json({ message: "Documents uploaded successfully" });
     } catch (err) {
       console.error("Error saving vendor verification:", err);
-      res.status(500).json({
-        message: "Server error",
-      });
+      res.status(500).json({ message: "Server error" });
     }
   }
 );
 
 /**
  * ===============================
- * VENDOR: FETCH VERIFICATION STATE
+ * VENDOR: FETCH OWN VERIFICATION
  * ===============================
- * ✅ NO FILE URLS
- * ✅ EXPLICIT UPLOAD STATE
  */
 router.get("/me", auth, permit("vendor"), async (req, res) => {
   try {
@@ -104,16 +94,13 @@ router.get("/me", auth, permit("vendor"), async (req, res) => {
     });
 
     if (!vendorProfile) {
-      return res.status(400).json({
-        message: "Vendor profile required",
-      });
+      return res.status(400).json({ message: "Vendor profile required" });
     }
 
     const verification = await VendorVerification.findOne({
       vendor: vendorProfile._id,
     });
 
-    // ❌ No documents uploaded yet
     if (!verification) {
       return res.json({
         documentsUploaded: false,
@@ -121,7 +108,6 @@ router.get("/me", auth, permit("vendor"), async (req, res) => {
       });
     }
 
-    // ✅ At least one document exists
     const documentsUploaded = Boolean(
       verification.nationalIdFront ||
         verification.nationalIdBack ||
@@ -134,10 +120,30 @@ router.get("/me", auth, permit("vendor"), async (req, res) => {
       createdAt: verification.createdAt,
     });
   } catch (err) {
-    console.error("Error fetching verification metadata:", err);
-    res.status(500).json({
-      message: "Server error",
+    console.error("Error fetching verification:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/**
+ * ===============================
+ * PUBLIC: CHECK VENDOR VERIFIED
+ * ✅ used by posts / featured vendors
+ * ===============================
+ */
+router.get("/vendor/:vendorId", async (req, res) => {
+  try {
+    const verification = await VendorVerification.findOne({
+      vendor: req.params.vendorId,
+      verified: true,
+    }).select("_id");
+
+    res.json({
+      verified: Boolean(verification),
     });
+  } catch (err) {
+    console.error("Error checking vendor verification:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -152,9 +158,7 @@ router.get("/", auth, permit("admin"), async (req, res) => {
     res.json(verifications);
   } catch (err) {
     console.error("Error fetching verifications:", err);
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -168,9 +172,7 @@ router.put("/:id/approve", auth, permit("admin"), async (req, res) => {
     const verification = await VendorVerification.findById(req.params.id);
 
     if (!verification) {
-      return res.status(404).json({
-        message: "Verification not found",
-      });
+      return res.status(404).json({ message: "Verification not found" });
     }
 
     verification.verified = true;
@@ -182,9 +184,7 @@ router.put("/:id/approve", auth, permit("admin"), async (req, res) => {
     });
   } catch (err) {
     console.error("Error approving verification:", err);
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
