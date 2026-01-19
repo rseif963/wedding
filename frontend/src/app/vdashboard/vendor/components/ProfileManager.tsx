@@ -148,6 +148,7 @@ export default function ProfileManager({ preview = false }: Props) {
 
   const VENDOR_CATEGORIES = [
     "Photography",
+    "Videography",
     "Catering",
     "Venue",
     "Entertainment",
