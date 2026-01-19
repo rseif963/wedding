@@ -119,7 +119,7 @@ export default function AuthPage() {
           if (role === "vendor") {
             router.push("/vdashboard/onboard");
           } else {
-            router.push("/dashboard/client/onboarding");
+            router.push("/dashboard/onboarding");
           }
         }
       }
