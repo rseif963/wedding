@@ -322,7 +322,7 @@ export default function Bookings() {
             ) : (
               <>
                 {/* HEADER */}
-                <div className="border-b p-4 mt-16 md:mt-0 flex items-center gap-3">
+                <div className="border-b p-4 md:mt-0 flex items-center gap-3">
                   <button className="md:hidden" onClick={() => setView("list")}>
                     <ArrowLeft />
                   </button>
