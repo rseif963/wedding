@@ -237,6 +237,8 @@ export default function VendorProfile() {
     };
   }, [posts, fetchVendorVerification]);
 
+  
+
   const vendor = vendorPost?.vendor || null;
   const vendorId = vendor?._id ? String(vendor._id) : "";
 
