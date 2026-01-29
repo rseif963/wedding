@@ -29,7 +29,7 @@ export default function AdminHeader({
 
         <div className="flex flex-col items-start">
           <h3 className="text-lg font-semibold mb-1">Admin Dashboard</h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="hidden md:text-sm text-gray-500 mb-4">
             Welcome back! Here's what's happening today.
           </p>
         </div>
