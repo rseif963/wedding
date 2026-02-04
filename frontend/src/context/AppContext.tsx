@@ -422,6 +422,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user?.id]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("userRole");
+    if (token && role) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      setRole(role as Role); // restore role
+    }
+  }, []);
+
+
 
   // --- Save to localStorage whenever tasks or showChecklist change ---
   useEffect(() => {
@@ -828,16 +845,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // fetch all vendors (exposed)
   const fetchVendors = async () => {
-  try {
-    const { data } = await axios.get("/api/vendors", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-    setVendors(data || []);
-  } catch (err) {
-    console.error("Failed to fetch vendors:", err);
-    setVendors([]);
-  }
-};
+    try {
+      const { data } = await axios.get("/api/vendors", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setVendors(data || []);
+    } catch (err) {
+      console.error("Failed to fetch vendors:", err);
+      setVendors([]);
+    }
+  };
 
 
   const getOrCreateConversation = useCallback(
@@ -940,17 +957,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // fetch all clients (exposed)
   // fetch all clients (admin only)
-const fetchClients = async () => {
-  try {
-    const { data } = await axios.get("/api/clients", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-    setClients(data || []);
-  } catch (err) {
-    console.error("Failed to fetch clients:", err);
-    setClients([]);
-  }
-};
+  const fetchClients = async () => {
+    try {
+      const { data } = await axios.get("/api/clients", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setClients(data || []);
+    } catch (err) {
+      console.error("Failed to fetch clients:", err);
+      setClients([]);
+    }
+  };
 
   const fetchClientProfile = async () => {
     try {
