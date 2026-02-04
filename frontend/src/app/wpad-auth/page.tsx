@@ -24,10 +24,14 @@ export default function AdminAuthPage() {
     try {
       const res = await axios.post("/api/admin/login", { email, password });
 
+      if (res.data.role !== "admin") {
+        toast.error("Account is not registered as admin");
+        return; // stop further execution
+      }
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userRole", "admin");
 
-      // ✅ Fetch admin-only data immediately
       await Promise.all([
         fetchClients(),
         fetchVendors(),
@@ -35,6 +39,7 @@ export default function AdminAuthPage() {
 
       toast.success("Welcome Admin!");
       router.push("/admin-dashboard/admin");
+
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Something went wrong");
     } finally {

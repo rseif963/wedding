@@ -86,6 +86,7 @@ export default function AuthPage() {
               actualRole = "vendor";
             } catch (err) { }
           }
+          
 
           if (!actualRole) {
             toast.error("Could not verify account role. Please try again.");
