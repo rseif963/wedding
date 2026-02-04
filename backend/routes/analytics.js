@@ -36,7 +36,7 @@ router.post("/profile-view", async (req, res) => {
 
       if (vendor?.email) {
         await resend.emails.send({
-          from: "Your App <no-reply@yourdomain.com>",
+          from:`"Wedpine" <${process.env.EMAIL_FROM}>`,
           to: vendor.email,
           subject: "Someone viewed your profile",
           html: `
