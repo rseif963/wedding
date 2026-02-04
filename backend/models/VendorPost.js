@@ -9,7 +9,7 @@ const VendorPostSchema = new mongoose.Schema({
   galleryImages: [String],
   galleryVideos: [String],
   featured: { type: Boolean, default: false },
-  Top: { type: Boolean, default: false },
+  topListing: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 
