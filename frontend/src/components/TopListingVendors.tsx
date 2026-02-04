@@ -12,6 +12,7 @@ import axios from "axios";
 export default function TopListingVendors() {
   const { posts, fetchPosts, fetchVendorVerification } = useAppContext();
   const [verifiedVendors, setVerifiedVendors] = useState<Record<string, boolean>>({});
+  const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -64,6 +65,52 @@ export default function TopListingVendors() {
     };
   }, [posts, fetchVendorVerification]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const loadVendorReviews = async () => {
+      if (!posts || posts.length === 0) return;
+
+      const featuredIds = Array.from(
+        new Set(
+          posts
+            .filter((p) => p.vendor?.featured)
+            .map((p) => p.vendor?._id)
+            .filter(Boolean)
+            .map(String)
+        )
+      );
+
+      if (featuredIds.length === 0) return;
+
+      try {
+        const results = await Promise.all(
+          featuredIds.map((id) =>
+            axios
+              .get(`${API_URL}/api/reviews/vendor/${id}`)
+              .then((res) => ({ id, data: Array.isArray(res.data) ? res.data : [] }))
+              .catch(() => ({ id, data: [] }))
+          )
+        );
+
+        if (!mounted) return;
+
+        const map: Record<string, any[]> = {};
+        results.forEach((r) => {
+          map[r.id] = r.data;
+        });
+        setVendorReviewsMap(map);
+      } catch (err) {
+        console.error("Failed to load featured vendor reviews:", err);
+      }
+    };
+
+    loadVendorReviews();
+    return () => {
+      mounted = false;
+    };
+  }, [posts]);
+
   // ✅ Only Top Listing posts
   const topListingPosts = (posts || [])
     .filter((post) => post.topListing)
@@ -106,6 +153,13 @@ export default function TopListingVendors() {
               const v = post.vendor;
               const imageUrl = getFullUrl(post.mainPhoto || v?.profilePhoto || v?.logo);
               const vendorId = v?._id ? String(v._id) : "";
+              const vendorReviews = vendorId ? vendorReviewsMap[vendorId] || [] : [];
+
+              const avgRating =
+                vendorReviews.length > 0
+                  ? vendorReviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
+                  vendorReviews.length
+                  : 0;
 
               return (
                 <div
@@ -127,6 +181,13 @@ export default function TopListingVendors() {
                       {post.topListing && (
                         <div className="absolute top-4 left-4 bg-[#311970] text-white px-2 py-1 text-xs font-semibold rounded-full z-20 flex items-center gap-1">
                           Top Listing
+                        </div>
+                      )}
+
+                      {/*Top Rated Badge */}
+                      {avgRating >= 5 && (
+                        <div className="absolute top-4 left-22 bg-green-100 text-green-800 px-2 py-1 text-xs font-semibold rounded-full z-20 flex items-center gap-1">
+                          Top Rated
                         </div>
                       )}
                     </div>
@@ -153,6 +214,23 @@ export default function TopListingVendors() {
                       <p className="text-gray-500 text-sm mb-2">
                         {v?.location ? `${v.location}, Kenya` : "Kenya"}
                       </p>
+
+                      <div className="flex items-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${i < Math.round(avgRating)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
+                              }`}
+                          />
+                        ))}
+                        <span className="text-sm text-gray-600 ml-2">
+                          {avgRating > 0
+                            ? `${avgRating.toFixed(1)} (${vendorReviews.length})`
+                            : "No reviews yet"}
+                        </span>
+                      </div>
 
                       <p className="text-sm text-gray-700">
                         Starting from{" "}
