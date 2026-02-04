@@ -828,14 +828,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // fetch all vendors (exposed)
   const fetchVendors = async () => {
-    try {
-      const { data } = await axios.get("/api/vendors");
-      setVendors(data || []);
-    } catch (err) {
-      console.error("Failed to fetch vendors:", err);
-      setVendors([]);
-    }
-  };
+  try {
+    const { data } = await axios.get("/api/vendors", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    setVendors(data || []);
+  } catch (err) {
+    console.error("Failed to fetch vendors:", err);
+    setVendors([]);
+  }
+};
 
 
   const getOrCreateConversation = useCallback(
@@ -937,15 +939,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 
   // fetch all clients (exposed)
-  const fetchClients = async () => {
-    try {
-      const { data } = await axios.get("/api/clients");
-      setClients(data || []);
-    } catch (err) {
-      console.error("Failed to fetch clients:", err);
-      setClients([]);
-    }
-  };
+  // fetch all clients (admin only)
+const fetchClients = async () => {
+  try {
+    const { data } = await axios.get("/api/clients", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    setClients(data || []);
+  } catch (err) {
+    console.error("Failed to fetch clients:", err);
+    setClients([]);
+  }
+};
 
   const fetchClientProfile = async () => {
     try {
