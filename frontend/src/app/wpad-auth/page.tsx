@@ -10,7 +10,7 @@ import { useAppContext } from "@/context/AppContext";
 
 export default function AdminAuthPage() {
   const router = useRouter();
-  const { fetchClients, fetchVendors } = useAppContext();
+  const { login, fetchClients, fetchVendors } = useAppContext();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,10 +24,14 @@ export default function AdminAuthPage() {
     try {
       const res = await axios.post("/api/admin/login", { email, password });
 
-      if (res.data.role !== "admin") {
+      const userRole = res.data?.user?.role;
+
+      if (userRole !== "admin") {
         toast.error("Account is not registered as admin");
-        return; // stop further execution
+        setSubmitting(false);
+        return;
       }
+
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userRole", "admin");
