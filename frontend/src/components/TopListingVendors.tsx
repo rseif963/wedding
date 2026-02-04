@@ -18,10 +18,11 @@ export default function TopListingVendors() {
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-    
+
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
+
 
   const getFullUrl = (path?: string) => {
     if (!path) return "/assets/vendor-placeholder.jpg";
@@ -112,27 +113,12 @@ export default function TopListingVendors() {
     );
   };
 
-  // ⭐ Top Listing Logic
-  const calculatedPosts = (posts || []).map((post) => {
-    const vendorId = post.vendor?._id ? String(post.vendor._id) : "";
-    const reviews = vendorId ? vendorReviewsMap[vendorId] || [] : [];
+  
+  // Top Listing posts
+  const topListings = (posts || [])
+    .filter((p) => p.topListing) // <-- only posts toggled as topListing
+    .slice(0, 4); // show max 4 posts
 
-    const avgRating =
-      reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
-        : 0;
-
-    return {
-      ...post,
-      avgRating,
-      totalReviews: reviews.length,
-    };
-  });
-
-  const topListings = calculatedPosts
-    .filter((p) => p.avgRating >= 4.5 || p.totalReviews >= 10)
-    .sort((a, b) => b.avgRating - a.avgRating)
-    .slice(0, 4); // ✅ ONLY CHANGE: show 4 posts
 
   return (
     <section className="py-24 bg-gradient-to-b from-[#faf8ff] via-[#f5f3ff] to-white">
