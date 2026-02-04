@@ -1,3 +1,5 @@
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
 import "dotenv/config";
 import http from "http";
 import { Server } from "socket.io";

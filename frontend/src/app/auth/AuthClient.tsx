@@ -384,11 +384,8 @@ export default function AuthPage() {
             {/* Extra Links */}
             {mode === "login" && (
               <div className="flex flex-col sm:flex-row justify-between mt-4 text-sm text-gray-500 gap-2">
-                <Link href="#" className="hover:text-[#311970]">
+                <Link href="forgot-password" className="hover:text-[#311970]">
                   Forgot Password?
-                </Link>
-                <Link href="#" className="hover:text-[#311970]">
-                  Need help?
                 </Link>
               </div>
             )}

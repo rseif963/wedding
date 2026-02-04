@@ -11,12 +11,15 @@ import axios from "axios";
 
 export default function FeaturedVendors() {
   const { posts, fetchPosts, likedPosts, fetchLikedPosts, likePost, unlikePost, fetchVendorVerification } = useAppContext();
-  const [liked, setLiked] = useState<string[]>([]);
   const [verifiedVendors, setVerifiedVendors] = useState<Record<string, boolean>>({});
   const [vendorReviewsMap, setVendorReviewsMap] = useState<Record<string, any[]>>({});
   const router = useRouter();
-
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const likedIds = new Set(
+    (likedPosts || []).map(p => String(p._id))
+  );
+
 
   const getFullUrl = (path?: string) => {
     if (!path) return "/assets/vendor-placeholder.jpg";
@@ -24,9 +27,31 @@ export default function FeaturedVendors() {
     return `${API_URL}${path}`;
   };
 
+
   useEffect(() => {
     fetchPosts();
   }, []);
+
+ {/* useEffect(() => {
+    fetchLikedPosts();
+  }, [fetchLikedPosts]);
+
+  useEffect(() => {
+    const loadLikedPosts = async () => {
+      try {
+        const res = await axios.get("/api/clients/liked-posts");
+        const likedPosts = res.data || [];
+        setLikedPostIds(new Set(likedPosts.map((p: any) => p._id)));
+      } catch (err) {
+        console.error("Failed to fetch liked posts:", err);
+        toast.error("Could not fetch liked posts");
+      }
+    };
+
+    loadLikedPosts();
+  }, []);*/}
+
+
 
   // Load reviews for featured vendors
   useEffect(() => {
@@ -76,13 +101,6 @@ export default function FeaturedVendors() {
   }, [posts]);
 
   // Load liked posts on mount and whenever likedPosts changes
-  useEffect(() => {
-    const loadLiked = async () => {
-      const likedData = await fetchLikedPosts();
-      setLiked(likedData.map((p) => p._id));
-    };
-    loadLiked();
-  }, [fetchLikedPosts]);
 
 
   useEffect(() => {
@@ -125,26 +143,24 @@ export default function FeaturedVendors() {
   }, [posts, fetchVendorVerification]);
 
   const handleLike = async (postId: string) => {
-    if (!liked.includes(postId)) {
-      // Like post
-      try {
-        const updated = await likePost(postId);
-        setLiked(updated.map((p) => p._id));
-        toast.success("Post liked!");
-      } catch {
-        toast.error("Failed to like post");
-      }
+  try {
+    if (likedPostIds.has(postId)) {
+      // Unlike
+      const res = await axios.put(`/api/clients/unlike-post/${postId}`);
+      setLikedPostIds(new Set(res.data.map((p: any) => p._id)));
+      toast.success("Post removed from liked posts");
     } else {
-      // Unlike post
-      try {
-        const updated = await unlikePost(postId);
-        setLiked(updated.map((p) => p._id));
-        toast.success("Post removed from liked posts");
-      } catch {
-        toast.error("Failed to unlike post");
-      }
+      // Like
+      const res = await axios.put(`/api/clients/like-post/${postId}`);
+      setLikedPostIds(new Set(res.data.map((p: any) => p._id)));
+      toast.success("Post liked!");
     }
-  };
+  } catch (err) {
+    console.error("Failed to toggle like:", err);
+    toast.error("Something went wrong");
+  }
+};
+
 
 
   const featuredPosts = (posts || []).filter((post) => post.vendor?.featured).slice(0, 12);
@@ -218,21 +234,22 @@ export default function FeaturedVendors() {
                       />
 
                       {/* Like Button */}
-                      <button
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          e.stopPropagation(); // Prevent card click
-                          await handleLike(post._id);
-                        }}
-                        className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
-                      >
-                        <Heart
-                          className={`h-5 w-5 ${liked.includes(post._id)
-                            ? "text-red-500 fill-red-500" // filled if liked
-                            : "text-red-500" // unfilled if not liked
-                            }`}
-                        />
-                      </button>
+                    {/*<button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // Prevent card click
+                        await handleLike(post._id);
+                      }}
+                      className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur rounded-xl p-2 shadow-soft hover:shadow-card transition"
+                    >
+                      <Heart
+                        className={`h-5 w-5 ${likedIds.has(post._id)
+                          ? "text-red-500 fill-red-500"
+                          : "text-red-500"
+                          }`}
+                      />
+
+                    </button> */}
 
 
                       {/* Featured Badge */}
@@ -255,7 +272,6 @@ export default function FeaturedVendors() {
                       <h3 className="text-xl font-bold text-[#311970] truncate mb-1 group-hover:text-primary transition-colors">
                         {v?.businessName}
                       </h3>
-
 
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-gray-600 text-sm">{v?.category}</p>

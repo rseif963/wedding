@@ -26,60 +26,70 @@ router.get("/", auth, permit("admin"), async (req, res) => {
 router.get("/me", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOne({ user: req.user.id }).populate(
     "user",
-    "email"
+    "email",
   );
   res.json(profile);
 });
 
-
-
 // ==================== LIKE A POST ====================
 router.put("/like-post/:postId", auth, permit("client"), async (req, res) => {
-  const { postId } = req.params;
-
   try {
-    const profile = await ClientProfile.findOneAndUpdate(
-      { user: req.user.id },
-      { $addToSet: { likedPosts: postId } }, // only add if not already liked
-      { new: true }
-    ).populate("likedPosts");
+    const profile = await ClientProfile.findOne({ user: req.user.id });
+
+    if (!profile) {
+      return res.status(404).json({ message: "Client profile not found" });
+    }
+
+    // allow multiple posts, prevent duplicates
+    if (!profile.likedPosts.includes(req.params.postId)) {
+      profile.likedPosts.push(req.params.postId);
+      await profile.save();
+    }
 
     res.json(profile.likedPosts);
   } catch (err) {
-    console.error(err);
+    console.error("Like post error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
 // ==================== UNLIKE A POST ====================
 router.put("/unlike-post/:postId", auth, permit("client"), async (req, res) => {
-  const { postId } = req.params;
-
   try {
     const profile = await ClientProfile.findOneAndUpdate(
       { user: req.user.id },
-      { $pull: { likedPosts: postId } },
-      { new: true }
+      { $pull: { likedPosts: req.params.postId } },
+      { new: true },
     ).populate("likedPosts");
+
+    if (!profile) {
+      return res.status(200).json([]);
+    }
 
     res.json(profile.likedPosts);
   } catch (err) {
-    console.error(err);
+    console.error("Unlike post error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
 // ==================== GET ALL LIKED POSTS ====================
+// ==================== GET ALL LIKED POSTS ====================
 router.get("/liked-posts", auth, permit("client"), async (req, res) => {
   try {
-    const profile = await ClientProfile.findOne({ user: req.user.id }).populate("likedPosts");
+    //  Safe populate so deleted posts don't crash
+    const profile = await ClientProfile.findOne({ user: req.user.id }).populate(
+      { path: "likedPosts", strictPopulate: false },
+    );
+
+    if (!profile) return res.json([]);
+
     res.json(profile.likedPosts || []);
   } catch (err) {
-    console.error(err);
+    console.error("Liked posts error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 /* ===========================================================
    GET ALL (PROFILE + GUESTS + BUDGET + TASKS)
@@ -88,7 +98,7 @@ router.get("/me/all", auth, permit("client"), async (req, res) => {
   try {
     const profile = await ClientProfile.findOne({ user: req.user.id }).populate(
       "user",
-      "email"
+      "email",
     );
 
     if (!profile) return res.status(404).json({ message: "Profile not found" });
@@ -118,7 +128,7 @@ router.put("/me", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { brideName, groomName, weddingDate, phone },
-    { new: true, upsert: true }
+    { new: true, upsert: true },
   );
 
   res.json(profile);
@@ -133,7 +143,7 @@ router.put("/expected-guests", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { expectedGuestsCount },
-    { new: true }
+    { new: true },
   );
 
   res.json({ expectedGuestsCount: profile.expectedGuestsCount });
@@ -149,7 +159,7 @@ router.post("/guests", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { $push: { guests: { name, phone, email, rsvp, notes, table } } },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.guests);
@@ -169,7 +179,7 @@ router.put("/guests/:guestId", auth, permit("client"), async (req, res) => {
       "guests._id": guestId,
     },
     { $set: fieldsToUpdate },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.guests);
@@ -181,7 +191,7 @@ router.delete("/guests/:guestId", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { $pull: { guests: { _id: guestId } } },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.guests);
@@ -191,7 +201,7 @@ router.put("/toggle-guests", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { showGuests: req.body.showGuests },
-    { new: true }
+    { new: true },
   );
 
   res.json({ showGuests: profile.showGuests });
@@ -207,7 +217,7 @@ router.put("/budget/planned", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { "budget.plannedAmount": plannedAmount },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.budget);
@@ -219,7 +229,7 @@ router.post("/budget/item", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { $push: { "budget.items": { title, category, cost, paid, notes } } },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.budget);
@@ -237,29 +247,34 @@ router.put("/budget/item/:itemId", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id, "budget.items._id": itemId },
     { $set: updateFields },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.budget);
 });
 
-router.delete("/budget/item/:itemId", auth, permit("client"), async (req, res) => {
-  const { itemId } = req.params;
+router.delete(
+  "/budget/item/:itemId",
+  auth,
+  permit("client"),
+  async (req, res) => {
+    const { itemId } = req.params;
 
-  const profile = await ClientProfile.findOneAndUpdate(
-    { user: req.user.id },
-    { $pull: { "budget.items": { _id: itemId } } },
-    { new: true }
-  );
+    const profile = await ClientProfile.findOneAndUpdate(
+      { user: req.user.id },
+      { $pull: { "budget.items": { _id: itemId } } },
+      { new: true },
+    );
 
-  res.json(profile.budget);
-});
+    res.json(profile.budget);
+  },
+);
 
 router.put("/budget/toggle", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { "budget.showBudget": req.body.showBudget },
-    { new: true }
+    { new: true },
   );
 
   res.json({ showBudget: profile.budget.showBudget });
@@ -275,7 +290,7 @@ router.post("/tasks", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { $push: { tasks: { title, description, dueDate, category } } },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.tasks);
@@ -292,7 +307,7 @@ router.put("/tasks/:taskId", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id, "tasks._id": taskId },
     { $set: updateFields },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.tasks);
@@ -304,7 +319,7 @@ router.delete("/tasks/:taskId", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { $pull: { tasks: { _id: taskId } } },
-    { new: true }
+    { new: true },
   );
 
   res.json(profile.tasks);
@@ -314,7 +329,7 @@ router.put("/tasks/toggle", auth, permit("client"), async (req, res) => {
   const profile = await ClientProfile.findOneAndUpdate(
     { user: req.user.id },
     { showChecklist: req.body.showChecklist },
-    { new: true }
+    { new: true },
   );
 
   res.json({ showChecklist: profile.showChecklist });

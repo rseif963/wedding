@@ -402,9 +402,9 @@ export default function VendorProfile() {
                       <Image
                         src="/assets/verify.png"
                         alt="Wedpine Logo"
-                        width={20}
-                        height={20}
-                        className="object-contain mt-2"
+                        width={18}
+                        height={18}
+                        className="object-contain mt-1 md:mt-2"
                       />
                     )}
                   </div>

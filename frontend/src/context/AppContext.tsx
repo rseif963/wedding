@@ -297,6 +297,14 @@ interface AppContextType {
   markConversationRead: (conversationId: string) => Promise<void>;
 
 
+  forgotPassword: (email: string) => Promise<boolean>;
+  verifyResetCode: (email: string, code: string) => Promise<boolean>;
+  resetPassword: (
+    email: string,
+    code: string,
+    newPassword: string
+  ) => Promise<boolean>;
+
 
   login: (email: string, password: string) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<boolean>;
@@ -435,6 +443,57 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // ===== AUTH: FORGOT PASSWORD FLOW =====
+
+  // Step 1: Send reset code to email
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    try {
+      await axios.post("/api/auth/forgot-password", { email });
+      toast.success("If an account exists, a reset code was sent");
+      return true;
+    } catch (err: any) {
+      toast.error("Something went wrong");
+      return false;
+    }
+  };
+
+  // Step 2: Verify reset code
+  const verifyResetCode = async (
+    email: string,
+    code: string
+  ): Promise<boolean> => {
+    try {
+      await axios.post("/api/auth/verify-reset-code", { email, code });
+      toast.success("Code verified");
+      return true;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Invalid or expired code");
+      return false;
+    }
+  };
+
+  // Step 3: Reset password
+  const resetPassword = async (
+    email: string,
+    code: string,
+    newPassword: string
+  ): Promise<boolean> => {
+    try {
+      await axios.post("/api/auth/reset-password", {
+        email,
+        code,
+        newPassword,
+      });
+
+      toast.success("Password reset successful");
+      return true;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Password reset failed");
+      return false;
+    }
+  };
+
+
   const login = async (email: string, password: string) => {
     try {
       const res = await axios.post("/api/auth/login", { email, password });
@@ -479,56 +538,68 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch all liked posts for the logged-in client
   const fetchLikedPosts = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return [];
-
     try {
       const res = await axios.get(`/api/clients/liked-posts`);
       const likedPosts: VendorPost[] = res.data || [];
-      setClientProfile((prev) => ({ ...prev, likedPosts }));
+
+      setClientProfile((prev) => ({
+        ...prev,
+        likedPosts,
+      }));
+
       return likedPosts;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to fetch liked posts:", err);
       toast.error("Could not fetch liked posts");
       return [];
     }
-  }, [clientProfile]);
+  }, [setClientProfile]);
+
+
 
   // Like a post
   const likePost = useCallback(async (postId: string) => {
-    const userId = getUserId();
-    if (!userId) return [];
-
     try {
       const res = await axios.put(`/api/clients/like-post/${postId}`);
       const likedPosts: VendorPost[] = res.data || [];
-      setClientProfile((prev) => ({ ...prev, likedPosts }));
+
+      setClientProfile((prev) => ({
+        ...prev,
+        likedPosts: Array.from(
+          new Map(likedPosts.map(p => [p._id, p])).values()
+        ),
+      }));
+
       toast.success("Post liked!");
       return likedPosts;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to like post:", err);
       toast.error("Could not like post");
-      return clientProfile?.likedPosts || [];
+      return [];
     }
-  }, [clientProfile]);
+  }, []);
+
 
   // Unlike a post
   const unlikePost = useCallback(async (postId: string) => {
-    const userId = getUserId();
-    if (!userId) return [];
-
     try {
       const res = await axios.put(`/api/clients/unlike-post/${postId}`);
       const likedPosts: VendorPost[] = res.data || [];
-      setClientProfile((prev) => ({ ...prev, likedPosts }));
+
+      setClientProfile((prev) => ({
+        ...prev,
+        likedPosts,
+      }));
+
       toast.success("Post removed from liked posts");
       return likedPosts;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to unlike post:", err);
       toast.error("Could not remove post from liked posts");
-      return clientProfile?.likedPosts || [];
+      return [];
     }
-  }, [clientProfile]);
+  }, []);
+
 
 
 
@@ -1756,7 +1827,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         // auth & profile
         login,
-
+        forgotPassword,
+        verifyResetCode,
+        resetPassword,
         register,
         logout,
         fetchUser,
