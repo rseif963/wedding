@@ -742,7 +742,7 @@ const VendorsPage = () => {
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
 
-                            <button
+                            {/*<button
                               onClick={(e) => {
                                 e.preventDefault();
                                 toggleLike(post._id);
@@ -755,7 +755,7 @@ const VendorsPage = () => {
                                   : "text-red-500"
                                   }`}
                               />
-                            </button>
+                            </button>*/}
                             <div className="absolute top-4 left-4 flex gap-2 z-20">
                               {v?.featured && (
                                 <span className="bg-[#311970] text-white px-3 py-1 text-xs font-semibold rounded-full">
