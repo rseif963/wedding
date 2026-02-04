@@ -19,17 +19,17 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Wedpine – Wedding Vendors & Planning Platform",
+    default: "Wedpine | Wedding Vendors & Planning Platform",
     template: "%s | Wedpine",
   },
   description:
-    "Find trusted wedding vendors, venues, photographers, caterers and planners on Wedpine.",
+    "Find trusted wedding vendors in kenya, venues, photographers, caterers and planners on Wedpine.",
   keywords: [
-    "wedding vendors",
-    "wedding planning",
-    "wedding photographers",
-    "wedding venues",
-    "wedding catering",
+    "wedding vendors in kenya",
+    "wedding vendors in nairobi",
+    "wedding photographers in kenya",
+    "wedding venues in nairobi",
+    "wedding planning webiste",
   ],
   metadataBase: new URL("https://www.wedpine.com"),
   openGraph: {
@@ -60,7 +60,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="font-sans bg-gray-50 text-gray-800 bg-white">
 
-        {/* 🔹 Structured Data (SEO) */}
+        {/* Structured Data (SEO) */}
         <Script
           id="site-name"
           type="application/ld+json"
@@ -76,7 +76,7 @@ export default function RootLayout({
           }}
         />
 
-        {/* 🔹 Google Analytics */}
+        {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-GMT9GH8T3L"
           strategy="afterInteractive"

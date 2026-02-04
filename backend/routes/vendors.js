@@ -66,7 +66,9 @@ router.put(
       }
 
       if (req.files?.profilePhoto?.[0]) {
-        updates.profilePhoto = await uploadToImageKit(req.files.profilePhoto[0]);
+        updates.profilePhoto = await uploadToImageKit(
+          req.files.profilePhoto[0],
+        );
       }
 
       if (req.files?.coverPhoto?.[0]) {
@@ -97,7 +99,7 @@ router.put(
       const profile = await VendorProfile.findOneAndUpdate(
         { user: req.user.id },
         updates,
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
 
       res.json(profile);
@@ -105,7 +107,7 @@ router.put(
       console.error("Error updating vendor profile:", err);
       res.status(500).json({ message: "Server error" });
     }
-  }
+  },
 );
 
 /**
@@ -133,7 +135,7 @@ router.get("/:id", async (req, res) => {
   try {
     const profile = await VendorProfile.findById(req.params.id).populate(
       "user",
-      "email"
+      "email",
     );
     if (!profile) return res.status(404).json({ message: "Not found" });
     res.json(profile);
@@ -152,7 +154,7 @@ router.put("/:id/feature", auth, permit("admin"), async (req, res) => {
     const vendor = await VendorProfile.findByIdAndUpdate(
       req.params.id,
       { featured },
-      { new: true }
+      { new: true },
     );
 
     if (!vendor) return res.status(404).json({ message: "Vendor not found" });
@@ -161,6 +163,30 @@ router.put("/:id/feature", auth, permit("admin"), async (req, res) => {
     res.json({ success: true, vendor });
   } catch (err) {
     console.error("Error toggling vendor featured:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/**
+ * Toggle topListing (admin only) and update all posts for that vendor
+ */
+router.put("/:id/top-listing", auth, permit("admin"), async (req, res) => {
+  try {
+    const { topListing } = req.body; // expecting { topListing: true/false }
+    const vendor = await VendorProfile.findByIdAndUpdate(
+      req.params.id,
+      { topListing },
+      { new: true },
+    );
+
+    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+    // Update all posts of this vendor to match topListing status
+    await VendorPost.updateMany({ vendor: vendor._id }, { topListing });
+
+    res.json({ success: true, vendor });
+  } catch (err) {
+    console.error("Error toggling vendor topListing:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

@@ -10,7 +10,7 @@ const VendorProfileSchema = new mongoose.Schema(
     description: { type: String },
     logo: { type: String },
     phone: { type: String, required: true },
-    email: { type: String},
+    email: { type: String },
     profilePhoto: { type: String, default: "" },
     coverPhoto: { type: String, default: "" },
 
@@ -59,9 +59,14 @@ const VendorProfileSchema = new mongoose.Schema(
       default: false,
     },
 
+    topListing: {
+      type: Boolean,
+      default: false,
+    },
+
     createdAt: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const VendorProfile = mongoose.model("VendorProfile", VendorProfileSchema);

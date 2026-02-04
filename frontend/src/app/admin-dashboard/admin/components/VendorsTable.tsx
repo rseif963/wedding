@@ -15,6 +15,7 @@ type Vendor = {
   rating?: number;
   reviewsCount?: number;
   featured?: boolean;
+  topListing?: boolean;
 };
 
 export default function VendorsTable() {
@@ -28,6 +29,10 @@ export default function VendorsTable() {
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
 
   const fetchVendors = async () => {
     try {
@@ -85,9 +90,23 @@ export default function VendorsTable() {
     }
   };
 
-  useEffect(() => {
-    fetchVendors();
-  }, []);
+  const toggleTopListing = async (vendor: Vendor) => {
+    try {
+      await axios.put(`${API_URL}/api/vendors/${vendor._id}/top-listing`, {
+        topListing: !vendor.topListing,
+      });
+      toast.success(
+        vendor.topListing
+          ? "Removed from top listing"
+          : "Marked as top listing"
+      );
+      fetchVendors();
+      setSelectedVendor(null);
+    } catch {
+      toast.error("Failed to update vendor");
+    }
+  };
+
 
   const filteredVendors = vendors.filter((v) =>
     v.businessName?.toLowerCase().includes(search.toLowerCase())
@@ -146,7 +165,13 @@ export default function VendorsTable() {
                         Featured
                       </span>
                     )}
+                    {v.topListing && (
+                      <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
+                        Top Listing
+                      </span>
+                    )}
                   </td>
+
 
                   <td className="py-4">
                     <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs">
@@ -225,9 +250,14 @@ export default function VendorsTable() {
                 onClick={() => toggleFeatured(selectedVendor)}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm"
               >
-                {selectedVendor.featured
-                  ? "Remove Featured"
-                  : "Mark as Featured"}
+                {selectedVendor.featured ? "Remove Featured" : "Mark as Featured"}
+              </button>
+
+              <button
+                onClick={() => toggleTopListing(selectedVendor)}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm"
+              >
+                {selectedVendor.topListing ? "Remove Top Listing" : "Mark as Top Listing"}
               </button>
 
               <button
@@ -237,6 +267,7 @@ export default function VendorsTable() {
                 Close
               </button>
             </div>
+
           </div>
         </div>
       )}

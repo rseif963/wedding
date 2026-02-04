@@ -105,6 +105,7 @@ interface VendorPost {
   galleryImages?: string[];
   galleryVideos?: string[];
   featured?: boolean;
+  topListing?: boolean;
   [k: string]: any;
 }
 
