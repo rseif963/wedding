@@ -18,15 +18,17 @@ export default function TopListingVendors() {
   const API_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
+    
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
   const getFullUrl = (path?: string) => {
     if (!path) return "/assets/vendor-placeholder.jpg";
     if (path.startsWith("http")) return path;
     return `${API_URL}${path}`;
   };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
 
   // Load reviews for all vendors
   useEffect(() => {
@@ -187,7 +189,7 @@ export default function TopListingVendors() {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
 
-                     {/* <button
+                      {/* <button
                         onClick={(e) => {
                           e.preventDefault();
                           toggleLike(post._id);
